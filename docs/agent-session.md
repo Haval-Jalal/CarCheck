@@ -147,7 +147,70 @@
 - **Tests:** 117/117 passing
 
 ### Next Steps
-1. **Phase 2:** Set up EF Core in Infrastructure layer with Supabase PostgreSQL
-2. **Phase 2:** Implement repository concrete classes
+1. ~~**Phase 2:** Set up EF Core in Infrastructure layer with Supabase PostgreSQL~~ ✅
+2. ~~**Phase 2:** Implement repository concrete classes~~ ✅
 3. **Phase 2:** Create database migration tooling
 4. **Phase 3:** Authentication (JWT + refresh tokens + 2FA)
+
+---
+
+## Session #3 — 2026-02-12
+
+### State: Phase 2 — Database + Infrastructure Layer
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. EF Core + Npgsql Setup
+- **Timestamp:** 2026-02-12T17:45:00Z
+- **Packages installed:**
+  - `Npgsql.EntityFrameworkCore.PostgreSQL 9.0.4` → Infrastructure
+  - `Microsoft.EntityFrameworkCore.Design 9.0.13` → API
+- **Note:** v10.0 requires .NET 10; pinned to 9.x for .NET 9 compatibility
+
+#### 2. DbContext Created
+- **File:** `src/CarCheck.Infrastructure/Persistence/CarCheckDbContext.cs`
+- **DbSets:** Users, Cars, AnalysisResults, SearchHistories, Favorites, PasswordResets, SecurityEvents
+- **Pattern:** `ApplyConfigurationsFromAssembly` for auto-discovery
+
+#### 3. Entity Configurations (7 files)
+- **Path:** `src/CarCheck.Infrastructure/Persistence/Configurations/`
+- **Files:** UserConfiguration, CarConfiguration, AnalysisResultConfiguration, SearchHistoryConfiguration, FavoriteConfiguration, PasswordResetConfiguration, SecurityEventConfiguration
+- **Features:**
+  - Snake_case table/column names matching SQL migration
+  - Value object conversions (Email ↔ string, RegistrationNumber ↔ string)
+  - Indexes, unique constraints, default values
+  - JSONB type for SecurityEvent.Metadata
+
+#### 4. Repository Implementations (5 files)
+- **Path:** `src/CarCheck.Infrastructure/Persistence/Repositories/`
+- **Files:** UserRepository, CarRepository, AnalysisResultRepository, SearchHistoryRepository, FavoriteRepository
+- **Pattern:** Scoped lifetime, async/await, CancellationToken support, pagination
+
+#### 5. DI Registration
+- **File:** `src/CarCheck.Infrastructure/DependencyInjection.cs`
+- **Method:** `AddInfrastructure(IConfiguration)` extension method
+- **Registers:** DbContext + all 5 repositories
+
+#### 6. API Configuration Updated
+- **File:** `src/CarCheck.API/Program.cs` — cleaned up, added health endpoint, wired DI
+- **File:** `src/CarCheck.API/appsettings.json` — added ConnectionStrings section
+- **File:** `src/CarCheck.API/appsettings.Development.json` — local dev connection string
+
+### Architectural Decisions
+1. **EF Core 9.0.x** (not 10.0 which requires .NET 10)
+2. **Fluent API configurations** in separate IEntityTypeConfiguration classes
+3. **Value object conversions** via HasConversion in EF config
+4. **Repository per aggregate** with scoped lifetime
+5. **Connection string from IConfiguration** — supports env-specific overrides and secrets
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 120 passing (117 domain + 3 boilerplate)
+
+### Next Steps
+1. **Phase 3:** Implement authentication (JWT + refresh tokens + 2FA)
+2. **Phase 3:** Add BCrypt password hashing service
+3. **Phase 3:** Auth endpoints (register, login, refresh, logout)
+4. **Phase 3:** Security event logging
