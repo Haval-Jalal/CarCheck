@@ -1,4 +1,7 @@
+using CarCheck.Application.Auth;
+using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Interfaces;
+using CarCheck.Infrastructure.Auth;
 using CarCheck.Infrastructure.Persistence;
 using CarCheck.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +20,20 @@ public static class DependencyInjection
         services.AddDbContext<CarCheckDbContext>(options =>
             options.UseNpgsql(connectionString));
 
+        // Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICarRepository, CarRepository>();
         services.AddScoped<IAnalysisResultRepository, AnalysisResultRepository>();
         services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
         services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+
+        // Auth
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+        services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<ISecurityEventLogger, SecurityEventLogger>();
+        services.AddScoped<AuthService>();
 
         return services;
     }

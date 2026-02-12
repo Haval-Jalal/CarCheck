@@ -1,3 +1,4 @@
+using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ public class CarCheckDbContext : DbContext
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
+    public DbSet<RefreshTokenEntry> RefreshTokens => Set<RefreshTokenEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
