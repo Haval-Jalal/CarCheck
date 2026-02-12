@@ -210,7 +210,68 @@
 - **Tests:** 120 passing (117 domain + 3 boilerplate)
 
 ### Next Steps
-1. **Phase 3:** Implement authentication (JWT + refresh tokens + 2FA)
-2. **Phase 3:** Add BCrypt password hashing service
-3. **Phase 3:** Auth endpoints (register, login, refresh, logout)
-4. **Phase 3:** Security event logging
+1. ~~**Phase 3:** Implement authentication~~ ✅
+2. ~~**Phase 3:** Add BCrypt password hashing service~~ ✅
+3. ~~**Phase 3:** Auth endpoints~~ ✅
+4. ~~**Phase 3:** Security event logging~~ ✅
+
+---
+
+## Session #4 — 2026-02-12
+
+### State: Phase 3 — Authentication System
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. Application Layer Auth Interfaces
+- `IPasswordHasher` — hash/verify abstraction
+- `ITokenService` — JWT access + refresh token generation/validation
+- `IRefreshTokenRepository` — refresh token CRUD + revocation
+- `ISecurityEventLogger` — audit logging abstraction
+- `AuthDTOs` — Register, Login, Refresh, ChangePassword, PasswordReset request/response records
+- `AuthService` — orchestrates register, login, refresh, logout, logout-all, change-password
+- `Result<T>` — generic result type for error handling
+
+#### 2. Infrastructure Auth Implementations
+- `BcryptPasswordHasher` — BCrypt.Net-Next with work factor 12
+- `JwtSettings` — options pattern for JWT configuration
+- `JwtTokenService` — HMAC-SHA256 JWT generation with claims (sub, email, jti, email_verified, 2fa)
+- `SecurityEventLogger` — persists to security_events table
+- `RefreshTokenRepository` — EF Core-based refresh token storage
+
+#### 3. Database Changes
+- `RefreshTokenEntry` added to DbContext
+- `RefreshTokenConfiguration` with snake_case mapping
+- `002_refresh_tokens.sql` migration
+
+#### 4. API Layer
+- JWT Bearer authentication middleware configured
+- Auth endpoints: POST register, login, refresh, logout, logout-all, change-password
+- Minimal API with route groups under `/api/auth`
+
+#### 5. Tests (15 new)
+- Register: valid, duplicate email, short password
+- Login: valid credentials, wrong password, non-existent email
+- Refresh: valid rotation, revoked token, expired token
+- Logout: single session, all sessions
+- Change password: valid, wrong current, short new, non-existent user
+- Using NSubstitute for mocking
+
+### Architectural Decisions
+1. **BCrypt work factor 12** — balances security and performance
+2. **JWT HMAC-SHA256** with short-lived access tokens (15 min)
+3. **Refresh token rotation** — old token revoked on each refresh
+4. **Password change invalidates all sessions** — security best practice
+5. **Result<T> pattern** — avoids exceptions for business logic errors
+6. **NSubstitute** for test mocking — clean, readable test code
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 134 passing (117 domain + 15 auth + 2 boilerplate)
+
+### Next Steps
+1. **Phase 4:** Car search + analysis + caching
+2. **Phase 5:** Search history + favorites endpoints
+3. **Phase 6:** Rate limiting + CAPTCHA
