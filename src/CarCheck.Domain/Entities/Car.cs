@@ -1,9 +1,11 @@
+using CarCheck.Domain.ValueObjects;
+
 namespace CarCheck.Domain.Entities;
 
 public class Car
 {
     public Guid Id { get; private set; }
-    public string RegistrationNumber { get; private set; } = string.Empty;
+    public RegistrationNumber RegistrationNumber { get; private set; } = null!;
     public string Brand { get; private set; } = string.Empty;
     public string Model { get; private set; } = string.Empty;
     public int Year { get; private set; }
@@ -13,9 +15,6 @@ public class Car
 
     public static Car Create(string registrationNumber, string brand, string model, int year, int mileage)
     {
-        if (string.IsNullOrWhiteSpace(registrationNumber))
-            throw new ArgumentException("Registration number is required.", nameof(registrationNumber));
-
         if (string.IsNullOrWhiteSpace(brand))
             throw new ArgumentException("Brand is required.", nameof(brand));
 
@@ -31,7 +30,7 @@ public class Car
         return new Car
         {
             Id = Guid.NewGuid(),
-            RegistrationNumber = registrationNumber.ToUpperInvariant().Trim(),
+            RegistrationNumber = RegistrationNumber.Create(registrationNumber),
             Brand = brand.Trim(),
             Model = model.Trim(),
             Year = year,
