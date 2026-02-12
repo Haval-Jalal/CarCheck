@@ -48,5 +48,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = Dat
     .WithName("HealthCheck");
 
 app.MapAuthEndpoints();
+app.MapCarEndpoints();
 
 app.Run();

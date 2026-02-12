@@ -1,7 +1,10 @@
 using CarCheck.Application.Auth;
+using CarCheck.Application.Cars;
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Interfaces;
 using CarCheck.Infrastructure.Auth;
+using CarCheck.Infrastructure.Caching;
+using CarCheck.Infrastructure.External;
 using CarCheck.Infrastructure.Persistence;
 using CarCheck.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +37,17 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ISecurityEventLogger, SecurityEventLogger>();
         services.AddScoped<AuthService>();
+
+        // Caching
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, InMemoryCacheService>();
+
+        // Car data provider (swap to real API in production)
+        services.AddScoped<ICarDataProvider, MockCarDataProvider>();
+
+        // Car services
+        services.AddScoped<CarAnalysisEngine>();
+        services.AddScoped<CarSearchService>();
 
         return services;
     }

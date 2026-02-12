@@ -272,6 +272,85 @@
 - **Tests:** 134 passing (117 domain + 15 auth + 2 boilerplate)
 
 ### Next Steps
-1. **Phase 4:** Car search + analysis + caching
+1. ~~**Phase 4:** Car search + analysis + caching~~ ✅
 2. **Phase 5:** Search history + favorites endpoints
 3. **Phase 6:** Rate limiting + CAPTCHA
+
+---
+
+## Session #5 — 2026-02-12
+
+### State: Phase 4 — Car Search & Analysis
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. Car Data Provider Abstraction
+- **File:** `src/CarCheck.Application/Interfaces/ICarDataProvider.cs`
+- **Record:** `CarDataResult` — 13 fields covering vehicle specs, insurance, recalls, inspection, market value
+- **Pattern:** Async with CancellationToken, nullable fields for unknown data
+
+#### 2. Cache Service Abstraction
+- **File:** `src/CarCheck.Application/Interfaces/ICacheService.cs`
+- **Methods:** GetAsync, SetAsync, RemoveAsync — generic, Redis-ready
+- **Implementation:** `InMemoryCacheService` using `IMemoryCache` (JSON serialization)
+
+#### 3. Car Analysis Engine
+- **File:** `src/CarCheck.Application/Cars/CarAnalysisEngine.cs`
+- **Scoring categories:** Age (25%), Mileage (25%), Insurance (20%), Recalls (15%), Inspection (15%)
+- **Score range:** 0-100 with clamping
+- **Recommendations:** 5 tiers (Excellent/Good/Fair/Below Average/Poor)
+- **Mileage:** Scored against Swedish average (~12,000 km/year)
+- **Null handling:** Unknown data gets neutral scores
+
+#### 4. Car Search Service
+- **File:** `src/CarCheck.Application/Cars/CarSearchService.cs`
+- **Search flow:** Cache → DB → External Provider → Persist + Cache
+- **Analysis flow:** Cache → Recent DB result (<24h) → Fresh provider fetch → Engine → Persist + Cache
+- **Search history:** Automatically recorded on every search
+- **Cache TTL:** 1 hour
+
+#### 5. DTOs
+- **File:** `src/CarCheck.Application/Cars/DTOs/CarDTOs.cs`
+- **Records:** CarSearchRequest, CarSearchResponse, CarAnalysisResponse, AnalysisBreakdown
+
+#### 6. Mock Car Data Provider
+- **File:** `src/CarCheck.Infrastructure/External/MockCarDataProvider.cs`
+- **5 mock vehicles:** Volvo XC60 (excellent), BMW 320d (good), Toyota Corolla (fair), Tesla Model 3 (new), VW Golf (poor)
+- **Purpose:** Development/testing — swap with real API (Transportstyrelsen/Biluppgifter) for production
+
+#### 7. In-Memory Cache Service
+- **File:** `src/CarCheck.Infrastructure/Caching/InMemoryCacheService.cs`
+- **Pattern:** JSON serialization to IMemoryCache — swappable with Redis later
+
+#### 8. API Endpoints
+- **File:** `src/CarCheck.API/Endpoints/CarEndpoints.cs`
+- **Routes:**
+  - `POST /api/cars/search` — Search by registration number (authenticated)
+  - `GET /api/cars/{carId}/analysis` — Run analysis on a car (authenticated)
+
+#### 9. DI Registration Updated
+- **File:** `src/CarCheck.Infrastructure/DependencyInjection.cs`
+- **Added:** ICacheService, ICarDataProvider, CarAnalysisEngine, CarSearchService, MemoryCache
+
+#### 10. Unit Tests (45 new)
+- **CarAnalysisEngineTests.cs** (21 tests): Age/mileage/insurance/recall/inspection scoring, full analysis
+- **CarSearchServiceTests.cs** (10 tests): Cache hit, DB hit, provider fetch, not found, analysis flow
+- **Total:** 179 tests passing (117 domain + 60 application + 2 boilerplate)
+
+### Architectural Decisions
+1. **Strategy pattern** for ICarDataProvider — swap mock for real API without code changes
+2. **Multi-tier caching** — IMemoryCache now, Redis later via ICacheService swap
+3. **Weighted scoring model** — 5 categories with Swedish market-calibrated benchmarks
+4. **Null-safe analysis** — unknown data gets neutral scores rather than penalties
+5. **InternalsVisibleTo** — exposes internal scoring methods to test project
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 179 passing (117 domain + 60 application + 2 boilerplate)
+
+### Next Steps
+1. **Phase 5:** Search history + favorites endpoints
+2. **Phase 6:** Rate limiting + CAPTCHA
+3. **Phase 7:** Email verification + password reset
