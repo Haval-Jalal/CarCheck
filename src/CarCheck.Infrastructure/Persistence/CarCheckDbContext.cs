@@ -16,6 +16,7 @@ public class CarCheckDbContext : DbContext
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
     public DbSet<RefreshTokenEntry> RefreshTokens => Set<RefreshTokenEntry>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

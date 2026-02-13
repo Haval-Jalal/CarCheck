@@ -1,4 +1,5 @@
 using CarCheck.Application.Auth;
+using CarCheck.Application.Billing;
 using CarCheck.Application.Cars;
 using CarCheck.Application.Favorites;
 using CarCheck.Application.History;
@@ -59,6 +60,11 @@ public static class DependencyInjection
         // Rate limiting & CAPTCHA
         services.AddSingleton<IRateLimitService, InMemoryRateLimitService>();
         services.AddScoped<ICaptchaService, MockCaptchaService>();
+
+        // Billing & Subscriptions
+        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+        services.AddScoped<IBillingProvider, MockBillingProvider>();
+        services.AddScoped<SubscriptionService>();
 
         return services;
     }
