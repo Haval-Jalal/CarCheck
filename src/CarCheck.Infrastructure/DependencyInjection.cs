@@ -7,6 +7,7 @@ using CarCheck.Domain.Interfaces;
 using CarCheck.Infrastructure.Auth;
 using CarCheck.Infrastructure.Caching;
 using CarCheck.Infrastructure.External;
+using CarCheck.Infrastructure.RateLimiting;
 using CarCheck.Infrastructure.Persistence;
 using CarCheck.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,10 @@ public static class DependencyInjection
         // History & Favorites
         services.AddScoped<SearchHistoryService>();
         services.AddScoped<FavoriteService>();
+
+        // Rate limiting & CAPTCHA
+        services.AddSingleton<IRateLimitService, InMemoryRateLimitService>();
+        services.AddScoped<ICaptchaService, MockCaptchaService>();
 
         return services;
     }

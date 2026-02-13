@@ -1,6 +1,6 @@
 namespace CarCheck.Application.Cars.DTOs;
 
-public record CarSearchRequest(string RegistrationNumber);
+public record CarSearchRequest(string RegistrationNumber, string? CaptchaToken = null);
 
 public record CarSearchResponse(
     Guid CarId,
