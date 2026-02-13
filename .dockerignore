@@ -1,0 +1,12 @@
+**/.git
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+**/.env
+**/coverage
+**/*.md
+**/docs
+**/.github
+**/scripts

@@ -25,5 +25,39 @@ jobs:
       - name: Build
         run: dotnet build CarCheck.sln --no-restore --configuration Release
 
-      - name: Run tests
-        run: dotnet test CarCheck.sln --no-build --configuration Release --verbosity normal
+      - name: Run tests with coverage
+        run: dotnet test CarCheck.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: ./coverage/**/coverage.cobertura.xml
+          retention-days: 30
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore CarCheck.sln
+
+      - name: Check for vulnerable packages
+        run: dotnet list CarCheck.sln package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+
+      - name: Upload vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-report
+          path: vulnerability-report.txt
