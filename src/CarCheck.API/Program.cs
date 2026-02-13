@@ -41,6 +41,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseHttpsRedirection();
 app.UseMiddleware<RateLimitingMiddleware>();
 app.UseAuthentication();
@@ -55,5 +57,6 @@ app.MapCarEndpoints();
 app.MapHistoryEndpoints();
 app.MapFavoriteEndpoints();
 app.MapBillingEndpoints();
+app.MapGdprEndpoints();
 
 app.Run();
