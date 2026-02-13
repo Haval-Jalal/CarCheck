@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using CarCheck.Application.Billing;
+using CarCheck.Domain.Enums;
 using CarCheck.Domain.Interfaces;
 
 namespace CarCheck.API.Middleware;
@@ -6,7 +8,6 @@ namespace CarCheck.API.Middleware;
 public class DailyQuotaMiddleware
 {
     private readonly RequestDelegate _next;
-    private const int FreeSearchesPerDay = 5;
 
     // Only applies to car search endpoint
     private const string SearchPath = "/api/cars/search";
@@ -16,7 +17,7 @@ public class DailyQuotaMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, ISearchHistoryRepository searchHistoryRepository)
+    public async Task InvokeAsync(HttpContext context, ISearchHistoryRepository searchHistoryRepository, ISubscriptionRepository subscriptionRepository)
     {
         // Only enforce on car search endpoint
         if (!context.Request.Path.StartsWithSegments(SearchPath, StringComparison.OrdinalIgnoreCase)
@@ -35,18 +36,26 @@ public class DailyQuotaMiddleware
             return;
         }
 
+        // Resolve tier-based daily limit
+        var subscription = await subscriptionRepository.GetActiveByUserIdAsync(userId);
+        var tier = subscription?.Tier ?? SubscriptionTier.Free;
+        var limits = TierConfiguration.GetLimits(tier);
+        var dailyLimit = limits.DailySearches;
+
         var todayCount = await searchHistoryRepository.GetCountByUserIdTodayAsync(userId);
 
-        context.Response.Headers["X-DailyQuota-Limit"] = FreeSearchesPerDay.ToString();
-        context.Response.Headers["X-DailyQuota-Remaining"] = Math.Max(0, FreeSearchesPerDay - todayCount).ToString();
+        context.Response.Headers["X-DailyQuota-Limit"] = dailyLimit.ToString();
+        context.Response.Headers["X-DailyQuota-Remaining"] = Math.Max(0, dailyLimit - todayCount).ToString();
+        context.Response.Headers["X-Subscription-Tier"] = tier.ToString();
 
-        if (todayCount >= FreeSearchesPerDay)
+        if (todayCount >= dailyLimit)
         {
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
             await context.Response.WriteAsJsonAsync(new
             {
                 error = "Daily search quota exceeded.",
-                limit = FreeSearchesPerDay,
+                tier = tier.ToString(),
+                limit = dailyLimit,
                 used = todayCount,
                 resetsAt = DateTime.UtcNow.Date.AddDays(1).ToString("o")
             });

@@ -54,5 +54,6 @@ app.MapAuthEndpoints();
 app.MapCarEndpoints();
 app.MapHistoryEndpoints();
 app.MapFavoriteEndpoints();
+app.MapBillingEndpoints();
 
 app.Run();

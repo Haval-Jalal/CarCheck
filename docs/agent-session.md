@@ -438,6 +438,64 @@
 - **Tests:** 200 passing (117 domain + 71 application + 11 infrastructure + 1 API boilerplate)
 
 ### Next Steps
-1. **Phase 7:** Paid provider abstraction & billing hooks
+1. ~~**Phase 7:** Paid provider abstraction & billing hooks~~ ✅
 2. **Phase 8:** CI/CD & staging deploy
 3. **Phase 9:** Production readiness
+
+---
+
+## Session #8 — 2026-02-12
+
+### State: Phase 7 — Paid Provider Abstraction & Billing
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. Subscription Entity & Enum
+- **Files:** `Domain/Entities/Subscription.cs`, `Domain/Enums/SubscriptionTier.cs`
+- **Tiers:** Free, Pro, Premium
+- **Methods:** Create, Cancel, Upgrade, Downgrade, HasExpired
+
+#### 2. Tier Configuration
+- **File:** `Application/Billing/TierConfiguration.cs`
+- **Free:** 5/day, 50/month, no analysis, 0 SEK
+- **Pro:** 50/day, 500/month, analysis included, 99 SEK/month
+- **Premium:** Unlimited, analysis included, 249 SEK/month
+
+#### 3. Billing Provider Abstraction
+- **Interface:** `Application/Interfaces/IBillingProvider.cs`
+- **Methods:** CreateCheckoutSession, CancelSubscription, GetSubscriptionStatus
+- **Mock:** `Infrastructure/External/MockBillingProvider.cs`
+
+#### 4. Subscription Service
+- **File:** `Application/Billing/SubscriptionService.cs`
+- **Features:** Get current subscription, create checkout, activate, cancel
+- **Security:** Event logging on all subscription actions
+
+#### 5. API Endpoints
+- `GET /api/billing/tiers` — List all tiers (public)
+- `GET /api/billing/subscription` — Get current subscription (auth)
+- `POST /api/billing/checkout` — Create checkout session (auth)
+- `POST /api/billing/cancel` — Cancel subscription (auth)
+
+#### 6. Daily Quota Upgraded
+- DailyQuotaMiddleware now reads user's subscription tier from DB
+- Quota limits are tier-aware (5/50/unlimited daily searches)
+- X-Subscription-Tier header added to responses
+
+#### 7. Database Migration
+- **File:** `db/migrations/003_subscriptions.sql`
+
+#### 8. Unit Tests (23 new)
+- **SubscriptionTests** (10): Create, cancel, upgrade, downgrade, hasExpired
+- **SubscriptionServiceTests** (10): Get current, checkout, activate, cancel, tiers
+- **TierConfigurationTests** (3): Free, Pro, Premium limits
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 223 passing (127 domain + 84 application + 11 infrastructure + 1 API)
+
+### Next Steps
+1. **Phase 8:** CI/CD & staging deploy
+2. **Phase 9:** Production readiness
