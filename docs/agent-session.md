@@ -550,3 +550,64 @@
 
 ### Next Steps
 1. **Phase 9:** Production readiness (logging, GDPR, checklist)
+
+---
+
+## Session #10 — 2026-02-14
+
+### State: Phase 9 — Production Readiness
+
+**Status:** COMPLETE
+**Branch:** `feature/phase9-production-readiness`
+
+### Tasks Performed
+
+#### 1. Structured Logging Middleware
+- **File:** `src/CarCheck.API/Middleware/RequestLoggingMiddleware.cs`
+- X-Request-Id header with 12-char correlation ID
+- Structured scope: RequestId, UserId, Method, Path
+- Logs HTTP responses with status code and elapsed time
+- Logs errors separately on exception
+
+#### 2. Global Exception Handling Middleware
+- **File:** `src/CarCheck.API/Middleware/ExceptionHandlingMiddleware.cs`
+- ArgumentException → 400 Bad Request
+- UnauthorizedAccessException → 403 Forbidden
+- Exception → 500 Internal Server Error
+- Environment-aware: exposes details in Development, generic message in Production
+
+#### 3. GDPR Compliance — Data Export
+- **File:** `src/CarCheck.Application/Gdpr/GdprService.cs`
+- `ExportUserDataAsync` — collects profile, search history, favorites, subscriptions
+- Returns `UserDataExport` record with all user data
+- Logs security event: "DataExported"
+
+#### 4. GDPR Compliance — Account Deletion
+- `RequestDataDeletionAsync` — revokes all sessions, logs event, deletes user
+- Added `DeleteAsync` to `IUserRepository` and `UserRepository`
+- Cascading deletes via DB constraints for related records
+
+#### 5. GDPR Endpoints
+- **File:** `src/CarCheck.API/Endpoints/GdprEndpoints.cs`
+- `GET /api/gdpr/export` — exports all user data (requires auth)
+- `DELETE /api/gdpr/delete-account` — permanently deletes account (requires auth)
+
+#### 6. DTOs
+- **File:** `src/CarCheck.Application/Gdpr/DTOs/GdprDTOs.cs`
+- UserDataExport, UserProfileData, SearchHistoryExport, FavoriteExport, SubscriptionExport, DataDeletionResponse
+
+#### 7. Wiring
+- Updated `Program.cs` — added ExceptionHandlingMiddleware + RequestLoggingMiddleware + MapGdprEndpoints
+- Updated `DependencyInjection.cs` — registered GdprService
+
+#### 8. Unit Tests (8 new)
+- **File:** `tests/CarCheck.Application.Tests/Gdpr/GdprServiceTests.cs`
+- Export: valid user, user not found, empty collections, security event logging
+- Deletion: valid user, user not found, session revocation order, security event logging
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 231 passing (8 new GDPR tests)
+
+### Next Steps
+1. All 9 phases complete — project ready for production deployment

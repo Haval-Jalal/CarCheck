@@ -2,6 +2,7 @@ using CarCheck.Application.Auth;
 using CarCheck.Application.Billing;
 using CarCheck.Application.Cars;
 using CarCheck.Application.Favorites;
+using CarCheck.Application.Gdpr;
 using CarCheck.Application.History;
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Interfaces;
@@ -65,6 +66,9 @@ public static class DependencyInjection
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         services.AddScoped<IBillingProvider, MockBillingProvider>();
         services.AddScoped<SubscriptionService>();
+
+        // GDPR
+        services.AddScoped<GdprService>();
 
         return services;
     }
