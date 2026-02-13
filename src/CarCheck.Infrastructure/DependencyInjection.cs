@@ -1,5 +1,7 @@
 using CarCheck.Application.Auth;
 using CarCheck.Application.Cars;
+using CarCheck.Application.Favorites;
+using CarCheck.Application.History;
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Interfaces;
 using CarCheck.Infrastructure.Auth;
@@ -48,6 +50,10 @@ public static class DependencyInjection
         // Car services
         services.AddScoped<CarAnalysisEngine>();
         services.AddScoped<CarSearchService>();
+
+        // History & Favorites
+        services.AddScoped<SearchHistoryService>();
+        services.AddScoped<FavoriteService>();
 
         return services;
     }
