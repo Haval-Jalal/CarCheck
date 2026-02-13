@@ -351,6 +351,47 @@
 - **Tests:** 179 passing (117 domain + 60 application + 2 boilerplate)
 
 ### Next Steps
-1. **Phase 5:** Search history + favorites endpoints
+1. ~~**Phase 5:** Search history + favorites endpoints~~ ✅
 2. **Phase 6:** Rate limiting + CAPTCHA
 3. **Phase 7:** Email verification + password reset
+
+---
+
+## Session #6 — 2026-02-12
+
+### State: Phase 5 — Search History & Favorites
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. Search History Service
+- **File:** `src/CarCheck.Application/History/SearchHistoryService.cs`
+- **Features:** Paginated history with car details enrichment, today's search count, page/size clamping (1-100)
+
+#### 2. Favorite Service
+- **File:** `src/CarCheck.Application/Favorites/FavoriteService.cs`
+- **Features:** Add/remove/list favorites with car detail enrichment, duplicate prevention, existence checks
+
+#### 3. DTOs
+- **Files:** `History/DTOs/HistoryDTOs.cs`, `Favorites/DTOs/FavoriteDTOs.cs`
+- **Records:** SearchHistoryResponse, SearchHistoryPageResponse, FavoriteResponse, FavoritePageResponse, AddFavoriteRequest
+
+#### 4. API Endpoints
+- **`GET /api/history`** — Paginated search history (auth required)
+- **`GET /api/favorites`** — Paginated favorites list (auth required)
+- **`POST /api/favorites`** — Add car to favorites (auth required)
+- **`DELETE /api/favorites/{carId}`** — Remove from favorites (auth required)
+
+#### 5. Unit Tests (11 new)
+- **SearchHistoryServiceTests** (4 tests): Paged results, deleted car handling, empty results, page clamping
+- **FavoriteServiceTests** (7 tests): List, add (valid/not found/duplicate), remove (exists/not found), empty
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 190 passing (117 domain + 71 application + 2 boilerplate)
+
+### Next Steps
+1. **Phase 6:** Rate limiting + CAPTCHA
+2. **Phase 7:** Email verification + password reset
+3. **Phase 8:** CI/CD & staging deploy
