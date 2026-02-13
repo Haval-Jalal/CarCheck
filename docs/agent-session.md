@@ -497,5 +497,56 @@
 - **Tests:** 223 passing (127 domain + 84 application + 11 infrastructure + 1 API)
 
 ### Next Steps
-1. **Phase 8:** CI/CD & staging deploy
+1. ~~**Phase 8:** CI/CD & staging deploy~~ ✅
 2. **Phase 9:** Production readiness
+
+---
+
+## Session #9 — 2026-02-12
+
+### State: Phase 8 — CI/CD & Staging Deploy
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. Enhanced CI Pipeline (`ci.yml`)
+- Added code coverage collection (XPlat Code Coverage)
+- Added coverage report upload as artifact
+- Added security scan job (vulnerable NuGet packages)
+- Kept existing build + test flow
+
+#### 2. Staging Deploy Pipeline (`deploy-staging.yml`)
+- Triggers: push to main + manual dispatch
+- Runs full test suite before deploy
+- Builds Docker image and pushes to GHCR
+- Tags: `staging-latest` + `staging-<sha>`
+- Runs smoke tests post-deploy
+
+#### 3. Production Deploy Pipeline (`deploy-production.yml`)
+- Triggers: release publish + manual dispatch with confirmation
+- Manual safety gate (must type "deploy" to confirm)
+- Full test suite + Docker build + GHCR push
+- Semver tags: `latest`, `x.y.z`, `x.y`
+- Post-deploy smoke tests
+
+#### 4. Dockerfile
+- Multi-stage build (SDK → runtime)
+- Non-root user for security
+- Port 8080, HEALTHCHECK configured
+- `.dockerignore` for build optimization
+
+#### 5. Smoke Test Script
+- **File:** `scripts/smoke-test.sh`
+- Tests: health, auth rejection, protected endpoint 401s, public tiers
+- Configurable base URL, pass/fail exit codes
+
+#### 6. Deployment Docs Updated
+- Docker instructions, pipeline descriptions, secrets table, smoke test usage
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 223 passing (unchanged — infrastructure phase)
+
+### Next Steps
+1. **Phase 9:** Production readiness (logging, GDPR, checklist)
