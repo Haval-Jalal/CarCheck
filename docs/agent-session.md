@@ -392,6 +392,52 @@
 - **Tests:** 190 passing (117 domain + 71 application + 2 boilerplate)
 
 ### Next Steps
-1. **Phase 6:** Rate limiting + CAPTCHA
+1. ~~**Phase 6:** Rate limiting + CAPTCHA~~ ✅
 2. **Phase 7:** Email verification + password reset
 3. **Phase 8:** CI/CD & staging deploy
+
+---
+
+## Session #7 — 2026-02-12
+
+### State: Phase 6 — Rate Limiting & CAPTCHA
+
+**Status:** COMPLETE
+
+### Tasks Performed
+
+#### 1. Rate Limiting Service
+- **Interface:** `src/CarCheck.Application/Interfaces/IRateLimitService.cs`
+- **Implementation:** `src/CarCheck.Infrastructure/RateLimiting/InMemoryRateLimitService.cs`
+- **Pattern:** ConcurrentDictionary with sliding window, returns remaining/limit/resetsAt
+
+#### 2. Rate Limiting Middleware
+- **File:** `src/CarCheck.API/Middleware/RateLimitingMiddleware.cs`
+- **Limit:** 30 requests/minute per user (or IP for anonymous)
+- **Headers:** X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
+- **Response:** 429 with Retry-After header when exceeded
+
+#### 3. Daily Quota Middleware
+- **File:** `src/CarCheck.API/Middleware/DailyQuotaMiddleware.cs`
+- **Limit:** 5 free car searches per day
+- **Scope:** Only applies to `POST /api/cars/search`
+- **Headers:** X-DailyQuota-Limit, X-DailyQuota-Remaining
+- **Response:** 429 with resetsAt (midnight UTC)
+
+#### 4. CAPTCHA Service
+- **Interface:** `src/CarCheck.Application/Interfaces/ICaptchaService.cs`
+- **Mock:** `src/CarCheck.Infrastructure/External/MockCaptchaService.cs`
+- **Integration:** Car search endpoint validates CAPTCHA token if provided
+
+#### 5. Unit Tests (10 new)
+- **InMemoryRateLimitServiceTests** (6 tests): First request, within limit, exceeds limit, independent keys, window reset, resetsAt
+- **MockCaptchaServiceTests** (4 tests): Valid token, invalid, empty, whitespace
+
+### Build Status
+- **Build:** SUCCESS (0 errors, 0 warnings)
+- **Tests:** 200 passing (117 domain + 71 application + 11 infrastructure + 1 API boilerplate)
+
+### Next Steps
+1. **Phase 7:** Paid provider abstraction & billing hooks
+2. **Phase 8:** CI/CD & staging deploy
+3. **Phase 9:** Production readiness

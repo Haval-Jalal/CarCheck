@@ -1,5 +1,6 @@
 using System.Text;
 using CarCheck.API.Endpoints;
+using CarCheck.API.Middleware;
 using CarCheck.Infrastructure;
 using CarCheck.Infrastructure.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -41,8 +42,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<RateLimitingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<DailyQuotaMiddleware>();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
     .WithName("HealthCheck");

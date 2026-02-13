@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using CarCheck.Application.Cars;
 using CarCheck.Application.Cars.DTOs;
+using CarCheck.Application.Interfaces;
 
 namespace CarCheck.API.Endpoints;
 
@@ -10,10 +11,17 @@ public static class CarEndpoints
     {
         var group = app.MapGroup("/api/cars").WithTags("Cars").RequireAuthorization();
 
-        group.MapPost("/search", async (CarSearchRequest request, CarSearchService carSearchService, ClaimsPrincipal user) =>
+        group.MapPost("/search", async (CarSearchRequest request, CarSearchService carSearchService, ICaptchaService captchaService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
+
+            if (request.CaptchaToken is not null)
+            {
+                var captchaValid = await captchaService.ValidateAsync(request.CaptchaToken);
+                if (!captchaValid)
+                    return Results.BadRequest(new { error = "CAPTCHA validation failed." });
+            }
 
             var result = await carSearchService.SearchByRegistrationAsync(userId.Value, request);
             return result.IsSuccess
