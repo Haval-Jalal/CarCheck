@@ -35,4 +35,11 @@ export interface AnalysisBreakdown {
   insuranceScore: number
   recallScore: number
   inspectionScore: number
+  debtFinanceScore: number
+  serviceHistoryScore: number
+  drivetrainScore: number
+  ownerHistoryScore: number
+  marketValueScore: number
+  environmentScore: number
+  theftSecurityScore: number
 }

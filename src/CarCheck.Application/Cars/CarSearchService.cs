@@ -183,7 +183,7 @@ public class CarSearchService
             car.Year,
             analysis.Score,
             analysis.Recommendation,
-            breakdown ?? new AnalysisBreakdown(0, 0, 0, 0, 0),
+            breakdown ?? new AnalysisBreakdown(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             analysis.CreatedAt);
     }
 }
