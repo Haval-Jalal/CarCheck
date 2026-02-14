@@ -31,4 +31,11 @@ public record AnalysisBreakdown(
     decimal MileageScore,
     decimal InsuranceScore,
     decimal RecallScore,
-    decimal InspectionScore);
+    decimal InspectionScore,
+    decimal DebtFinanceScore,
+    decimal ServiceHistoryScore,
+    decimal DrivetrainScore,
+    decimal OwnerHistoryScore,
+    decimal MarketValueScore,
+    decimal EnvironmentScore,
+    decimal TheftSecurityScore);

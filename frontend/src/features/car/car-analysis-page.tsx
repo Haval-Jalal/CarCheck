@@ -3,20 +3,73 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { ArrowLeft, BarChart3 } from 'lucide-react'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import {
+  ArrowLeft,
+  BarChart3,
+  Car,
+  Banknote,
+  ClipboardList,
+  Shield,
+  AlertTriangle,
+} from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { ErrorDisplay } from '@/components/common/error-display'
 import { getScoreColor, getScoreBgColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import type { AnalysisBreakdown } from '@/types/car.types'
 
-const CATEGORY_LABELS: Record<string, { label: string; weight: string }> = {
-  ageScore: { label: 'Ålder', weight: '25%' },
-  mileageScore: { label: 'Miltal', weight: '25%' },
-  insuranceScore: { label: 'Försäkring', weight: '20%' },
-  recallScore: { label: 'Återkallelser', weight: '15%' },
-  inspectionScore: { label: 'Besiktning', weight: '15%' },
+interface CategoryItem {
+  key: keyof AnalysisBreakdown
+  label: string
+  weight: string
 }
+
+interface CategoryGroup {
+  title: string
+  icon: React.ReactNode
+  items: CategoryItem[]
+}
+
+const CATEGORY_GROUPS: CategoryGroup[] = [
+  {
+    title: 'Fordonets skick',
+    icon: <Car className="h-4 w-4" />,
+    items: [
+      { key: 'ageScore', label: 'Ålder', weight: '12%' },
+      { key: 'mileageScore', label: 'Miltal', weight: '12%' },
+      { key: 'inspectionScore', label: 'Besiktning', weight: '10%' },
+    ],
+  },
+  {
+    title: 'Ekonomi & juridik',
+    icon: <Banknote className="h-4 w-4" />,
+    items: [
+      { key: 'debtFinanceScore', label: 'Skuld & ekonomi', weight: '15%' },
+      { key: 'marketValueScore', label: 'Marknadsvärde', weight: '5%' },
+      { key: 'environmentScore', label: 'Miljö & skatt', weight: '5%' },
+    ],
+  },
+  {
+    title: 'Historik & underhåll',
+    icon: <ClipboardList className="h-4 w-4" />,
+    items: [
+      { key: 'insuranceScore', label: 'Försäkring', weight: '9%' },
+      { key: 'serviceHistoryScore', label: 'Servicehistorik', weight: '8%' },
+      { key: 'ownerHistoryScore', label: 'Ägarhistorik', weight: '5%' },
+    ],
+  },
+  {
+    title: 'Säkerhet & tillförlitlighet',
+    icon: <Shield className="h-4 w-4" />,
+    items: [
+      { key: 'drivetrainScore', label: 'Drivlina', weight: '8%' },
+      { key: 'recallScore', label: 'Återkallelser', weight: '6%' },
+      { key: 'theftSecurityScore', label: 'Stöld & säkerhet', weight: '5%' },
+    ],
+  },
+]
 
 export function CarAnalysisPage() {
   const { carId } = useParams<{ carId: string }>()
@@ -27,6 +80,7 @@ export function CarAnalysisPage() {
   if (!analysis) return null
 
   const scoreRounded = Math.round(analysis.score)
+  const hasPurchaseBlock = analysis.breakdown.debtFinanceScore === 0
 
   return (
     <div className="space-y-6">
@@ -43,6 +97,18 @@ export function CarAnalysisPage() {
           <p className="text-muted-foreground">{analysis.registrationNumber}</p>
         </div>
       </div>
+
+      {/* Purchase block warning */}
+      {hasPurchaseBlock && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Köpspärr registrerad</AlertTitle>
+          <AlertDescription>
+            Fordonet har en aktiv köpspärr hos Kronofogden. Köp avråds starkt
+            — kontrollera skuldsituationen innan vidare åtgärder.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Score + Recommendation */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -74,37 +140,43 @@ export function CarAnalysisPage() {
               {analysis.recommendation}
             </Badge>
             <p className="mt-3 text-sm text-muted-foreground">
-              Baserat på en viktad analys av fem kategorier: ålder, miltal,
-              försäkringshistorik, återkallelser och besiktningsresultat.
+              Baserat på en viktad analys av tolv kategorier: ålder, miltal,
+              besiktning, skuld, försäkring, servicehistorik, drivlina,
+              återkallelser, ägarhistorik, marknadsvärde, miljö och säkerhet.
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Detaljerad uppdelning</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(CATEGORY_LABELS).map(([key, { label, weight }]) => {
-            const value = Math.round(
-              analysis.breakdown[key as keyof typeof analysis.breakdown]
-            )
-            return (
-              <div key={key} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{label}</span>
-                  <span className="text-muted-foreground">
-                    {value}/100 ({weight})
-                  </span>
-                </div>
-                <Progress value={value} className="h-2" />
-              </div>
-            )
-          })}
-        </CardContent>
-      </Card>
+      {/* Grouped breakdown — 2x2 grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {CATEGORY_GROUPS.map((group) => (
+          <Card key={group.title}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                {group.icon}
+                {group.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {group.items.map(({ key, label, weight }) => {
+                const value = Math.round(analysis.breakdown[key])
+                return (
+                  <div key={key} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">{label}</span>
+                      <span className="text-muted-foreground">
+                        {value}/100 ({weight})
+                      </span>
+                    </div>
+                    <Progress value={value} className="h-2" />
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <div className="flex gap-3">
         <Button variant="outline" asChild>
