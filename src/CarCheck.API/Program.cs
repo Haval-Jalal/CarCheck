@@ -34,6 +34,23 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(
+                builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+                    ?? ["http://localhost:5173"])
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .WithExposedHeaders(
+                  "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset",
+                  "X-DailyQuota-Limit", "X-DailyQuota-Remaining", "X-Subscription-Tier",
+                  "X-Request-Id");
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -44,6 +61,7 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseMiddleware<RateLimitingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
