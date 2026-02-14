@@ -1,7 +1,33 @@
+import { useNavigate } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Search } from 'lucide-react'
+import { SearchForm } from './components/search-form'
+import { QuotaIndicator } from './components/quota-indicator'
+import { useCarSearch } from '@/hooks/use-car-search'
+import type { AxiosError } from 'axios'
+import type { ApiError } from '@/types/api.types'
 
 export function DashboardPage() {
+  const navigate = useNavigate()
+  const searchMutation = useCarSearch()
+
+  const handleSearch = (regNumber: string) => {
+    searchMutation.mutate(
+      { registrationNumber: regNumber },
+      {
+        onSuccess: (data) => {
+          navigate(`/car/${data.carId}`, { state: { car: data } })
+        },
+      }
+    )
+  }
+
+  const errorMessage = searchMutation.error
+    ? (searchMutation.error as AxiosError<ApiError>).response?.data?.error ||
+      'Sökningen misslyckades. Försök igen.'
+    : null
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,10 +42,14 @@ export function DashboardPage() {
             Bilsökning
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Sökformulär kommer i Phase F2.
-          </p>
+        <CardContent className="space-y-4">
+          <SearchForm onSearch={handleSearch} isLoading={searchMutation.isPending} />
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+          <QuotaIndicator />
         </CardContent>
       </Card>
     </div>
