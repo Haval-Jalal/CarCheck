@@ -1,3 +1,5 @@
+using CarCheck.Application.Cars.DTOs;
+
 namespace CarCheck.Application.Interfaces;
 
 public interface ICarDataProvider
@@ -55,4 +57,17 @@ public record CarDataResult(
     public decimal? ReliabilityRating { get; init; }
     public int? CommonIssuesCount { get; init; }
     public decimal? AverageRepairCostSek { get; init; }
+
+    // Detail lists for factor drill-down
+    public List<InspectionRecord>? Inspections { get; init; }
+    public List<ServiceRecord>? ServiceRecords { get; init; }
+    public List<OwnerRecord>? OwnerRecords { get; init; }
+    public List<InsuranceIncidentRecord>? InsuranceIncidentRecords { get; init; }
+    public List<RecallRecord>? RecallRecords { get; init; }
+    public List<DebtRecord>? DebtRecords { get; init; }
+    public List<MileageReadingRecord>? MileageReadings { get; init; }
+    public List<MarketComparisonRecord>? SimilarCars { get; init; }
+    public List<string>? KnownIssues { get; init; }
+    public List<string>? SecurityFeatures { get; init; }
+    public bool? IsImported { get; init; }
 }

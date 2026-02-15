@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,12 +13,14 @@ import {
   ClipboardList,
   Shield,
   AlertTriangle,
+  ChevronRight,
 } from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { ErrorDisplay } from '@/components/common/error-display'
 import { getScoreColor, getScoreBgColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { FactorDetailSheet } from './components/factor-detail-sheet'
 import type { AnalysisBreakdown } from '@/types/car.types'
 
 interface CategoryItem {
@@ -74,6 +77,10 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
 export function CarAnalysisPage() {
   const { carId } = useParams<{ carId: string }>()
   const { data: analysis, isLoading, error } = useCarAnalysis(carId)
+  const [selectedFactor, setSelectedFactor] = useState<{
+    key: keyof AnalysisBreakdown
+    label: string
+  } | null>(null)
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <ErrorDisplay error={error} />
@@ -148,7 +155,7 @@ export function CarAnalysisPage() {
         </Card>
       </div>
 
-      {/* Grouped breakdown — 2x2 grid */}
+      {/* Grouped breakdown — 2x2 grid, clickable rows */}
       <div className="grid gap-4 md:grid-cols-2">
         {CATEGORY_GROUPS.map((group) => (
           <Card key={group.title}>
@@ -158,19 +165,27 @@ export function CarAnalysisPage() {
                 {group.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-1">
               {group.items.map(({ key, label, weight }) => {
                 const value = Math.round(analysis.breakdown[key])
                 return (
-                  <div key={key} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{label}</span>
-                      <span className="text-muted-foreground">
-                        {value}/100 ({weight})
-                      </span>
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSelectedFactor({ key, label })}
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/60"
+                  >
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium">{label}</span>
+                        <span className="text-muted-foreground">
+                          {value}/100 ({weight})
+                        </span>
+                      </div>
+                      <Progress value={value} className="h-2" />
                     </div>
-                    <Progress value={value} className="h-2" />
-                  </div>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
                 )
               })}
             </CardContent>
@@ -183,6 +198,17 @@ export function CarAnalysisPage() {
           <Link to="/dashboard">Ny sökning</Link>
         </Button>
       </div>
+
+      {/* Factor detail sheet */}
+      <FactorDetailSheet
+        open={selectedFactor !== null}
+        onOpenChange={(open) => !open && setSelectedFactor(null)}
+        factorKey={selectedFactor?.key ?? null}
+        factorLabel={selectedFactor?.label ?? ''}
+        score={selectedFactor ? analysis.breakdown[selectedFactor.key] : 0}
+        details={analysis.details}
+        year={analysis.year}
+      />
     </div>
   )
 }

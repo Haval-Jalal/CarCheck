@@ -129,6 +129,9 @@ public class CarSearchService
         // Run analysis
         var (score, recommendation, breakdown) = _analysisEngine.Analyze(externalData);
 
+        // Build detail data for drill-down views
+        var details = MapToAnalysisDetails(externalData);
+
         // Persist result
         var analysisResult = AnalysisResult.Create(carId, score, recommendation);
         await _analysisResultRepository.AddAsync(analysisResult, cancellationToken);
@@ -143,7 +146,8 @@ public class CarSearchService
             score,
             recommendation,
             breakdown,
-            analysisResult.CreatedAt);
+            analysisResult.CreatedAt,
+            details);
 
         await _cacheService.SetAsync(analysisCacheKey, analysisResponse, CacheDuration, cancellationToken);
 
@@ -185,5 +189,35 @@ public class CarSearchService
             analysis.Recommendation,
             breakdown ?? new AnalysisBreakdown(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             analysis.CreatedAt);
+    }
+
+    private static AnalysisDetails MapToAnalysisDetails(CarDataResult data)
+    {
+        return new AnalysisDetails(
+            Inspections: data.Inspections ?? [],
+            Services: data.ServiceRecords ?? [],
+            Owners: data.OwnerRecords ?? [],
+            InsuranceIncidents: data.InsuranceIncidentRecords ?? [],
+            Recalls: data.RecallRecords ?? [],
+            Debts: data.DebtRecords ?? [],
+            HasPurchaseBlock: data.HasPurchaseBlock ?? false,
+            EuroClass: data.EuroClass,
+            Co2EmissionsGPerKm: data.Co2EmissionsGPerKm,
+            AnnualTaxSek: data.AnnualTaxSek,
+            BonusMalusApplies: data.BonusMalusApplies,
+            MarketValueSek: data.MarketValueSek,
+            AverageMarketPriceSek: data.AverageMarketPriceSek,
+            DepreciationRatePercent: data.DepreciationRatePercent,
+            SimilarCars: data.SimilarCars ?? [],
+            ReliabilityRating: data.ReliabilityRating,
+            KnownIssues: data.KnownIssues ?? [],
+            AverageRepairCostSek: data.AverageRepairCostSek,
+            TheftRiskCategory: data.TheftRiskCategory,
+            EuroNcapRating: data.EuroNcapRating,
+            HasAlarmSystem: data.HasAlarmSystem,
+            SecurityFeatures: data.SecurityFeatures ?? [],
+            FirstRegistrationDate: data.FirstRegistrationDate,
+            IsImported: data.IsImported,
+            MileageHistory: data.MileageReadings ?? []);
     }
 }
