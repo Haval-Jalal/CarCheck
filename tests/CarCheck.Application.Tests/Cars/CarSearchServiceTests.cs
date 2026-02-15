@@ -201,4 +201,65 @@ public class CarSearchServiceTests
         await _analysisResultRepository.Received(1).AddAsync(Arg.Any<AnalysisResult>(), Arg.Any<CancellationToken>());
         await _cacheService.Received(1).SetAsync(Arg.Any<string>(), Arg.Any<CarAnalysisResponse>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Analyze_FreshData_IncludesDetails()
+    {
+        var car = Car.Create("ABC123", "Volvo", "XC60", 2021, 35000);
+        var carId = car.Id;
+        var externalData = new CarDataResult(
+            "ABC123", "Volvo", "XC60", 2021, 35000,
+            "Diesel", 235, "Black", 0, 0,
+            DateTime.UtcNow.AddMonths(-2), true, 385000m)
+        {
+            EuroClass = "Euro 6d",
+            HasPurchaseBlock = false,
+            Inspections = [new InspectionRecord(DateTime.UtcNow.AddMonths(-6), true, null)],
+            ServiceRecords = [new ServiceRecord(DateTime.UtcNow.AddMonths(-4), "Volvo", "Stor service", 30000)],
+            OwnerRecords = [new OwnerRecord(new DateTime(2021, 3, 1, 0, 0, 0, DateTimeKind.Utc), null, false, "Stockholm")],
+            MileageReadings = [new MileageReadingRecord(DateTime.UtcNow.AddMonths(-6), 35000, "Besiktning")]
+        };
+
+        _cacheService.GetAsync<CarAnalysisResponse>(Arg.Any<string>()).Returns((CarAnalysisResponse?)null);
+        _analysisResultRepository.GetLatestByCarIdAsync(carId).Returns((AnalysisResult?)null);
+        _carRepository.GetByIdAsync(carId).Returns(car);
+        _carDataProvider.FetchByRegistrationAsync("ABC123").Returns(externalData);
+
+        var result = await _sut.AnalyzeCarAsync(carId);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value!.Details);
+        Assert.Single(result.Value.Details!.Inspections);
+        Assert.True(result.Value.Details.Inspections[0].Passed);
+        Assert.Single(result.Value.Details.Services);
+        Assert.Single(result.Value.Details.Owners);
+        Assert.Single(result.Value.Details.MileageHistory);
+        Assert.Equal("Euro 6d", result.Value.Details.EuroClass);
+        Assert.False(result.Value.Details.HasPurchaseBlock);
+    }
+
+    [Fact]
+    public async Task Analyze_FreshData_WithNullDetails_ReturnsEmptyLists()
+    {
+        var car = Car.Create("XYZ999", "Saab", "9-5", 2010, 200000);
+        var carId = car.Id;
+        var externalData = new CarDataResult(
+            "XYZ999", "Saab", "9-5", 2010, 200000,
+            "Petrol", 150, "Gray", 2, 1,
+            DateTime.UtcNow.AddMonths(-10), true, 45000m);
+
+        _cacheService.GetAsync<CarAnalysisResponse>(Arg.Any<string>()).Returns((CarAnalysisResponse?)null);
+        _analysisResultRepository.GetLatestByCarIdAsync(carId).Returns((AnalysisResult?)null);
+        _carRepository.GetByIdAsync(carId).Returns(car);
+        _carDataProvider.FetchByRegistrationAsync("XYZ999").Returns(externalData);
+
+        var result = await _sut.AnalyzeCarAsync(carId);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value!.Details);
+        Assert.Empty(result.Value.Details!.Inspections);
+        Assert.Empty(result.Value.Details.Services);
+        Assert.Empty(result.Value.Details.Owners);
+        Assert.Empty(result.Value.Details.MileageHistory);
+    }
 }
