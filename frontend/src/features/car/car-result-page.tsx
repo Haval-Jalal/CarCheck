@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BarChart3, Car, Fuel, Palette, Gauge, Heart } from 'lucide-react'
-import { formatSek, formatNumber } from '@/lib/format'
+import { formatSek, formatMil } from '@/lib/format'
 import { useCheckFavorite, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites'
 import { useCarById } from '@/hooks/use-car-search'
 import { useQueryClient } from '@tanstack/react-query'
@@ -107,7 +107,7 @@ export function CarResultPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Miltal</dt>
-                <dd className="font-medium">{formatNumber(car.mileage)} km</dd>
+                <dd className="font-medium">{formatMil(car.mileage)}</dd>
               </div>
             </dl>
           </CardContent>

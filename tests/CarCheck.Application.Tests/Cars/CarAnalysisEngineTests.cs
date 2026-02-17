@@ -428,7 +428,7 @@ public class CarAnalysisEngineTests
         var (score, recommendation, breakdown) = _sut.Analyze(data);
 
         Assert.True(score >= 85, $"Expected score >= 85 but got {score}");
-        Assert.Contains("Excellent", recommendation);
+        Assert.Contains("Utmärkt", recommendation);
         Assert.NotNull(breakdown);
     }
 
@@ -451,7 +451,7 @@ public class CarAnalysisEngineTests
         var (score, recommendation, breakdown) = _sut.Analyze(data);
 
         Assert.True(score < 40, $"Expected score < 40 but got {score}");
-        Assert.Contains("risk", recommendation, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("riskfaktorer", recommendation, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

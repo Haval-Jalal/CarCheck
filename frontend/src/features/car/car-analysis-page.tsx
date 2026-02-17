@@ -151,6 +151,12 @@ export function CarAnalysisPage() {
               besiktning, skuld, försäkring, servicehistorik, drivlina,
               återkallelser, ägarhistorik, marknadsvärde, miljö och säkerhet.
             </p>
+            <p className="mt-3 text-xs text-muted-foreground/70 italic">
+              Denna analys baseras uteslutande på tillgänglig fordonsdata och utgör inte
+              en bedömning av fordonets faktiska skick. En professionell besiktning
+              rekommenderas alltid innan köpbeslut. CarCheck ansvarar inte för fordonets
+              verkliga kondition.
+            </p>
           </CardContent>
         </Card>
       </div>

@@ -71,6 +71,16 @@ public class MockCarDataProvider : ICarDataProvider
                 "Volvo On Call", "Startspärr", "Larm", "GPS-spårning",
             },
             IsImported = false,
+            FactoryEquipment = new List<string>
+            {
+                "Adaptiv farthållare", "Navigation", "Elstolar med minne",
+                "Panoramaglastak", "Parkeringskamera 360°", "Keyless entry",
+            },
+            FactoryOptions = new List<string>
+            {
+                "Dragkrok", "Vinterdäck monterade", "Luftfjädring",
+            },
+            TaxWithoutBonusMalusSek = 1_106m,
         },
 
         ["DEF456"] = new CarDataResult(
@@ -151,11 +161,21 @@ public class MockCarDataProvider : ICarDataProvider
                 "BMW Connected Drive", "Startspärr", "Larm",
             },
             IsImported = false,
+            FactoryEquipment = new List<string>
+            {
+                "Sportläderstolar", "Navigation Professional", "LED-strålkastare",
+                "Backkamera", "Parkeringssensorer fram och bak",
+            },
+            FactoryOptions = new List<string>
+            {
+                "M Sport-paket", "Harman Kardon-ljud",
+            },
+            TaxWithoutBonusMalusSek = 952m,
         },
 
         ["GHI789"] = new CarDataResult(
             "GHI789", "Toyota", "Corolla", 2015, 142000,
-            "Petrol", 132, "Silver",
+            "Bensin", 132, "Silver",
             InsuranceIncidents: 2, ManufacturerRecalls: 0,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-14), InspectionPassed: false,
             MarketValueSek: 95000m)
@@ -230,11 +250,18 @@ public class MockCarDataProvider : ICarDataProvider
                 "Startspärr",
             },
             IsImported = false,
+            FactoryEquipment = new List<string>
+            {
+                "Klimatanläggning", "Bluetooth", "Farthållare",
+                "Backkamera",
+            },
+            FactoryOptions = new List<string>(),
+            TaxWithoutBonusMalusSek = 1_006m,
         },
 
         ["JKL012"] = new CarDataResult(
             "JKL012", "Tesla", "Model 3", 2023, 12000,
-            "Electric", 283, "Red",
+            "El", 283, "Red",
             InsuranceIncidents: 0, ManufacturerRecalls: 2,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-1), InspectionPassed: true,
             MarketValueSek: 420000m)
@@ -295,11 +322,21 @@ public class MockCarDataProvider : ICarDataProvider
                 "Tesla Sentry Mode", "GPS-spårning", "Startspärr", "Mobilapp-lås",
             },
             IsImported = true,
+            FactoryEquipment = new List<string>
+            {
+                "Autopilot", "15\" pekskärm", "Värmepump",
+                "Glastak", "LED-strålkastare", "Trådlös mobilladdning",
+            },
+            FactoryOptions = new List<string>
+            {
+                "Enhanced Autopilot", "Vit inredning",
+            },
+            TaxWithoutBonusMalusSek = 360m,
         },
 
         ["MNO345"] = new CarDataResult(
             "MNO345", "Volkswagen", "Golf", 2010, 245000,
-            "Petrol", 105, "Blue",
+            "Bensin", 105, "Blue",
             InsuranceIncidents: 3, ManufacturerRecalls: 1,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-26), InspectionPassed: false,
             MarketValueSek: 42000m)
@@ -391,6 +428,12 @@ public class MockCarDataProvider : ICarDataProvider
             },
             SecurityFeatures = new List<string>(),
             IsImported = false,
+            FactoryEquipment = new List<string>
+            {
+                "Klimatanläggning", "AUX-ingång",
+            },
+            FactoryOptions = new List<string>(),
+            TaxWithoutBonusMalusSek = 1_478m,
         }
     };
 

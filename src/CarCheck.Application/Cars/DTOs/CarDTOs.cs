@@ -76,4 +76,7 @@ public record AnalysisDetails(
     List<string> SecurityFeatures,
     DateTime? FirstRegistrationDate,
     bool? IsImported,
-    List<MileageReadingRecord> MileageHistory);
+    List<MileageReadingRecord> MileageHistory,
+    List<string> FactoryEquipment,
+    List<string> FactoryOptions,
+    decimal? TaxWithoutBonusMalusSek);
