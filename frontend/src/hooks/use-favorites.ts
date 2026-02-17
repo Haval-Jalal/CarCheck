@@ -9,12 +9,21 @@ export function useFavorites(page: number, pageSize = 20) {
   })
 }
 
+export function useCheckFavorite(carId: string | undefined) {
+  return useQuery({
+    queryKey: ['favorite-check', carId],
+    queryFn: () => favoritesApi.checkFavorite(carId!).then((r) => r.data.isFavorite),
+    enabled: !!carId,
+  })
+}
+
 export function useAddFavorite() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (carId: string) => favoritesApi.addFavorite({ carId }).then((r) => r.data),
-    onSuccess: () => {
+    onSuccess: (_data, carId) => {
       void queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      void queryClient.invalidateQueries({ queryKey: ['favorite-check', carId] })
     },
   })
 }
@@ -23,8 +32,9 @@ export function useRemoveFavorite() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (carId: string) => favoritesApi.removeFavorite(carId),
-    onSuccess: () => {
+    onSuccess: (_data, carId) => {
       void queryClient.invalidateQueries({ queryKey: ['favorites'] })
+      void queryClient.invalidateQueries({ queryKey: ['favorite-check', carId] })
     },
   })
 }

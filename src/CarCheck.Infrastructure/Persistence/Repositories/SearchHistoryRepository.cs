@@ -36,4 +36,29 @@ public class SearchHistoryRepository : ISearchHistoryRepository
         await _context.SearchHistories.AddAsync(entry, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<SearchHistory?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.SearchHistories.FindAsync(new object[] { id }, cancellationToken);
+    }
+
+    public async Task DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var entry = await _context.SearchHistories.FindAsync(new object[] { id }, cancellationToken);
+        if (entry is not null)
+        {
+            _context.SearchHistories.Remove(entry);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task DeleteAllByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var entries = await _context.SearchHistories
+            .Where(s => s.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        _context.SearchHistories.RemoveRange(entries);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

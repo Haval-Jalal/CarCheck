@@ -11,4 +11,7 @@ export const favoritesApi = {
 
   removeFavorite: (carId: string) =>
     apiClient.delete(`/favorites/${carId}`),
+
+  checkFavorite: (carId: string) =>
+    apiClient.get<{ isFavorite: boolean }>(`/favorites/${carId}/check`),
 }
