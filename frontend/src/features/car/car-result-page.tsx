@@ -5,14 +5,18 @@ import { Badge } from '@/components/ui/badge'
 import { BarChart3, Car, Fuel, Palette, Gauge, Heart } from 'lucide-react'
 import { formatSek, formatNumber } from '@/lib/format'
 import { useCheckFavorite, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites'
+import { useCarById } from '@/hooks/use-car-search'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { LoadingSpinner } from '@/components/common/loading-spinner'
+import { ErrorDisplay } from '@/components/common/error-display'
 import type { CarSearchResponse } from '@/types/car.types'
 
 export function CarResultPage() {
   const { carId } = useParams<{ carId: string }>()
   const location = useLocation()
-  const car = (location.state as { car?: CarSearchResponse })?.car
+  const stateData = (location.state as { car?: CarSearchResponse })?.car
+  const { data: car, isLoading, error } = useCarById(carId, stateData)
   const queryClient = useQueryClient()
   const { data: isFavorite } = useCheckFavorite(carId)
   const addFavorite = useAddFavorite()
@@ -20,7 +24,6 @@ export function CarResultPage() {
 
   const handleToggleFavorite = () => {
     if (!carId) return
-    // Optimistic update
     queryClient.setQueryData(['favorite-check', carId], !isFavorite)
     if (isFavorite) {
       removeFavorite.mutate(carId, {
@@ -41,10 +44,13 @@ export function CarResultPage() {
     }
   }
 
+  if (isLoading) return <LoadingSpinner />
+  if (error) return <ErrorDisplay error={error} />
+
   if (!car) {
     return (
       <div className="py-12 text-center">
-        <p className="text-muted-foreground">Bildata hittades inte. Gå tillbaka och sök igen.</p>
+        <p className="text-muted-foreground">Bildata hittades inte.</p>
         <Button asChild className="mt-4">
           <Link to="/dashboard">Tillbaka</Link>
         </Button>

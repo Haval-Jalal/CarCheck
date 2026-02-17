@@ -30,6 +30,15 @@ public static class CarEndpoints
         })
         .WithName("SearchCar");
 
+        group.MapGet("/{carId:guid}", async (Guid carId, CarSearchService carSearchService) =>
+        {
+            var result = await carSearchService.GetCarByIdAsync(carId);
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.NotFound(new { error = result.Error });
+        })
+        .WithName("GetCarById");
+
         group.MapGet("/{carId:guid}/analysis", async (Guid carId, CarSearchService carSearchService) =>
         {
             var result = await carSearchService.AnalyzeCarAsync(carId);

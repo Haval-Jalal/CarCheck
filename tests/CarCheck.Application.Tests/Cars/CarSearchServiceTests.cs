@@ -57,20 +57,28 @@ public class CarSearchServiceTests
     }
 
     [Fact]
-    public async Task Search_WhenInDb_ReturnsDbResultAndCaches()
+    public async Task Search_WhenInDb_ReturnsDbResultWithExtraFieldsAndCaches()
     {
         var userId = Guid.NewGuid();
         var car = Car.Create("ABC123", "Volvo", "XC60", 2021, 35000);
+        var externalData = new CarDataResult(
+            "ABC123", "Volvo", "XC60", 2021, 35000,
+            "Diesel", 235, "Black", 0, 0,
+            DateTime.UtcNow, true, 385000m);
 
         _cacheService.GetAsync<CarSearchResponse>(Arg.Any<string>()).Returns((CarSearchResponse?)null);
         _carRepository.GetByRegistrationNumberAsync(Arg.Any<RegistrationNumber>()).Returns(car);
+        _carDataProvider.FetchByRegistrationAsync("ABC123", Arg.Any<CancellationToken>()).Returns(externalData);
 
         var result = await _sut.SearchByRegistrationAsync(userId, new CarSearchRequest("ABC123"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal("Volvo", result.Value!.Brand);
+        Assert.Equal("Diesel", result.Value.FuelType);
+        Assert.Equal(235, result.Value.HorsePower);
+        Assert.Equal(385000m, result.Value.MarketValueSek);
         await _cacheService.Received(1).SetAsync(Arg.Any<string>(), Arg.Any<CarSearchResponse>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
-        await _carDataProvider.DidNotReceive().FetchByRegistrationAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _carDataProvider.Received(1).FetchByRegistrationAsync("ABC123", Arg.Any<CancellationToken>());
     }
 
     [Fact]
