@@ -44,4 +44,25 @@ public class SearchHistoryService
         return Result<SearchHistoryPageResponse>.Success(
             new SearchHistoryPageResponse(items, page, pageSize, todayCount));
     }
+
+    public async Task<Result<bool>> DeleteEntryAsync(
+        Guid userId, Guid entryId, CancellationToken cancellationToken = default)
+    {
+        var entry = await _searchHistoryRepository.GetByIdAsync(entryId, cancellationToken);
+        if (entry is null)
+            return Result<bool>.Failure("Entry not found.");
+
+        if (entry.UserId != userId)
+            return Result<bool>.Failure("Entry not found.");
+
+        await _searchHistoryRepository.DeleteByIdAsync(entryId, cancellationToken);
+        return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<bool>> ClearHistoryAsync(
+        Guid userId, CancellationToken cancellationToken = default)
+    {
+        await _searchHistoryRepository.DeleteAllByUserIdAsync(userId, cancellationToken);
+        return Result<bool>.Success(true);
+    }
 }

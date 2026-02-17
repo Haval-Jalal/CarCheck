@@ -56,7 +56,8 @@ public class CarSearchService
 
         if (existingCar is not null)
         {
-            var response = MapToResponse(existingCar, null);
+            var providerData = await _carDataProvider.FetchByRegistrationAsync(regNum, cancellationToken);
+            var response = MapToResponse(existingCar, providerData);
             await _cacheService.SetAsync(cacheKey, response, CacheDuration, cancellationToken);
             await RecordSearch(userId, existingCar.Id, cancellationToken);
             return Result<CarSearchResponse>.Success(response);
@@ -95,6 +96,17 @@ public class CarSearchService
         return Result<CarSearchResponse>.Success(searchResponse);
     }
 
+    public async Task<Result<CarSearchResponse>> GetCarByIdAsync(
+        Guid carId, CancellationToken cancellationToken = default)
+    {
+        var car = await _carRepository.GetByIdAsync(carId, cancellationToken);
+        if (car is null)
+            return Result<CarSearchResponse>.Failure("Car not found.");
+
+        var externalData = await _carDataProvider.FetchByRegistrationAsync(car.RegistrationNumber.Value, cancellationToken);
+        return Result<CarSearchResponse>.Success(MapToResponse(car, externalData));
+    }
+
     public async Task<Result<CarAnalysisResponse>> AnalyzeCarAsync(
         Guid carId, CancellationToken cancellationToken = default)
     {
@@ -104,20 +116,7 @@ public class CarSearchService
         if (cached is not null)
             return Result<CarAnalysisResponse>.Success(cached);
 
-        // Check for existing recent analysis (within last 24 hours)
-        var existingAnalysis = await _analysisResultRepository.GetLatestByCarIdAsync(carId, cancellationToken);
-        if (existingAnalysis is not null && (DateTime.UtcNow - existingAnalysis.CreatedAt).TotalHours < 24)
-        {
-            var car = await _carRepository.GetByIdAsync(carId, cancellationToken);
-            if (car is not null)
-            {
-                var response = MapToAnalysisResponse(existingAnalysis, car, null);
-                await _cacheService.SetAsync(analysisCacheKey, response, CacheDuration, cancellationToken);
-                return Result<CarAnalysisResponse>.Success(response);
-            }
-        }
-
-        // Fetch fresh data from provider
+        // Fetch car from DB
         var car2 = await _carRepository.GetByIdAsync(carId, cancellationToken);
         if (car2 is null)
             return Result<CarAnalysisResponse>.Failure("Car not found.");
@@ -173,22 +172,6 @@ public class CarSearchService
             externalData?.HorsePower,
             externalData?.Color,
             externalData?.MarketValueSek);
-    }
-
-    private static CarAnalysisResponse MapToAnalysisResponse(
-        AnalysisResult analysis, Car car, AnalysisBreakdown? breakdown)
-    {
-        return new CarAnalysisResponse(
-            analysis.Id,
-            car.Id,
-            car.RegistrationNumber.Value,
-            car.Brand,
-            car.Model,
-            car.Year,
-            analysis.Score,
-            analysis.Recommendation,
-            breakdown ?? new AnalysisBreakdown(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-            analysis.CreatedAt);
     }
 
     private static AnalysisDetails MapToAnalysisDetails(CarDataResult data)

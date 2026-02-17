@@ -20,6 +20,28 @@ public static class HistoryEndpoints
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("GetSearchHistory");
+
+        group.MapDelete("/{id:guid}", async (Guid id, SearchHistoryService historyService, ClaimsPrincipal user) =>
+        {
+            var userId = GetUserId(user);
+            if (userId is null) return Results.Unauthorized();
+
+            var result = await historyService.DeleteEntryAsync(userId.Value, id);
+            return result.IsSuccess
+                ? Results.Ok(new { message = "Entry deleted." })
+                : Results.NotFound(new { error = result.Error });
+        })
+        .WithName("DeleteHistoryEntry");
+
+        group.MapDelete("/", async (SearchHistoryService historyService, ClaimsPrincipal user) =>
+        {
+            var userId = GetUserId(user);
+            if (userId is null) return Results.Unauthorized();
+
+            var result = await historyService.ClearHistoryAsync(userId.Value);
+            return Results.Ok(new { message = "History cleared." });
+        })
+        .WithName("ClearHistory");
     }
 
     private static Guid? GetUserId(ClaimsPrincipal user)

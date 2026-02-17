@@ -68,6 +68,13 @@ public class FavoriteService
             favorite.CreatedAt));
     }
 
+    public async Task<Result<bool>> CheckFavoriteAsync(
+        Guid userId, Guid carId, CancellationToken cancellationToken = default)
+    {
+        var exists = await _favoriteRepository.ExistsAsync(userId, carId, cancellationToken);
+        return Result<bool>.Success(exists);
+    }
+
     public async Task<Result<bool>> RemoveFavoriteAsync(
         Guid userId, Guid carId, CancellationToken cancellationToken = default)
     {

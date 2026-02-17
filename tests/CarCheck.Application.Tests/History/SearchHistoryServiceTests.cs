@@ -97,4 +97,66 @@ public class SearchHistoryServiceTests
         Assert.Equal(100, result.Value!.PageSize);
         Assert.Equal(1, result.Value.Page);
     }
+
+    // ===== Delete Entry =====
+
+    [Fact]
+    public async Task DeleteEntry_OwnEntry_ReturnsSuccess()
+    {
+        var userId = Guid.NewGuid();
+        var entry = SearchHistory.Create(userId, Guid.NewGuid());
+
+        _searchHistoryRepository.GetByIdAsync(entry.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+
+        var result = await _sut.DeleteEntryAsync(userId, entry.Id);
+
+        Assert.True(result.IsSuccess);
+        await _searchHistoryRepository.Received(1).DeleteByIdAsync(entry.Id, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteEntry_NotFound_ReturnsFailure()
+    {
+        var userId = Guid.NewGuid();
+        var entryId = Guid.NewGuid();
+
+        _searchHistoryRepository.GetByIdAsync(entryId, Arg.Any<CancellationToken>())
+            .Returns((SearchHistory?)null);
+
+        var result = await _sut.DeleteEntryAsync(userId, entryId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Entry not found.", result.Error);
+    }
+
+    [Fact]
+    public async Task DeleteEntry_OtherUsersEntry_ReturnsFailure()
+    {
+        var userId = Guid.NewGuid();
+        var otherUserId = Guid.NewGuid();
+        var entry = SearchHistory.Create(otherUserId, Guid.NewGuid());
+
+        _searchHistoryRepository.GetByIdAsync(entry.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+
+        var result = await _sut.DeleteEntryAsync(userId, entry.Id);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Entry not found.", result.Error);
+        await _searchHistoryRepository.DidNotReceive().DeleteByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    // ===== Clear History =====
+
+    [Fact]
+    public async Task ClearHistory_ReturnsSuccess()
+    {
+        var userId = Guid.NewGuid();
+
+        var result = await _sut.ClearHistoryAsync(userId);
+
+        Assert.True(result.IsSuccess);
+        await _searchHistoryRepository.Received(1).DeleteAllByUserIdAsync(userId, Arg.Any<CancellationToken>());
+    }
 }

@@ -34,6 +34,16 @@ public static class FavoriteEndpoints
         })
         .WithName("AddFavorite");
 
+        group.MapGet("/{carId:guid}/check", async (Guid carId, FavoriteService favoriteService, ClaimsPrincipal user) =>
+        {
+            var userId = GetUserId(user);
+            if (userId is null) return Results.Unauthorized();
+
+            var result = await favoriteService.CheckFavoriteAsync(userId.Value, carId);
+            return Results.Ok(new { isFavorite = result.Value });
+        })
+        .WithName("CheckFavorite");
+
         group.MapDelete("/{carId:guid}", async (Guid carId, FavoriteService favoriteService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);

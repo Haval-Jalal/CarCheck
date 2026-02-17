@@ -139,4 +139,36 @@ public class FavoriteServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Favorite not found.", result.Error);
     }
+
+    // ===== Check Favorite =====
+
+    [Fact]
+    public async Task CheckFavorite_WhenExists_ReturnsTrue()
+    {
+        var userId = Guid.NewGuid();
+        var carId = Guid.NewGuid();
+
+        _favoriteRepository.ExistsAsync(userId, carId, Arg.Any<CancellationToken>())
+            .Returns(true);
+
+        var result = await _sut.CheckFavoriteAsync(userId, carId);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value);
+    }
+
+    [Fact]
+    public async Task CheckFavorite_WhenNotExists_ReturnsFalse()
+    {
+        var userId = Guid.NewGuid();
+        var carId = Guid.NewGuid();
+
+        _favoriteRepository.ExistsAsync(userId, carId, Arg.Any<CancellationToken>())
+            .Returns(false);
+
+        var result = await _sut.CheckFavoriteAsync(userId, carId);
+
+        Assert.True(result.IsSuccess);
+        Assert.False(result.Value);
+    }
 }
