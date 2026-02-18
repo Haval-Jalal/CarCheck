@@ -212,7 +212,7 @@ public class CarAnalysisEngine
         if (euroClass is null && co2EmissionsGPerKm is null && annualTaxSek is null) return 60; // Fallback
 
         // Electric vehicles get top score
-        if (fuelType?.Equals("Electric", StringComparison.OrdinalIgnoreCase) == true)
+        if (fuelType is not null && (fuelType.Equals("Electric", StringComparison.OrdinalIgnoreCase) || fuelType.Equals("El", StringComparison.OrdinalIgnoreCase)))
             return 100m;
 
         var score = (euroClass?.ToUpperInvariant()) switch
@@ -384,10 +384,10 @@ public class CarAnalysisEngine
 
     private static string GenerateRecommendation(decimal score) => score switch
     {
-        >= 85 => "Excellent condition. This vehicle appears to be a strong choice with minimal risk factors.",
-        >= 70 => "Good condition. The vehicle is generally sound with some minor considerations.",
-        >= 55 => "Fair condition. There are some factors to be aware of — consider a professional inspection.",
-        >= 40 => "Below average. Multiple risk factors present — proceed with caution and get a thorough inspection.",
-        _ => "Poor condition. Significant risk factors identified — we recommend exploring other options."
+        >= 85 => "Utmärkt skick. Fordonet verkar vara ett starkt val med minimala riskfaktorer.",
+        >= 70 => "Bra skick. Fordonet är generellt sunt med några mindre anmärkningar.",
+        >= 55 => "Godtagbart skick. Det finns faktorer att vara medveten om — en professionell besiktning rekommenderas.",
+        >= 40 => "Under genomsnittet. Flera riskfaktorer identifierade — gå vidare med försiktighet.",
+        _ => "Dåligt skick. Betydande riskfaktorer — vi rekommenderar att utforska andra alternativ."
     };
 }

@@ -23,6 +23,10 @@ export function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('sv-SE')
 }
 
+export function formatMil(km: number): string {
+  return `${formatNumber(Math.round(km / 10))} mil`
+}
+
 export function getScoreColor(score: number): string {
   if (score >= 85) return 'text-green-600'
   if (score >= 70) return 'text-lime-600'

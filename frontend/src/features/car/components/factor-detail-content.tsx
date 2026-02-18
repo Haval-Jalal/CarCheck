@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { AlertTriangle, CheckCircle2, XCircle, Star } from 'lucide-react'
-import { formatDate, formatSek, formatNumber } from '@/lib/format'
+import { formatDate, formatSek, formatMil } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { AnalysisDetails, AnalysisBreakdown } from '@/types/car.types'
 
@@ -44,6 +44,7 @@ export function FactorDetailContent({ factorKey, details, year }: Props) {
           co2={details.co2EmissionsGPerKm}
           annualTax={details.annualTaxSek}
           bonusMalus={details.bonusMalusApplies}
+          taxWithoutBonusMalus={details.taxWithoutBonusMalusSek}
         />
       )
     case 'marketValueScore':
@@ -78,6 +79,8 @@ export function FactorDetailContent({ factorKey, details, year }: Props) {
           year={year}
           firstRegistration={details.firstRegistrationDate}
           isImported={details.isImported}
+          factoryEquipment={details.factoryEquipment}
+          factoryOptions={details.factoryOptions}
         />
       )
     case 'mileageScore':
@@ -142,7 +145,7 @@ function ServiceDetail({ services }: { services: AnalysisDetails['services'] }) 
             <TableCell>{s.workshop ?? '–'}</TableCell>
             <TableCell>{s.type}</TableCell>
             <TableCell className="text-right">
-              {s.mileageAtService != null ? `${formatNumber(s.mileageAtService)} km` : '–'}
+              {s.mileageAtService != null ? formatMil(s.mileageAtService) : '–'}
             </TableCell>
           </TableRow>
         ))}
@@ -302,17 +305,20 @@ function EnvironmentDetail({
   co2,
   annualTax,
   bonusMalus,
+  taxWithoutBonusMalus,
 }: {
   euroClass: string | null
   co2: number | null
   annualTax: number | null
   bonusMalus: boolean | null
+  taxWithoutBonusMalus: number | null
 }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <KeyValue label="Euroklass" value={euroClass ?? '–'} />
       <KeyValue label="CO₂-utsläpp" value={co2 != null ? `${co2} g/km` : '–'} />
-      <KeyValue label="Årlig fordonsskatt" value={annualTax != null ? formatSek(annualTax) : '–'} />
+      <KeyValue label="Årsskatt (inkl. bonus/malus)" value={annualTax != null ? formatSek(annualTax) : '–'} />
+      <KeyValue label="Grundskatt (exkl. bonus/malus)" value={taxWithoutBonusMalus != null ? formatSek(taxWithoutBonusMalus) : '–'} />
       <KeyValue label="Bonus/Malus" value={bonusMalus == null ? '–' : bonusMalus ? 'Ja' : 'Nej'} />
     </div>
   )
@@ -497,26 +503,56 @@ function AgeDetail({
   year,
   firstRegistration,
   isImported,
+  factoryEquipment,
+  factoryOptions,
 }: {
   year: number
   firstRegistration: string | null
   isImported: boolean | null
+  factoryEquipment: string[]
+  factoryOptions: string[]
 }) {
   const currentYear = new Date().getFullYear()
   const age = currentYear - year
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <KeyValue label="Årsmodell" value={String(year)} />
-      <KeyValue label="Ålder" value={`${age} år`} />
-      <KeyValue
-        label="Första registrering"
-        value={firstRegistration ? formatDate(firstRegistration) : '–'}
-      />
-      <KeyValue
-        label="Importerad"
-        value={isImported == null ? '–' : isImported ? 'Ja' : 'Nej'}
-      />
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <KeyValue label="Årsmodell" value={String(year)} />
+        <KeyValue label="Ålder" value={`${age} år`} />
+        <KeyValue
+          label="Första registrering"
+          value={firstRegistration ? formatDate(firstRegistration) : '–'}
+        />
+        <KeyValue
+          label="Importerad"
+          value={isImported == null ? '–' : isImported ? 'Ja' : 'Nej'}
+        />
+      </div>
+
+      {factoryEquipment.length > 0 && (
+        <>
+          <Separator />
+          <h4 className="text-sm font-medium">Fabriksutrustning</h4>
+          <div className="flex flex-wrap gap-2">
+            {factoryEquipment.map((item, idx) => (
+              <Badge key={idx} variant="secondary">{item}</Badge>
+            ))}
+          </div>
+        </>
+      )}
+
+      {factoryOptions.length > 0 && (
+        <>
+          <Separator />
+          <h4 className="text-sm font-medium">Fabrikstillägg</h4>
+          <div className="flex flex-wrap gap-2">
+            {factoryOptions.map((item, idx) => (
+              <Badge key={idx} variant="outline">{item}</Badge>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -552,7 +588,7 @@ function MileageDetail({ readings }: { readings: AnalysisDetails['mileageHistory
               >
                 <TableCell>{formatDate(r.date)}</TableCell>
                 <TableCell className={cn('text-right', isSuspicious && 'font-bold text-red-600')}>
-                  {formatNumber(r.mileage)} km
+                  {formatMil(r.mileage)}
                   {isSuspicious && (
                     <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-red-500" />
                   )}

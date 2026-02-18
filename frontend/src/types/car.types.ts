@@ -123,4 +123,7 @@ export interface AnalysisDetails {
   firstRegistrationDate: string | null
   isImported: boolean | null
   mileageHistory: MileageReadingRecord[]
+  factoryEquipment: string[]
+  factoryOptions: string[]
+  taxWithoutBonusMalusSek: number | null
 }

@@ -70,4 +70,11 @@ public record CarDataResult(
     public List<string>? KnownIssues { get; init; }
     public List<string>? SecurityFeatures { get; init; }
     public bool? IsImported { get; init; }
+
+    // Equipment
+    public List<string>? FactoryEquipment { get; init; }
+    public List<string>? FactoryOptions { get; init; }
+
+    // Tax without bonus/malus
+    public decimal? TaxWithoutBonusMalusSek { get; init; }
 }

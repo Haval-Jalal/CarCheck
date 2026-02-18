@@ -201,6 +201,9 @@ public class CarSearchService
             SecurityFeatures: data.SecurityFeatures ?? [],
             FirstRegistrationDate: data.FirstRegistrationDate,
             IsImported: data.IsImported,
-            MileageHistory: data.MileageReadings ?? []);
+            MileageHistory: data.MileageReadings ?? [],
+            FactoryEquipment: data.FactoryEquipment ?? [],
+            FactoryOptions: data.FactoryOptions ?? [],
+            TaxWithoutBonusMalusSek: data.TaxWithoutBonusMalusSek);
     }
 }
