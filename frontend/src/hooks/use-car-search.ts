@@ -1,10 +1,14 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { carsApi } from '@/api/cars.api'
 import type { CarSearchRequest, CarSearchResponse } from '@/types/car.types'
 
 export function useCarSearch() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: CarSearchRequest) => carsApi.search(data).then((r) => r.data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['history'] })
+    },
   })
 }
 
