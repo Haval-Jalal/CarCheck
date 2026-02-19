@@ -1,19 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import {
-  Car,
-  Search,
-  BarChart3,
-  Shield,
-  Sun,
-  Moon,
-  History,
-  Heart,
-  CheckCircle,
-  ArrowRight,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Car, Search, Sun, Moon, Shield, BarChart3, History } from 'lucide-react'
 import { useTheme } from '@/hooks/use-theme'
 
 export function LandingPage() {
@@ -21,214 +8,135 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [regNumber, setRegNumber] = useState('')
 
-  const handleHeroSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     navigate('/register')
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      {/* Header */}
-      <header className="border-b border-slate-700 bg-slate-900">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-2 font-semibold text-white">
-            <Car className="h-5 w-5 text-blue-400" />
-            <span>CarCheck</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="text-slate-300 hover:bg-slate-700 hover:text-white"
-              aria-label="Växla tema"
-            >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-slate-300 hover:bg-slate-700 hover:text-white"
-              asChild
-            >
-              <Link to="/login">Logga in</Link>
-            </Button>
-            <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" asChild>
-              <Link to="/register">Kom igång</Link>
-            </Button>
-          </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-950 text-white">
+
+      {/* Subtle background glow */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="h-[600px] w-[600px] rounded-full bg-blue-600/10 blur-[120px]" />
+      </div>
+
+      {/* ── Header ── */}
+      <header className="relative z-10 flex h-16 items-center justify-between px-6 md:px-10">
+        <div className="flex items-center gap-2 text-base font-bold tracking-tight">
+          <Car className="h-5 w-5 text-blue-400" />
+          CarCheck
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={toggleTheme}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            aria-label="Växla tema"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <Link
+            to="/login"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          >
+            Logga in
+          </Link>
+          <Link
+            to="/register"
+            className="ml-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+          >
+            Skapa konto
+          </Link>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 py-20 text-center md:py-32">
-        <div className="mx-auto max-w-3xl px-4">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-300">
-            <CheckCircle className="h-4 w-4" />
-            Gratis att prova — ingen registrering krävs för demo
+      {/* ── Main ── */}
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8 md:px-10">
+        <div className="w-full max-w-2xl text-center">
+
+          {/* Eyebrow */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-4 py-1.5 text-xs font-medium text-slate-400 backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            Din guide till ett tryggt bilköp
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-white md:text-6xl">
-            Kontrollera bilen
-            <span className="text-blue-400"> innan du köper</span>
+
+          {/* Headline */}
+          <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+            Vet vad du köper
+            <span className="block text-blue-400">innan du betalar.</span>
           </h1>
-          <p className="mt-4 text-lg text-blue-100/80 md:text-xl">
-            Få en komplett analys av begagnade bilar med registreringsnummer.
-            Historik, värdering och rekommendation — direkt.
+
+          {/* Subtitle */}
+          <p className="mx-auto mb-10 max-w-lg text-base text-slate-400 sm:text-lg">
+            Ange registreringsnumret på vilken begagnad bil som helst och få en
+            datadriven rekommendation — baserad på besiktning, miltal, försäkring
+            och 9 andra faktorer.
           </p>
 
-          <form
-            onSubmit={handleHeroSearch}
-            className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
-          >
-            <Input
-              value={regNumber}
-              onChange={e => setRegNumber(e.target.value.toUpperCase())}
-              placeholder="ABC 123"
-              className="h-12 w-full max-w-xs border-slate-600 bg-slate-800/80 text-center text-lg font-semibold tracking-widest text-white placeholder:text-slate-400 focus:border-blue-500"
-            />
-            <Button type="submit" size="lg" className="h-12 bg-blue-600 px-8 text-white hover:bg-blue-700">
-              <Search className="mr-2 h-5 w-5" />
-              Kontrollera
-            </Button>
+          {/* Search bar */}
+          <form onSubmit={handleSearch} className="mx-auto mb-8 max-w-lg">
+            <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl shadow-black/40 transition focus-within:border-blue-500">
+              <div className="ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600/20">
+                <Car className="h-4 w-4 text-blue-400" />
+              </div>
+              <input
+                value={regNumber}
+                onChange={e => setRegNumber(e.target.value.toUpperCase())}
+                placeholder="ABC 123"
+                maxLength={10}
+                autoFocus
+                className="flex-1 bg-transparent py-2 text-center text-2xl font-black tracking-[0.3em] text-white outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-600 sm:text-3xl"
+              />
+              <button
+                type="submit"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 active:scale-95"
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Sök</span>
+              </button>
+            </div>
           </form>
 
-          <p className="mt-3 text-sm text-slate-400">
-            Redan medlem?{' '}
-            <Link to="/login" className="text-blue-400 hover:underline">
-              Logga in här
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-y border-slate-700 bg-slate-800/50 py-8">
-        <div className="mx-auto max-w-5xl px-4 md:px-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-white md:text-3xl">10 000+</p>
-              <p className="mt-1 text-sm text-slate-400">bilar kontrollerade</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white md:text-3xl">12</p>
-              <p className="mt-1 text-sm text-slate-400">analysparametrar</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-blue-400 md:text-3xl">Gratis</p>
-              <p className="mt-1 text-sm text-slate-400">att prova</p>
-            </div>
+          {/* Trust row */}
+          <div className="mb-10 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 sm:gap-6">
+            <span>10 000+ analyser genomförda</span>
+            <span className="h-1 w-1 rounded-full bg-slate-700" />
+            <span>12 kontrollfaktorer</span>
+            <span className="h-1 w-1 rounded-full bg-slate-700" />
+            <span>Kostnadsfritt att prova</span>
           </div>
-        </div>
-      </section>
 
-      {/* How it works */}
-      <section className="bg-slate-900 py-16">
-        <div className="mx-auto max-w-5xl px-4 md:px-6">
-          <h2 className="mb-10 text-center text-2xl font-bold text-white md:text-3xl">
-            Så fungerar det
-          </h2>
-          <div className="grid gap-8 md:grid-cols-3">
+          {/* Feature pills */}
+          <div className="flex flex-wrap justify-center gap-3">
             {[
-              {
-                step: '1',
-                icon: <Search className="h-6 w-6 text-white" />,
-                title: 'Sök registreringsnummer',
-                desc: 'Ange bilens registreringsnummer för att hämta all tillgänglig data från officiella register.',
-              },
-              {
-                step: '2',
-                icon: <BarChart3 className="h-6 w-6 text-white" />,
-                title: 'Få en analys',
-                desc: 'Vår motor analyserar ålder, miltal, försäkring, återkallelser och besiktning automatiskt.',
-              },
-              {
-                step: '3',
-                icon: <Shield className="h-6 w-6 text-white" />,
-                title: 'Fatta rätt beslut',
-                desc: 'Få en tydlig rekommendation och poäng 0–100 så du köper tryggt och informerat.',
-              },
-            ].map(({ step, icon, title, desc }) => (
-              <div key={step} className="flex flex-col items-center text-center">
-                <div className="relative mb-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30">
-                    {icon}
-                  </div>
-                  <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-xs font-bold text-slate-900">
-                    {step}
-                  </span>
-                </div>
-                <h3 className="font-semibold text-white">{title}</h3>
-                <p className="mt-2 text-sm text-slate-400">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Feature grid */}
-      <section className="bg-slate-800/50 py-16">
-        <div className="mx-auto max-w-5xl px-4 md:px-6">
-          <h2 className="mb-10 text-center text-2xl font-bold text-white md:text-3xl">
-            Allt du behöver — på ett ställe
-          </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: <History className="h-6 w-6 text-blue-400" />,
-                title: 'Sökhistorik',
-                desc: 'Alla dina tidigare sökningar sparas så du enkelt kan gå tillbaka.',
-              },
-              {
-                icon: <BarChart3 className="h-6 w-6 text-blue-400" />,
-                title: '12 faktorer',
-                desc: 'Ålder, miltal, försäkring, återkallelser, besiktning och mer.',
-              },
-              {
-                icon: <Shield className="h-6 w-6 text-blue-400" />,
-                title: 'Rekommendation',
-                desc: 'Tydlig köp/avvakta/undvik-bedömning baserad på objektiv data.',
-              },
-              {
-                icon: <Heart className="h-6 w-6 text-blue-400" />,
-                title: 'Favoriter',
-                desc: 'Spara intressanta bilar och jämför dem i lugn och ro.',
-              },
-            ].map(({ icon, title, desc }) => (
-              <div
-                key={title}
-                className="rounded-xl border border-slate-700 bg-slate-800 p-5 shadow-sm"
+              { icon: <Shield className="h-3.5 w-3.5" />, label: 'Köp · Avvakta · Undvik' },
+              { icon: <BarChart3 className="h-3.5 w-3.5" />, label: 'Poäng 0–100 per bil' },
+              { icon: <History className="h-3.5 w-3.5" />, label: 'Sparas i din historik' },
+            ].map(({ icon, label }) => (
+              <span
+                key={label}
+                className="flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-400"
               >
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-900/50">
-                  {icon}
-                </div>
-                <h3 className="font-semibold text-white">{title}</h3>
-                <p className="mt-1 text-sm text-slate-400">{desc}</p>
-              </div>
+                {icon}
+                {label}
+              </span>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* CTA Banner */}
-      <section className="bg-gradient-to-r from-slate-900 to-blue-900 py-16">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="text-2xl font-bold text-white md:text-3xl">
-            Redo att köpa din nästa bil tryggt?
-          </h2>
-          <p className="mt-3 text-blue-200">
-            Skapa ett gratis konto och kör din första bilkontroll på under en minut.
+          {/* Disclaimer */}
+          <p className="mx-auto mt-8 max-w-md text-xs leading-relaxed text-slate-600">
+            CarCheck tillhandahåller information baserad på officiellt registrerade uppgifter.
+            Vi friskriver oss från ansvar för fordonets faktiska skick vid köptillfället.
           </p>
-          <Button size="lg" className="mt-6 bg-blue-500 px-8 text-white hover:bg-blue-400" asChild>
-            <Link to="/register">
-              Kom igång gratis
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
         </div>
-      </section>
+      </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 bg-slate-900 py-8 text-center text-sm text-slate-500">
+      {/* ── Footer ── */}
+      <footer className="relative z-10 flex items-center justify-between px-6 py-4 text-xs text-slate-700 md:px-10">
+        <div className="flex items-center gap-1.5 font-medium">
+          <Car className="h-3.5 w-3.5" />
+          CarCheck
+        </div>
         <p>&copy; {new Date().getFullYear()} CarCheck. Alla rättigheter förbehållna.</p>
       </footer>
     </div>
