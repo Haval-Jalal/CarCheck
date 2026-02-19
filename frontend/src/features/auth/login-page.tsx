@@ -45,11 +45,11 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 px-4">
+      <Card className="w-full max-w-md border-slate-700 dark:bg-slate-800">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary">
-            <Car className="h-6 w-6 text-primary-foreground" />
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30">
+            <Car className="h-6 w-6 text-white" />
           </div>
           <CardTitle className="text-2xl">Logga in</CardTitle>
           <CardDescription>Ange din e-post och lösenord</CardDescription>
@@ -89,13 +89,13 @@ export function LoginPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
               {isSubmitting ? 'Loggar in...' : 'Logga in'}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
               Har du inget konto?{' '}
-              <Link to="/register" className="font-medium text-primary hover:underline">
+              <Link to="/register" className="font-medium text-blue-500 hover:underline">
                 Registrera dig
               </Link>
             </p>

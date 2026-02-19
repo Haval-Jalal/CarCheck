@@ -30,15 +30,16 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Sök efter en bil för att komma igång</p>
+      {/* Hero section */}
+      <div className="-mx-4 -mt-6 bg-gradient-to-r from-slate-900 to-blue-900 px-4 py-8 md:-mx-6 md:px-6">
+        <h1 className="text-2xl font-bold text-white">Kontrollera en bil</h1>
+        <p className="mt-1 text-blue-200">Ange registreringsnummer för att starta analysen</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
+            <Search className="h-5 w-5 text-blue-500" />
             Bilsökning
           </CardTitle>
         </CardHeader>
