@@ -27,7 +27,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
       <header className="border-b border-slate-700 bg-slate-900">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-6">
@@ -53,11 +53,7 @@ export function LandingPage() {
             >
               <Link to="/login">Logga in</Link>
             </Button>
-            <Button
-              size="sm"
-              className="bg-blue-600 text-white hover:bg-blue-700"
-              asChild
-            >
+            <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700" asChild>
               <Link to="/register">Kom igång</Link>
             </Button>
           </div>
@@ -80,8 +76,10 @@ export function LandingPage() {
             Historik, värdering och rekommendation — direkt.
           </p>
 
-          {/* Hero search form */}
-          <form onSubmit={handleHeroSearch} className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <form
+            onSubmit={handleHeroSearch}
+            className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+          >
             <Input
               value={regNumber}
               onChange={e => setRegNumber(e.target.value.toUpperCase())}
@@ -104,29 +102,29 @@ export function LandingPage() {
       </section>
 
       {/* Stats */}
-      <section className="border-y border-slate-200 bg-slate-50 py-8 dark:border-slate-800 dark:bg-slate-900">
+      <section className="border-y border-slate-700 bg-slate-800/50 py-8">
         <div className="mx-auto max-w-5xl px-4 md:px-6">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">10 000+</p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">bilar kontrollerade</p>
+              <p className="text-2xl font-bold text-white md:text-3xl">10 000+</p>
+              <p className="mt-1 text-sm text-slate-400">bilar kontrollerade</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">12</p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">analysparametrar</p>
+              <p className="text-2xl font-bold text-white md:text-3xl">12</p>
+              <p className="mt-1 text-sm text-slate-400">analysparametrar</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-blue-600 md:text-3xl">Gratis</p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">att prova</p>
+              <p className="text-2xl font-bold text-blue-400 md:text-3xl">Gratis</p>
+              <p className="mt-1 text-sm text-slate-400">att prova</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="py-16">
+      <section className="bg-slate-900 py-16">
         <div className="mx-auto max-w-5xl px-4 md:px-6">
-          <h2 className="mb-10 text-center text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
+          <h2 className="mb-10 text-center text-2xl font-bold text-white md:text-3xl">
             Så fungerar det
           </h2>
           <div className="grid gap-8 md:grid-cols-3">
@@ -159,8 +157,8 @@ export function LandingPage() {
                     {step}
                   </span>
                 </div>
-                <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
-                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{desc}</p>
+                <h3 className="font-semibold text-white">{title}</h3>
+                <p className="mt-2 text-sm text-slate-400">{desc}</p>
               </div>
             ))}
           </div>
@@ -168,43 +166,43 @@ export function LandingPage() {
       </section>
 
       {/* Feature grid */}
-      <section className="bg-slate-50 py-16 dark:bg-slate-900">
+      <section className="bg-slate-800/50 py-16">
         <div className="mx-auto max-w-5xl px-4 md:px-6">
-          <h2 className="mb-10 text-center text-2xl font-bold text-slate-900 dark:text-white md:text-3xl">
+          <h2 className="mb-10 text-center text-2xl font-bold text-white md:text-3xl">
             Allt du behöver — på ett ställe
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                icon: <History className="h-6 w-6 text-blue-500" />,
+                icon: <History className="h-6 w-6 text-blue-400" />,
                 title: 'Sökhistorik',
                 desc: 'Alla dina tidigare sökningar sparas så du enkelt kan gå tillbaka.',
               },
               {
-                icon: <BarChart3 className="h-6 w-6 text-blue-500" />,
+                icon: <BarChart3 className="h-6 w-6 text-blue-400" />,
                 title: '12 faktorer',
                 desc: 'Ålder, miltal, försäkring, återkallelser, besiktning och mer.',
               },
               {
-                icon: <Shield className="h-6 w-6 text-blue-500" />,
+                icon: <Shield className="h-6 w-6 text-blue-400" />,
                 title: 'Rekommendation',
                 desc: 'Tydlig köp/avvakta/undvik-bedömning baserad på objektiv data.',
               },
               {
-                icon: <Heart className="h-6 w-6 text-blue-500" />,
+                icon: <Heart className="h-6 w-6 text-blue-400" />,
                 title: 'Favoriter',
                 desc: 'Spara intressanta bilar och jämför dem i lugn och ro.',
               },
             ].map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                className="rounded-xl border border-slate-700 bg-slate-800 p-5 shadow-sm"
               >
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-900/50">
                   {icon}
                 </div>
-                <h3 className="font-semibold text-slate-900 dark:text-white">{title}</h3>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{desc}</p>
+                <h3 className="font-semibold text-white">{title}</h3>
+                <p className="mt-1 text-sm text-slate-400">{desc}</p>
               </div>
             ))}
           </div>
@@ -220,11 +218,7 @@ export function LandingPage() {
           <p className="mt-3 text-blue-200">
             Skapa ett gratis konto och kör din första bilkontroll på under en minut.
           </p>
-          <Button
-            size="lg"
-            className="mt-6 bg-blue-500 px-8 text-white hover:bg-blue-400"
-            asChild
-          >
+          <Button size="lg" className="mt-6 bg-blue-500 px-8 text-white hover:bg-blue-400" asChild>
             <Link to="/register">
               Kom igång gratis
               <ArrowRight className="ml-2 h-5 w-5" />
