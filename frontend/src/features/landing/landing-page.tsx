@@ -57,13 +57,13 @@ export function LandingPage() {
           {/* Eyebrow */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-4 py-1.5 text-xs font-medium text-slate-400 backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-            Din guide till ett tryggt bilköp
+            Bilanalys för privatpersoner
           </div>
 
           {/* Headline */}
           <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-            Vet vad du köper
-            <span className="block text-blue-400">innan du betalar.</span>
+            Din guide till ett
+            <span className="block text-blue-400">tryggt bilköp.</span>
           </h1>
 
           {/* Subtitle */}
