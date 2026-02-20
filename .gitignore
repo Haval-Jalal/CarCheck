@@ -417,3 +417,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Local docs/research
+docs/api-comparison.html
