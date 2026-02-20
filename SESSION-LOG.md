@@ -118,6 +118,38 @@ Frontend: http://localhost:5173
 
 ---
 
+## Session 2026-02-20 — Frontend redesign & kodkvalitet
+
+### Redesign & temabyte (PR:ar utan issues)
+| Vad | Resultat |
+|-----|---------|
+| `index.css` — dark mode via `@custom-variant`, ny `--color-primary` (blå), `.dark {}` variabler | Klart |
+| `use-theme.ts` (ny) — hook med localStorage, standard mörkt tema | Klart |
+| `App.tsx` — tema appliceras före första render (ingen blixt) | Klart |
+| `landing-page.tsx` — full redesign: single-screen, mörk, stor regnummer-input, professionell text | Klart |
+| `header.tsx` — mörk navy, tema-toggle (Sol/Måne), vita nav-knappar | Klart |
+| `app-shell.tsx` — `bg-slate-50 dark:bg-slate-900` | Klart |
+| `login-page.tsx` / `register-page.tsx` — navy gradient-bakgrund, dark card-stöd | Klart |
+| `dashboard-page.tsx` — blå gradient hero-sektion ovanför sökkortet | Klart |
+| `protected-route.tsx` — utloggning omdirigerar till `/` (landing) istället för `/login` | Klart |
+
+### Kodkvalitet & prestanda (PR #82–#93)
+| Issue | Branch | PR | Åtgärd |
+|-------|--------|----|--------|
+| #82 | refactor/cleanup-unused-components | #88 ✅ | Raderade skeleton.tsx, tabs.tsx, select.tsx, form.tsx |
+| #83 | perf/code-splitting | #91 ✅ | React.lazy + Suspense för alla 10 sidrouter |
+| #84 (axios timeout) | perf/axios-timeout | #89 ✅ | `timeout: 10_000` i Axios-klienten |
+| #85 | feat/error-boundary | #90 ✅ | React ErrorBoundary ("Något gick fel / Ladda om") |
+| #86 | refactor/query-key-factory | #92 ✅ | `src/lib/query-keys.ts` — centrala typade query-nycklar |
+| #87 | refactor/usememo-sorting | #93 ✅ | `useMemo` för miltalssortering i `factor-detail-content.tsx` |
+
+### Nuvarande status
+- **Alla 6 issues (#82-#87) stängda**, alla PR:ar mergade till main
+- main är på commit `cf271a2`
+- GitHub project board "CarCheck Development" uppdaterat med alla tasks
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
