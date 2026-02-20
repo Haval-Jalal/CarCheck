@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { historyApi } from '@/api/history.api'
+import { queryKeys } from '@/lib/query-keys'
 
 export function useHistory(page: number, pageSize = 20) {
   return useQuery({
-    queryKey: ['history', { page, pageSize }],
+    queryKey: queryKeys.history.list(page, pageSize),
     queryFn: () => historyApi.getHistory({ page, pageSize }).then((r) => r.data),
     placeholderData: (prev) => prev,
   })
@@ -14,7 +15,7 @@ export function useDeleteHistoryEntry() {
   return useMutation({
     mutationFn: (id: string) => historyApi.deleteEntry(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['history'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
     },
   })
 }
@@ -24,7 +25,7 @@ export function useClearHistory() {
   return useMutation({
     mutationFn: () => historyApi.clearAll(),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['history'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
     },
   })
 }

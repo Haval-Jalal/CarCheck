@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { billingApi } from '@/api/billing.api'
+import { queryKeys } from '@/lib/query-keys'
 
 export function useTiers() {
   return useQuery({
-    queryKey: ['billing', 'tiers'],
+    queryKey: queryKeys.billing.tiers,
     queryFn: () => billingApi.getTiers().then((r) => r.data),
     staleTime: 30 * 60 * 1000,
   })
@@ -11,7 +12,7 @@ export function useTiers() {
 
 export function useSubscription() {
   return useQuery({
-    queryKey: ['billing', 'subscription'],
+    queryKey: queryKeys.billing.subscription,
     queryFn: () => billingApi.getSubscription().then((r) => r.data),
   })
 }
@@ -27,7 +28,7 @@ export function useCancelSubscription() {
   return useMutation({
     mutationFn: () => billingApi.cancelSubscription(),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['billing', 'subscription'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription })
     },
   })
 }
