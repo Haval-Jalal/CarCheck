@@ -5,6 +5,7 @@ import { useQuotaStore } from '@/stores/quota.store'
 const apiClient = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 10_000,
 })
 
 // Request interceptor: attach access token
