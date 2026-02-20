@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
@@ -560,12 +561,14 @@ function AgeDetail({
 // ─── Miltal ───
 
 function MileageDetail({ readings }: { readings: AnalysisDetails['mileageHistory'] }) {
+  const sorted = useMemo(
+    () => [...readings].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [readings]
+  )
+
   if (readings.length === 0) {
     return <EmptyState text="Ingen miltalshistorik tillgänglig." />
   }
-
-  // Sort by date ascending
-  const sorted = [...readings].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   return (
     <div className="space-y-3">
