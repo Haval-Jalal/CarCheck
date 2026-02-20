@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git push:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c \"taskkill /PID 62052 /F & taskkill /PID 33608 /F & taskkill /PID 17828 /F & taskkill /PID 37224 /F\")",
+      "Bash(gh project:*)",
+      "Bash(gh api:*)",
+      "Bash(gh issue create:*)",
+      "Bash(PID=\"PVT_kwHODIg7Z84BPCz1\")",
+      "Bash(for NID in \"I_kwDORO2Dic7sXvdM\" \"I_kwDORO2Dic7sXvdt\" \"I_kwDORO2Dic7sXveN\" \"I_kwDORO2Dic7sXve3\" \"I_kwDORO2Dic7sXvfi\")",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(done)"
+    ]
+  }
+}
