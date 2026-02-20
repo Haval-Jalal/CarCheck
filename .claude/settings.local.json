@@ -19,7 +19,11 @@
       "Bash(for NID in \"I_kwDORO2Dic7sXvdM\" \"I_kwDORO2Dic7sXvdt\" \"I_kwDORO2Dic7sXveN\" \"I_kwDORO2Dic7sXve3\" \"I_kwDORO2Dic7sXvfi\")",
       "Bash(do)",
       "Bash(echo:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git pull:*)",
+      "Bash(gh pr list:*)"
     ]
   }
 }

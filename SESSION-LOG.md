@@ -145,8 +145,24 @@ Frontend: http://localhost:5173
 
 ### Nuvarande status
 - **Alla 6 issues (#82-#87) stängda**, alla PR:ar mergade till main
-- main är på commit `cf271a2`
+- main är på commit `899f517` (SESSION-LOG uppdaterad)
 - GitHub project board "CarCheck Development" uppdaterat med alla tasks
+- Repot är rent — inga lokala ändringar, synkad med `origin/main`
+
+### Att göra vid klon på ny dator
+```bash
+git clone https://github.com/Haval-Jalal/CarCheck.git
+cd CarCheck
+
+# Backend
+# Skapa src/CarCheck.API/appsettings.Development.json med Supabase-credentials
+# (se befintlig dator — filen är gitignored)
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
