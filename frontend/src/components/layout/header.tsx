@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router'
+import { useState, useRef } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
 import {
   Car, LogOut, Settings, History, Heart, CreditCard,
-  Sun, Moon, ArrowUpDown, Menu, X, Search,
+  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,15 +15,61 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
+import { useCarSearch } from '@/hooks/use-car-search'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
-  { to: '/dashboard', label: 'Sök', icon: Search },
   { to: '/history', label: 'Historik', icon: History },
   { to: '/favorites', label: 'Favoriter', icon: Heart },
   { to: '/compare', label: 'Jämför', icon: ArrowUpDown },
   { to: '/billing', label: 'Abonnemang', icon: CreditCard },
 ]
+
+function HeaderSearch() {
+  const [value, setValue] = useState('')
+  const navigate = useNavigate()
+  const search = useCarSearch()
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const reg = value.trim()
+    if (!reg || search.isPending) return
+    search.mutate(
+      { registrationNumber: reg },
+      {
+        onSuccess: (data) => {
+          setValue('')
+          inputRef.current?.blur()
+          navigate(`/car/${data.carId}`, { state: { car: data } })
+        },
+      }
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="hidden md:flex">
+      <div className="flex items-center rounded-lg border border-slate-600 bg-slate-800 transition-colors focus-within:border-blue-500">
+        <Search className="ml-3 h-4 w-4 shrink-0 text-slate-400" />
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value.toUpperCase())}
+          placeholder="ABC 123"
+          maxLength={10}
+          className="w-28 bg-transparent py-1.5 pl-2 pr-1 text-sm font-mono font-bold tracking-widest text-white placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-500 outline-none"
+        />
+        <button
+          type="submit"
+          disabled={!value.trim() || search.isPending}
+          className="mr-1 rounded-md px-2.5 py-1 text-xs font-semibold text-slate-300 transition-colors hover:bg-slate-700 disabled:opacity-40"
+        >
+          {search.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Sök'}
+        </button>
+      </div>
+    </form>
+  )
+}
 
 export function Header() {
   const { userEmail, logout } = useAuth()
@@ -35,20 +81,23 @@ export function Header() {
 
   return (
     <header className="border-b border-slate-700 bg-slate-900">
-      <div className="flex h-14 items-center justify-between px-4 md:px-6">
+      <div className="flex h-14 items-center gap-3 px-4 md:px-6">
 
         {/* Logo */}
         <Link
           to="/dashboard"
-          className="flex items-center gap-2 font-semibold text-white"
+          className="flex shrink-0 items-center gap-2 font-semibold text-white"
           onClick={() => setMobileOpen(false)}
         >
           <Car className="h-5 w-5 text-blue-400" />
-          <span>CarCheck</span>
+          <span className="hidden sm:inline">CarCheck</span>
         </Link>
 
+        {/* Header search (desktop) */}
+        <HeaderSearch />
+
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="ml-auto hidden items-center gap-1 md:flex">
           {NAV_LINKS.map(({ to, label, icon: Icon }) => (
             <Button
               key={to}
@@ -69,7 +118,7 @@ export function Header() {
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 md:ml-0">
           {/* Theme toggle */}
           <Button
             variant="ghost"
@@ -126,6 +175,17 @@ export function Header() {
       {mobileOpen && (
         <div className="border-t border-slate-700 bg-slate-900 px-4 pb-4 md:hidden">
           <nav className="flex flex-col gap-1 pt-2">
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white',
+                location.pathname === '/dashboard' && 'bg-slate-700 text-white'
+              )}
+            >
+              <Search className="h-4 w-4" />
+              Sök bil
+            </Link>
             {NAV_LINKS.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
