@@ -23,6 +23,7 @@ import { getScoreColor, getScoreBgColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { FactorDetailSheet } from './components/factor-detail-sheet'
 import { NegotiationTips } from './components/negotiation-tips'
+import { FutureCosts } from './components/future-costs'
 import type { AnalysisBreakdown } from '@/types/car.types'
 
 interface CategoryItem {
@@ -174,6 +175,14 @@ export function CarAnalysisPage() {
 
       {/* Negotiation tips */}
       <NegotiationTips breakdown={analysis.breakdown} details={analysis.details} />
+
+      {/* Future costs estimate */}
+      <FutureCosts
+        breakdown={analysis.breakdown}
+        details={analysis.details}
+        year={analysis.year}
+        mileage={analysis.details?.mileageHistory?.at(-1)?.mileage ?? 0}
+      />
 
       {/* Grouped breakdown — 2x2 grid, clickable rows */}
       <div className="grid gap-4 md:grid-cols-2">
