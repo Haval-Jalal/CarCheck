@@ -21,6 +21,7 @@ import { ErrorDisplay } from '@/components/common/error-display'
 import { getScoreColor, getScoreBgColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { FactorDetailSheet } from './components/factor-detail-sheet'
+import { NegotiationTips } from './components/negotiation-tips'
 import type { AnalysisBreakdown } from '@/types/car.types'
 
 interface CategoryItem {
@@ -160,6 +161,9 @@ export function CarAnalysisPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Negotiation tips */}
+      <NegotiationTips breakdown={analysis.breakdown} details={analysis.details} />
 
       {/* Grouped breakdown — 2x2 grid, clickable rows */}
       <div className="grid gap-4 md:grid-cols-2">
