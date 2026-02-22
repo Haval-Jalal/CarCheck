@@ -135,6 +135,9 @@ public class CarSearchService
         var analysisResult = AnalysisResult.Create(carId, score, recommendation);
         await _analysisResultRepository.AddAsync(analysisResult, cancellationToken);
 
+        // Fetch search count for interest meter
+        var searchCount = await _searchHistoryRepository.GetSearchCountByCarIdAsync(carId, cancellationToken);
+
         var analysisResponse = new CarAnalysisResponse(
             analysisResult.Id,
             carId,
@@ -146,7 +149,8 @@ public class CarSearchService
             recommendation,
             breakdown,
             analysisResult.CreatedAt,
-            details);
+            details,
+            searchCount);
 
         await _cacheService.SetAsync(analysisCacheKey, analysisResponse, CacheDuration, cancellationToken);
 

@@ -25,7 +25,8 @@ public record CarAnalysisResponse(
     string Recommendation,
     AnalysisBreakdown Breakdown,
     DateTime CreatedAt,
-    AnalysisDetails? Details = null);
+    AnalysisDetails? Details = null,
+    int SearchCount = 0);
 
 public record AnalysisBreakdown(
     decimal AgeScore,

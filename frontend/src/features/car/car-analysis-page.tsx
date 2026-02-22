@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   ChevronRight,
   Share2,
+  Users,
 } from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
@@ -115,7 +116,15 @@ export function CarAnalysisPage() {
           <h1 className="text-2xl font-bold">
             {analysis.brand} {analysis.model} — Analys
           </h1>
-          <p className="text-muted-foreground">{analysis.registrationNumber}</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-muted-foreground">{analysis.registrationNumber}</p>
+            {analysis.searchCount > 0 && (
+              <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                <Users className="h-3 w-3" />
+                {analysis.searchCount} {analysis.searchCount === 1 ? 'person' : 'personer'} har sökt på denna bil
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
