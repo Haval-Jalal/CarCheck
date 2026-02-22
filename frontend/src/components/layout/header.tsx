@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { Car, LogOut, Settings, History, Heart, CreditCard, Sun, Moon } from 'lucide-react'
+import { Car, LogOut, Settings, History, Heart, CreditCard, Sun, Moon, ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -57,6 +57,17 @@ export function Header() {
             <Link to="/favorites">
               <Heart className="mr-1 h-4 w-4" />
               Favoriter
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-slate-300 hover:bg-slate-700 hover:text-white"
+            asChild
+          >
+            <Link to="/compare">
+              <ArrowUpDown className="mr-1 h-4 w-4" />
+              Jämför
             </Link>
           </Button>
           <Button
