@@ -202,6 +202,34 @@ Nya features för att särskilja CarCheck från biluppgifter.se och car.info (so
 
 ---
 
+## Session 2026-02-22 (del 2) — Mobilanpassning, PWA och snabbsök
+
+### #101 → PR #104 ✅ — Mobilnavigation (`feat/mobile-navigation`)
+- Hamburgermeny (☰/✕) på mobil öppnar en drawer med alla nav-länkar
+- Drawer innehåller: Sök, Historik, Favoriter, Jämför, Abonnemang, Inställningar, Logga ut
+- Aktiv route markeras i både desktop och mobilvy
+- Drawer stängs automatiskt vid navigering
+
+### #102 → PR #105 ✅ — PWA-stöd (`feat/pwa`)
+- `public/manifest.json`: appnamn, temafärg, SVG-ikoner, genvägar (Sök + Jämför)
+- `public/sw.js`: service worker med network-first för navigation, cache-first för statiska resurser, alltid network för `/api`
+- `public/favicon.svg`: eget CarCheck-favicon (ersätter Vite-standard)
+- `public/icons/icon-192.svg`: hemskärmsikon
+- Service worker registreras i `main.tsx`
+- `index.html` uppdaterad med svensk titel, beskrivning, theme-color och manifest-länk
+
+### #103 → PR #106 ✅ — Sökinput i headern (`feat/header-search`)
+- Inline sökinput alltid synlig i headern på alla inloggade sidor (desktop)
+- Skriv regnummer → Enter/Sök-knapp → navigeras direkt till bilresultatet
+- Spinner visas under sökning, fält töms och fokus försvinner efter lyckad sökning
+- Mobil: sökinput dold, Sök-länk finns kvar i mobildrawnern
+
+### Nuvarande status
+- main är på commit `34b75c5`
+- Alla 3 issues (#101–#103) stängda, alla PR:ar (#104–#106) mergade
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
