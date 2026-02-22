@@ -230,6 +230,54 @@ Nya features för att särskilja CarCheck från biluppgifter.se och car.info (so
 
 ---
 
+## Session 2026-02-22 (del 3) — 5 unika differentierande features + återställningspunkt
+
+### Återställningspunkt
+- Git-tagg `v1.0-stable` skapad och pushad till origin
+- Kan återställas med: `git checkout v1.0-stable` (läs-läge) eller kontakta för hard reset
+
+### #107 → PR #112 ✅ — Blocket/Bytbil URL-klistring (`feat/blocket-url-parsing`)
+- Sökinputfältet på dashboard accepterar nu annons-URL:er (Blocket, Bytbil etc.)
+- Länkikon visas automatiskt när en URL detekteras
+- Regnummer extraheras med regex ur URL-slug och visas som hint
+- Felmeddelande om regnummer inte kan hittas i URL:en
+- `frontend/src/lib/parse-reg-from-url.ts` (ny)
+- Fixar preexisterande TypeScript-fel i `NegotiationTips`, `ProtectedRoute`
+
+### #108 → PR #113 ✅ — Framtidskostnader (`feat/future-costs`)
+- Ny sektion på analyssidan under Förhandlingstips
+- 12-månaders kostnadsprognos baserat på analysdata
+- Täcker: fordonsskatt (faktisk), kontrollbesiktning, service/oljebyte, däckbyte, kända modellproblem, drivlineproblem
+- Visar kostnadsintervall per post och total uppskattning
+- `frontend/src/features/car/components/future-costs.tsx` (ny)
+
+### #109 → PR #114 ✅ — Deal Score (`feat/deal-score`)
+- Nytt kort på analyssidan: användaren matar in annonsens pris
+- Deal Score = kvalitetspoäng × 60% + prispoäng × 40%
+- Prispoäng: 100 = >30% under marknadspris, 0 = >30% över
+- Badge: Bra deal (grön), Okej deal (gul), Dåligt deal (röd)
+- Visar kronorskillnad vs. marknadsvärde
+- `frontend/src/features/car/components/deal-score.tsx` (ny)
+
+### #110 → PR #115 ✅ — Besiktningschecklista (`feat/inspection-checklist`)
+- Bil-specifik checklista genereras baserat på bilens svaga faktorer
+- 6 kategorier: Motor & Drivlina, Kaross & Exteriör, Däck & Bromsar, Interiör, Papper & Historik, Provkörning
+- Checkboxar, hopfällbara kategorier, Kopiera-knapp
+- `frontend/src/features/car/components/inspection-checklist.tsx` (ny)
+
+### #111 → PR #116 ✅ — Sökintressemätare (`feat/search-counter`)
+- Backend: ny metod `GetSearchCountByCarIdAsync` i `ISearchHistoryRepository` + `SearchHistoryRepository`
+- `CarAnalysisResponse` DTO utökad med `SearchCount: int`
+- Frontend: blå badge "X person(er) har sökt på denna bil" på analyssidan
+- `frontend/src/types/car.types.ts` uppdaterad
+
+### Nuvarande status
+- main är på commit `0351a20`
+- Alla 5 issues (#107–#111) stängda, alla PR:ar (#112–#116) mergade
+- Git-tagg `v1.0-stable` pekar på commit `34b75c5` (stabil bas)
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
