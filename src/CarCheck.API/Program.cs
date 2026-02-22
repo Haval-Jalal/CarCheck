@@ -76,5 +76,6 @@ app.MapHistoryEndpoints();
 app.MapFavoriteEndpoints();
 app.MapBillingEndpoints();
 app.MapGdprEndpoints();
+app.MapPublicEndpoints();
 
 app.Run();
