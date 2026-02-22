@@ -31,6 +31,12 @@ public class SearchHistoryRepository : ISearchHistoryRepository
             .CountAsync(s => s.UserId == userId && s.SearchedAt >= todayUtc, cancellationToken);
     }
 
+    public async Task<int> GetSearchCountByCarIdAsync(Guid carId, CancellationToken cancellationToken = default)
+    {
+        return await _context.SearchHistories
+            .CountAsync(s => s.CarId == carId, cancellationToken);
+    }
+
     public async Task AddAsync(SearchHistory entry, CancellationToken cancellationToken = default)
     {
         await _context.SearchHistories.AddAsync(entry, cancellationToken);

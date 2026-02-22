@@ -28,6 +28,7 @@ export interface CarAnalysisResponse {
   breakdown: AnalysisBreakdown
   createdAt: string
   details: AnalysisDetails | null
+  searchCount: number
 }
 
 export interface AnalysisBreakdown {
