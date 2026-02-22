@@ -23,7 +23,8 @@
       "Bash(gh pr create:*)",
       "Bash(gh pr merge:*)",
       "Bash(git pull:*)",
-      "Bash(gh pr list:*)"
+      "Bash(gh pr list:*)",
+      "Bash(dotnet run:*)"
     ]
   }
 }

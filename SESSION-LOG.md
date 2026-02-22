@@ -166,6 +166,42 @@ npm run dev
 
 ---
 
+## Session 2026-02-22 — Tre differentierande features
+
+### Bakgrund
+Nya features för att särskilja CarCheck från biluppgifter.se och car.info (som bara visar rådata, ingen analys eller rekommendation).
+
+### Implementerade features
+
+#### #95 → PR #98 ✅ — Förhandlingstips (`feat/negotiation-tips`)
+- Ny komponent `features/car/components/negotiation-tips.tsx`
+- Genererar handlingsbara svenska tips automatiskt baserade på analysdata
+- Täcker: köpspärr, skulder, underkänd besiktning, återkallelser, kilometertamper, allvarliga skador, många ägare, servicehistorik, marknadspris, kända modellproblem, stöldrisk, bonus-malus
+- Tips färgkodas: röd (kritiskt) / gul (observera) / blå (notera)
+- Visas direkt under rekommendationskortet på `/car/:carId/analysis`
+
+#### #96 → PR #99 ✅ — Dela analys (`feat/share-analysis`)
+- Backend: ny `PublicEndpoints.cs` med `GET /api/public/cars/{carId}/analysis` (AllowAnonymous, ingen DB-migration)
+- Frontend: "Dela analys"-knapp kopierar share-URL till urklipp med "Kopierad!"-feedback
+- Ny publik sida `/share/:carId` — öppnas utan inloggning
+- Share-sidan visar: poäng, rekommendation, förhandlingstips, 12-faktors breakdown (read-only)
+- CTA-kort på share-sidan driver nya registreringar ("Kom igång gratis")
+- Ny hook `usePublicCarAnalysis` + `publicAnalysis` query key
+
+#### #97 → PR #100 ✅ — Jämför bilar (`feat/compare-cars`)
+- Ny sida `/compare` med två oberoende sökrutor
+- Visar poängcirklar, rekommendationsbadges och 12 faktorer som parallella progressbars
+- Vinnande bil per faktor markeras med kontrast (förloraren dimmas)
+- Verdict-kort visar klart vinnaren och poängskillnaden i poäng
+- Länkar till fullständig analys för varje bil
+- "Jämför"-länk tillagd i desktop-navigationen i headern
+
+### Nuvarande status
+- main är på commit `abdba2d`
+- Alla 3 issues stängda, alla PR:ar mergade
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
