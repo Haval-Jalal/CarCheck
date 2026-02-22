@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import { FactorDetailSheet } from './components/factor-detail-sheet'
 import { NegotiationTips } from './components/negotiation-tips'
 import { FutureCosts } from './components/future-costs'
+import { DealScore } from './components/deal-score'
 import type { AnalysisBreakdown } from '@/types/car.types'
 
 interface CategoryItem {
@@ -172,6 +173,9 @@ export function CarAnalysisPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Deal Score */}
+      <DealScore qualityScore={analysis.score} details={analysis.details} />
 
       {/* Negotiation tips */}
       <NegotiationTips breakdown={analysis.breakdown} details={analysis.details} />
