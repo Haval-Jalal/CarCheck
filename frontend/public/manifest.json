@@ -1,0 +1,39 @@
+{
+  "name": "CarCheck",
+  "short_name": "CarCheck",
+  "description": "Analysera begagnade bilar med 12 faktorer och få en tydlig köprekommendation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "lang": "sv",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Sök bil",
+      "short_name": "Sök",
+      "url": "/dashboard",
+      "description": "Sök på ett registreringsnummer"
+    },
+    {
+      "name": "Jämför bilar",
+      "short_name": "Jämför",
+      "url": "/compare",
+      "description": "Jämför två bilar sida vid sida"
+    }
+  ]
+}
