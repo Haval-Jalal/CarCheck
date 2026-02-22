@@ -25,6 +25,7 @@ import { FactorDetailSheet } from './components/factor-detail-sheet'
 import { NegotiationTips } from './components/negotiation-tips'
 import { FutureCosts } from './components/future-costs'
 import { DealScore } from './components/deal-score'
+import { InspectionChecklist } from './components/inspection-checklist'
 import type { AnalysisBreakdown } from '@/types/car.types'
 
 interface CategoryItem {
@@ -179,6 +180,9 @@ export function CarAnalysisPage() {
 
       {/* Negotiation tips */}
       <NegotiationTips breakdown={analysis.breakdown} details={analysis.details} />
+
+      {/* Inspection checklist */}
+      <InspectionChecklist breakdown={analysis.breakdown} details={analysis.details} />
 
       {/* Future costs estimate */}
       <FutureCosts
