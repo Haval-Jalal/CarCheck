@@ -1,9 +1,8 @@
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { Navigate, Outlet } from 'react-router'
 import { useAuth } from '@/hooks/use-auth'
 
 export function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth()
-  const location = useLocation()
 
   if (isLoading) {
     return (

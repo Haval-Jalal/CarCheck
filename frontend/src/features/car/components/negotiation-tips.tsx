@@ -4,7 +4,7 @@ import type { AnalysisBreakdown, AnalysisDetails } from '@/types/car.types'
 
 interface Props {
   breakdown: AnalysisBreakdown
-  details: AnalysisDetails
+  details: AnalysisDetails | null
 }
 
 interface Tip {
@@ -12,7 +12,8 @@ interface Tip {
   priority: 'high' | 'medium' | 'low'
 }
 
-function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails): Tip[] {
+function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null): Tip[] {
+  if (!details) return []
   const tips: Tip[] = []
 
   // ── Köpspärr ──
