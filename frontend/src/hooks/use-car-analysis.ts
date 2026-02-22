@@ -9,3 +9,11 @@ export function useCarAnalysis(carId: string | undefined) {
     enabled: !!carId,
   })
 }
+
+export function usePublicCarAnalysis(carId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.cars.publicAnalysis(carId!),
+    queryFn: () => carsApi.getPublicAnalysis(carId!).then((r) => r.data),
+    enabled: !!carId,
+  })
+}

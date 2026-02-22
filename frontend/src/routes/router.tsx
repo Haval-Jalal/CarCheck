@@ -14,6 +14,7 @@ const HistoryPage = lazy(() => import('@/features/history/history-page').then(m 
 const FavoritesPage = lazy(() => import('@/features/favorites/favorites-page').then(m => ({ default: m.FavoritesPage })))
 const BillingPage = lazy(() => import('@/features/billing/billing-page').then(m => ({ default: m.BillingPage })))
 const SettingsPage = lazy(() => import('@/features/settings/settings-page').then(m => ({ default: m.SettingsPage })))
+const SharePage = lazy(() => import('@/features/share/share-page').then(m => ({ default: m.SharePage })))
 
 function PageLoader() {
   return (
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <Lazy><LandingPage /></Lazy> },
       { path: '/login', element: <Lazy><LoginPage /></Lazy> },
       { path: '/register', element: <Lazy><RegisterPage /></Lazy> },
+      { path: '/share/:carId', element: <Lazy><SharePage /></Lazy> },
     ],
   },
   {

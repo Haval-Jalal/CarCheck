@@ -3,6 +3,7 @@ export const queryKeys = {
     all: ['cars'] as const,
     byId: (carId: string) => ['cars', carId] as const,
     analysis: (carId: string) => ['cars', carId, 'analysis'] as const,
+    publicAnalysis: (carId: string) => ['cars', carId, 'public-analysis'] as const,
   },
   history: {
     all: ['history'] as const,

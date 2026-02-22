@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,7 @@ import {
   Shield,
   AlertTriangle,
   ChevronRight,
+  Share2,
 } from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
@@ -82,6 +83,15 @@ export function CarAnalysisPage() {
     key: keyof AnalysisBreakdown
     label: string
   } | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = useCallback(() => {
+    const shareUrl = `${window.location.origin}/share/${carId}`
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }, [carId])
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <ErrorDisplay error={error} />
@@ -206,6 +216,10 @@ export function CarAnalysisPage() {
       <div className="flex gap-3">
         <Button variant="outline" asChild>
           <Link to="/dashboard">Ny sökning</Link>
+        </Button>
+        <Button variant="outline" onClick={handleShare}>
+          <Share2 className="mr-2 h-4 w-4" />
+          {copied ? 'Kopierad!' : 'Dela analys'}
         </Button>
       </div>
 
