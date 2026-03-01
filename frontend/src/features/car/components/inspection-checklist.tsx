@@ -293,7 +293,7 @@ export function InspectionChecklist({ breakdown, details }: {
                   className="h-7 text-xs"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  <span className="ml-1">PDF</span>
+                  <span className="ml-1">Ladda ner</span>
                 </Button>
                 <Button
                   variant="outline"
