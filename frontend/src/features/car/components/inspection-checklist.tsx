@@ -149,6 +149,7 @@ export function InspectionChecklist({ breakdown, details }: {
 }) {
   const groups = buildChecklist(breakdown, details)
   const allIds = groups.flatMap(g => g.items.map(i => i.id))
+  const [isOpen, setIsOpen] = useState(false)
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState(false)
@@ -186,22 +187,37 @@ export function InspectionChecklist({ breakdown, details }: {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setIsOpen(prev => !prev)}
+      >
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <ClipboardCheck className="h-4 w-4 text-blue-500" />
             Besiktningschecklista för visning
           </CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{doneCount}/{totalCount} klara</span>
-            <Button variant="outline" size="sm" onClick={handleCopy} className="h-7 text-xs">
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              <span className="ml-1">{copied ? 'Kopierat!' : 'Kopiera'}</span>
-            </Button>
+            {isOpen && (
+              <>
+                <span className="text-xs text-muted-foreground">{doneCount}/{totalCount} klara</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={e => { e.stopPropagation(); handleCopy() }}
+                  className="h-7 text-xs"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span className="ml-1">{copied ? 'Kopierat!' : 'Kopiera'}</span>
+                </Button>
+              </>
+            )}
+            {isOpen
+              ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      {isOpen && <CardContent className="space-y-4">
         {groups.map((group) => {
           const isCollapsed = collapsed.has(group.title)
           const groupDone = group.items.filter(i => checked.has(i.id)).length
@@ -261,7 +277,7 @@ export function InspectionChecklist({ breakdown, details }: {
         <p className="text-xs text-muted-foreground/60 italic">
           Checklistan genereras baserat på bilens analysdata. Ersätter inte en professionell besiktning.
         </p>
-      </CardContent>
+      </CardContent>}
     </Card>
   )
 }
