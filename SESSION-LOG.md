@@ -14,20 +14,26 @@ CarCheck är en SaaS-plattform för att utvärdera begagnade bilar i Sverige. By
 ## Repostruktur
 ```
 CarCheck/
-  src/CarCheck.Domain/          # Entiteter, Value Objects, interfaces
-  src/CarCheck.Application/     # Use cases, services, DTOs
-  src/CarCheck.Infrastructure/  # EF Core, repositories, externa tjänster
-  src/CarCheck.API/             # Controllers, middleware, Program.cs
-  tests/                        # 231 tester (Domain + Application + Infra + API)
-  frontend/                     # React 19 + Vite + TypeScript
-    src/api/                    # Axios-klient + API-moduler (auth, cars, history, favorites, billing, gdpr)
-    src/types/                  # TypeScript-typer som speglar backend DTOs
-    src/hooks/                  # useAuth, useCarSearch, useHistory, useFavorites, useBilling
-    src/features/               # 10 sidor (landing, auth, dashboard, car, history, favorites, billing, settings)
-    src/components/             # layout (AppShell, Header), common, ui (shadcn)
-    src/stores/                 # Zustand (quota)
-    src/routes/                 # React Router v7 med skyddade/publika routes
-    src/lib/                    # utils, format, validators, token, constants
+  backend/                       # .NET 9 Clean Architecture API
+    src/CarCheck.Domain/         # Entiteter, Value Objects, interfaces
+    src/CarCheck.Application/    # Use cases, services, DTOs
+    src/CarCheck.Infrastructure/ # EF Core, repositories, externa tjänster
+    src/CarCheck.API/            # Endpoints, middleware, Program.cs
+    db/migrations/               # Raw SQL-migrationsfiler
+    scripts/                     # smoke-test.sh, create-issue.sh
+    CarCheck.sln
+    Dockerfile
+  frontend/                      # React 19 + Vite + TypeScript
+    src/api/                     # Axios-klient + API-moduler (auth, cars, history, favorites, billing, gdpr)
+    src/types/                   # TypeScript-typer som speglar backend DTOs
+    src/hooks/                   # useAuth, useCarSearch, useHistory, useFavorites, useBilling
+    src/features/                # 10 sidor (landing, auth, dashboard, car, history, favorites, billing, settings)
+    src/components/              # layout (AppShell, Header), common, ui (shadcn)
+    src/stores/                  # Zustand (quota)
+    src/routes/                  # React Router v7 med skyddade/publika routes
+    src/lib/                     # utils, format, validators, token, constants
+  docs/                          # Arkitekturdokument, runbooks, API-specs
+  README.md                      # Monorepo-översikt med quick start
 ```
 
 ---
@@ -79,8 +85,8 @@ CarCheck/
 ## Starta projektet
 ```bash
 # Backend (terminal 1)
-cd src/CarCheck.API
-dotnet run --launch-profile http
+cd backend
+dotnet run --project src/CarCheck.API
 
 # Frontend (terminal 2)
 cd frontend
@@ -323,6 +329,28 @@ Nya features för att särskilja CarCheck från biluppgifter.se och car.info (so
 -- Kör direkt i Supabase SQL-editor:
 ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0;
 ```
+
+---
+
+## Session 2026-03-07 — Monorepo-omstrukturering (`refactor/repo-structure` → PR #119 ✅)
+
+### Vad gjordes
+Repot hade tidigare all backend-kod direkt i roten (`src/`, `db/`, `scripts/`, `Dockerfile`, `CarCheck.sln`). Frontend låg redan i `frontend/`. Målet var en tydlig monorepo-struktur där varje del har sin egen toppdirektory.
+
+### Ändringar
+- Alla 99 backend-filer (`src/`, `db/`, `scripts/`, `Dockerfile`, `CarCheck.sln`) flyttades till `backend/` via `git mv` (rent rename-commit — ingen kod ändrades)
+- `README.md` skapad i roten med monorepo-översikt och quick start för båda delar
+- SESSION-LOG uppdaterad: repostruktur-diagram och startkommandon korrigerade
+
+### Resultat
+- Branch `refactor/repo-structure` skapad, commitad, pushad
+- PR #119 skapad och mergad till `main` (commit `55cb655`)
+- Feature-branch raderad efter merge
+- Inga kodändringar — bara filflyttar, säkert att göra utan att bryta något
+
+### Nuvarande status
+- main är på commit `55cb655`
+- Repot är rent och synkat med `origin/main`
 
 ---
 
