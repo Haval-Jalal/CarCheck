@@ -278,6 +278,54 @@ Nya features för att särskilja CarCheck från biluppgifter.se och car.info (so
 
 ---
 
+## Session 2026-03-07 — Credits-system & billing-renovering
+
+### #117 → PR #117 ✅ — Credits-system och billing-renovering (`feat/credits-billing-system`)
+
+#### Backend
+- `User.cs` — ny `Credits: int`-egenskap med getter/setter
+- `UserConfiguration.cs` — EF-mappning av `credits`-kolumn
+- `20260307120000_AddUserCredits.cs` — migration som lägger till `credits INTEGER DEFAULT 0` i `users`-tabellen
+- `TierConfiguration.cs` — ny prissättning: 19 kr/1 kredit, 99 kr/7, 249 kr/20, 499 kr/mån obegränsat
+- `SubscriptionService.cs` — stöd för kreditpaket-köp
+- `BillingDTOs.cs` — nya DTOs: `CreditPackageDto`, `BuyCreditsRequest`
+- `BillingEndpoints.cs` — `GET /api/billing/credit-packages` + `POST /api/billing/buy-credits`
+- `DailyQuotaMiddleware.cs` — credits > 0 → dra av 1 per lyckad sökning (prioriteras över gratis 3/dag-kvoten)
+
+#### Frontend — Nya komponenter & bibliotek
+- `src/lib/warranty-data.ts` — garantistatus per varumärke (fabriksgaranti, utökad garanti)
+- `src/lib/timing-data.ts` — kamrem vs. kamkedja per modell
+- `src/lib/known-problems-data.ts` — besiktningsunderkännandefrekvens per modell
+- `src/lib/new-price-data.ts` — nyprisdata för modeller från 2020+
+- `src/features/car/components/warranties.tsx` — garantiinfo på analyssidan
+- `src/features/car/components/timing-belt.tsx` — kamrem/kamkedja-sektion
+- `src/features/car/components/known-problems-stats.tsx` — besiktningsstatistik
+- `src/features/car/components/new-price-spec.tsx` — nypris och värdeutveckling
+
+#### Frontend — Uppdateringar
+- `billing-page.tsx` — helt omdesignad: kreditpaket-kort + abonnemangskort med priser
+- `header.tsx` — credits-chip (Zap-ikon + antal) länkad till /billing
+- `quota-indicator.tsx` — visar credits-saldo vid sidan av dagkvoten
+- `car-analysis-page.tsx` — stor utvidgning med garantier, kamrem, kända problem, nypris-sektioner
+- `login-page.tsx` / `register-page.tsx` — premium split-panel design (55% mörk / 45% formulär)
+- `use-billing.ts` — nya hooks: `useCreditPackages()`, `useBuyCredits()`
+- `billing.types.ts` — `CreditPackage`, `BuyCreditsRequest`-typer
+- `vite.config.ts` — `host: true` för nätverks-/mobilåtkomst
+- Mobilfixar: billing (1-kol grid), historik (wrappande header), favoriter (44px touch targets), landing (mindre rubrik)
+
+### Nuvarande status
+- main är på commit `c42aae3`
+- PR #117 mergad, feature-branch raderad
+- DB-migration behöver appliceras på Supabase (se nedan)
+
+### Applicera DB-migration
+```sql
+-- Kör direkt i Supabase SQL-editor:
+ALTER TABLE users ADD COLUMN IF NOT EXISTS credits INTEGER NOT NULL DEFAULT 0;
+```
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
