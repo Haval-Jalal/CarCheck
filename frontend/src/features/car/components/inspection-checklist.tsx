@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react'
+import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight, Printer } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -197,6 +197,10 @@ export function InspectionChecklist({ breakdown, details }: {
             <Button variant="outline" size="sm" onClick={handleCopy} className="h-7 text-xs">
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
               <span className="ml-1">{copied ? 'Kopierat!' : 'Kopiera'}</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="h-7 text-xs">
+              <Printer className="h-3.5 w-3.5" />
+              <span className="ml-1">Skriv ut</span>
             </Button>
           </div>
         </div>

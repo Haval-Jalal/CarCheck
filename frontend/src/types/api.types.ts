@@ -8,8 +8,8 @@ export interface PaginationParams {
 }
 
 export interface QuotaInfo {
-  limit: number
-  remaining: number
+  limit: number | 'unlimited' | 'credits'
+  remaining: number | 'unlimited'
   tier: string
 }
 

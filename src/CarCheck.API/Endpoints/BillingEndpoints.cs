@@ -18,6 +18,14 @@ public static class BillingEndpoints
         .WithName("GetTiers")
         .AllowAnonymous();
 
+        group.MapGet("/credit-packages", (SubscriptionService subscriptionService) =>
+        {
+            var packages = subscriptionService.GetCreditPackages();
+            return Results.Ok(packages);
+        })
+        .WithName("GetCreditPackages")
+        .AllowAnonymous();
+
         group.MapGet("/subscription", async (SubscriptionService subscriptionService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);
@@ -42,6 +50,19 @@ public static class BillingEndpoints
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("CreateCheckout")
+        .RequireAuthorization();
+
+        group.MapPost("/buy-credits", async (BuyCreditsRequest request, SubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        {
+            var userId = GetUserId(user);
+            if (userId is null) return Results.Unauthorized();
+
+            var result = await subscriptionService.BuyCreditsAsync(userId.Value, request);
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .WithName("BuyCredits")
         .RequireAuthorization();
 
         group.MapPost("/cancel", async (SubscriptionService subscriptionService, ClaimsPrincipal user) =>

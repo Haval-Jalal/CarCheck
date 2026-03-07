@@ -10,7 +10,7 @@ export function LandingPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/register')
+    navigate('/login', { state: { regNumber } })
   }
 
   return (
@@ -61,7 +61,7 @@ export function LandingPage() {
           </div>
 
           {/* Headline */}
-          <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-7xl">
             Din guide till ett
             <span className="block text-blue-400">tryggt bilköp.</span>
           </h1>
@@ -85,7 +85,7 @@ export function LandingPage() {
                 placeholder="ABC 123"
                 maxLength={10}
                 autoFocus
-                className="flex-1 bg-transparent py-2 text-center text-2xl font-black tracking-[0.3em] text-white outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-600 sm:text-3xl"
+                className="flex-1 bg-transparent py-2 text-center text-xl font-black tracking-[0.2em] text-white outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-600 sm:text-2xl sm:tracking-[0.3em]"
               />
               <button
                 type="submit"
@@ -98,11 +98,11 @@ export function LandingPage() {
           </form>
 
           {/* Trust row */}
-          <div className="mb-10 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 sm:gap-6">
+          <div className="mb-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-slate-500 sm:gap-x-6">
             <span>10 000+ analyser genomförda</span>
-            <span className="h-1 w-1 rounded-full bg-slate-700" />
+            <span className="hidden sm:inline h-1 w-1 rounded-full bg-slate-700" />
             <span>12 kontrollfaktorer</span>
-            <span className="h-1 w-1 rounded-full bg-slate-700" />
+            <span className="hidden sm:inline h-1 w-1 rounded-full bg-slate-700" />
             <span>Kostnadsfritt att prova</span>
           </div>
 

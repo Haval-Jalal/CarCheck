@@ -13,7 +13,7 @@ public class MockCarDataProvider : ICarDataProvider
     {
         ["ABC123"] = new CarDataResult(
             "ABC123", "Volvo", "XC60", 2021, 35000,
-            "Diesel", 235, "Black",
+            "Diesel", 235, "Svart",
             InsuranceIncidents: 0, ManufacturerRecalls: 0,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-3), InspectionPassed: true,
             MarketValueSek: 385000m)
@@ -85,7 +85,7 @@ public class MockCarDataProvider : ICarDataProvider
 
         ["DEF456"] = new CarDataResult(
             "DEF456", "BMW", "320d", 2018, 87000,
-            "Diesel", 190, "White",
+            "Diesel", 190, "Vit",
             InsuranceIncidents: 1, ManufacturerRecalls: 1,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-8), InspectionPassed: true,
             MarketValueSek: 215000m)
@@ -261,7 +261,7 @@ public class MockCarDataProvider : ICarDataProvider
 
         ["JKL012"] = new CarDataResult(
             "JKL012", "Tesla", "Model 3", 2023, 12000,
-            "El", 283, "Red",
+            "El", 283, "Röd",
             InsuranceIncidents: 0, ManufacturerRecalls: 2,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-1), InspectionPassed: true,
             MarketValueSek: 420000m)
@@ -336,7 +336,7 @@ public class MockCarDataProvider : ICarDataProvider
 
         ["MNO345"] = new CarDataResult(
             "MNO345", "Volkswagen", "Golf", 2010, 245000,
-            "Bensin", 105, "Blue",
+            "Bensin", 105, "Blå",
             InsuranceIncidents: 3, ManufacturerRecalls: 1,
             LastInspectionDate: DateTime.UtcNow.AddMonths(-26), InspectionPassed: false,
             MarketValueSek: 42000m)

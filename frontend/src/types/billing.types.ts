@@ -15,6 +15,7 @@ export interface SubscriptionResponse {
   startDate: string
   endDate: string | null
   limits: TierLimitsResponse
+  credits: number
 }
 
 export interface TierLimitsResponse {
@@ -28,7 +29,23 @@ export interface SubscribeRequest {
   tier: number
 }
 
+export interface BuyCreditsRequest {
+  packSize: number
+}
+
 export interface CheckoutResponse {
   sessionId: string
   checkoutUrl: string
+}
+
+export interface CreditPackResponse {
+  credits: number
+  priceSek: number
+  label: string
+  isBestValue: boolean
+}
+
+export interface CreditsBalanceResponse {
+  credits: number
+  hasMonthlySubscription: boolean
 }
