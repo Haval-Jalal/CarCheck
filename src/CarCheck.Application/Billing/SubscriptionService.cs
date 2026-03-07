@@ -29,11 +29,13 @@ public class SubscriptionService
     public async Task<Result<SubscriptionResponse>> GetCurrentSubscriptionAsync(
         Guid userId, CancellationToken cancellationToken = default)
     {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        var credits = user?.Credits ?? 0;
+
         var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
 
         if (subscription is null)
         {
-            // Return free tier info
             var freeLimits = TierConfiguration.GetLimits(SubscriptionTier.Free);
             return Result<SubscriptionResponse>.Success(new SubscriptionResponse(
                 Guid.Empty,
@@ -42,7 +44,8 @@ public class SubscriptionService
                 true,
                 DateTime.UtcNow,
                 null,
-                MapLimits(freeLimits)));
+                MapLimits(freeLimits),
+                credits));
         }
 
         var limits = TierConfiguration.GetLimits(subscription.Tier);
@@ -53,7 +56,8 @@ public class SubscriptionService
             subscription.IsActive,
             subscription.StartDate,
             subscription.EndDate,
-            MapLimits(limits)));
+            MapLimits(limits),
+            credits));
     }
 
     public async Task<Result<CheckoutResponse>> CreateCheckoutAsync(
@@ -66,10 +70,6 @@ public class SubscriptionService
         if (user is null)
             return Result<CheckoutResponse>.Failure("User not found.");
 
-        var existing = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
-        if (existing is not null && existing.Tier >= request.Tier)
-            return Result<CheckoutResponse>.Failure($"You already have a {existing.Tier} subscription.");
-
         var checkout = await _billingProvider.CreateCheckoutSessionAsync(userId, request.Tier, cancellationToken);
 
         await _securityEventLogger.LogAsync(userId, "CheckoutCreated", null, cancellationToken);
@@ -77,10 +77,31 @@ public class SubscriptionService
         return Result<CheckoutResponse>.Success(new CheckoutResponse(checkout.SessionId, checkout.CheckoutUrl));
     }
 
+    public async Task<Result<CreditsBalanceResponse>> BuyCreditsAsync(
+        Guid userId, BuyCreditsRequest request, CancellationToken cancellationToken = default)
+    {
+        var validPacks = TierConfiguration.CreditPacks.Select(p => p.Credits).ToHashSet();
+        if (!validPacks.Contains(request.PackSize))
+            return Result<CreditsBalanceResponse>.Failure($"Invalid pack size. Choose from: {string.Join(", ", validPacks)}.");
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+            return Result<CreditsBalanceResponse>.Failure("User not found.");
+
+        user.AddCredits(request.PackSize);
+        await _userRepository.UpdateAsync(user, cancellationToken);
+
+        await _securityEventLogger.LogAsync(userId, "CreditsPurchased", null, cancellationToken);
+
+        var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
+        var hasMonthly = subscription is not null && subscription.IsActive;
+
+        return Result<CreditsBalanceResponse>.Success(new CreditsBalanceResponse(user.Credits, hasMonthly));
+    }
+
     public async Task<Result<SubscriptionResponse>> ActivateSubscriptionAsync(
         Guid userId, SubscriptionTier tier, string externalSubscriptionId, CancellationToken cancellationToken = default)
     {
-        // Cancel any existing active subscription
         var existing = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
         if (existing is not null)
         {
@@ -93,6 +114,7 @@ public class SubscriptionService
 
         await _securityEventLogger.LogAsync(userId, "SubscriptionActivated", null, cancellationToken);
 
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         var limits = TierConfiguration.GetLimits(tier);
         return Result<SubscriptionResponse>.Success(new SubscriptionResponse(
             subscription.Id,
@@ -101,7 +123,8 @@ public class SubscriptionService
             true,
             subscription.StartDate,
             null,
-            MapLimits(limits)));
+            MapLimits(limits),
+            user?.Credits ?? 0));
     }
 
     public async Task<Result<bool>> CancelSubscriptionAsync(
@@ -122,9 +145,19 @@ public class SubscriptionService
         return Result<bool>.Success(true);
     }
 
+    public IReadOnlyList<CreditPackResponse> GetCreditPackages()
+    {
+        var packs = TierConfiguration.CreditPacks;
+        return packs.Select((p, i) => new CreditPackResponse(
+            p.Credits,
+            p.PriceSek,
+            $"{p.Credits} {(p.Credits == 1 ? "sökning" : "sökningar")}",
+            i == packs.Count - 1)).ToList();
+    }
+
     public IReadOnlyList<TierInfoResponse> GetAvailableTiers()
     {
-        return Enum.GetValues<SubscriptionTier>()
+        return new[] { SubscriptionTier.Free, SubscriptionTier.Pro }
             .Select(tier =>
             {
                 var limits = TierConfiguration.GetLimits(tier);

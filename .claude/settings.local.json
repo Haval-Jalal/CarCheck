@@ -27,7 +27,22 @@
       "Bash(dotnet run:*)",
       "Bash(cmd //c \"taskkill /F /IM dotnet.exe 2>nul & taskkill /F /IM node.exe 2>nul & echo done\")",
       "Bash(npm install:*)",
-      "Bash(npm show:*)"
+      "Bash(npm show:*)",
+      "Bash(gh issue list:*)",
+      "Bash(id=\"I_kwDORO2Dic7s6HOW\")",
+      "Bash(npm run build:*)",
+      "Bash(npx vite build)",
+      "Bash(node node_modules/.bin/vite:*)",
+      "Bash(dotnet build:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:www.biluppgifter.se)",
+      "WebSearch",
+      "WebFetch(domain:biluppgifter.se)",
+      "Bash(xargs grep:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(PGPASSWORD='Lawanliam2016' psql:*)",
+      "Bash(node:*)",
+      "Bash(start cmd:*)"
     ]
   }
 }

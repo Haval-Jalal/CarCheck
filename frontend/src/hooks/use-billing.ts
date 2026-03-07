@@ -10,6 +10,14 @@ export function useTiers() {
   })
 }
 
+export function useCreditPackages() {
+  return useQuery({
+    queryKey: [...queryKeys.billing.tiers, 'credit-packages'],
+    queryFn: () => billingApi.getCreditPackages().then((r) => r.data),
+    staleTime: 30 * 60 * 1000,
+  })
+}
+
 export function useSubscription() {
   return useQuery({
     queryKey: queryKeys.billing.subscription,
@@ -20,6 +28,16 @@ export function useSubscription() {
 export function useCreateCheckout() {
   return useMutation({
     mutationFn: (tier: number) => billingApi.createCheckout({ tier }).then((r) => r.data),
+  })
+}
+
+export function useBuyCredits() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (packSize: number) => billingApi.buyCredits({ packSize }).then((r) => r.data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription })
+    },
   })
 }
 

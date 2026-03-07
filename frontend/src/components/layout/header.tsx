@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import {
   Car, LogOut, Settings, History, Heart, CreditCard,
-  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2,
+  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2, Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
 import { useCarSearch } from '@/hooks/use-car-search'
+import { useQuotaStore } from '@/stores/quota.store'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
@@ -41,7 +42,7 @@ function HeaderSearch() {
         onSuccess: (data) => {
           setValue('')
           inputRef.current?.blur()
-          navigate(`/car/${data.carId}`, { state: { car: data } })
+          navigate(`/car/${data.carId}/analysis`, { state: { car: data } })
         },
       }
     )
@@ -68,6 +69,25 @@ function HeaderSearch() {
         </button>
       </div>
     </form>
+  )
+}
+
+function CreditsChip() {
+  const quota = useQuotaStore((s) => s.quota)
+  if (!quota || quota.limit === 'unlimited') return null
+
+  const label = quota.limit === 'credits'
+    ? `${quota.remaining}`
+    : `${quota.remaining}/${quota.limit}`
+
+  return (
+    <Link
+      to="/billing"
+      className="hidden md:flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
+    >
+      <Zap className="h-3 w-3" />
+      {label}
+    </Link>
   )
 }
 
@@ -119,6 +139,9 @@ export function Header() {
 
         {/* Right side */}
         <div className="ml-auto flex items-center gap-2 md:ml-0">
+          {/* Credits chip */}
+          <CreditsChip />
+
           {/* Theme toggle */}
           <Button
             variant="ghost"
@@ -203,7 +226,7 @@ export function Header() {
           </nav>
 
           <div className="mt-3 border-t border-slate-700 pt-3">
-            <div className="mb-2 px-3 text-xs text-slate-500">{userEmail}</div>
+            <div className="mb-2 px-3 text-xs text-slate-500 truncate">{userEmail}</div>
             <Link
               to="/settings"
               onClick={() => setMobileOpen(false)}

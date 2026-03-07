@@ -361,6 +361,12 @@ namespace CarCheck.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("two_factor_enabled");
 
+                    b.Property<int>("Credits")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("credits");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

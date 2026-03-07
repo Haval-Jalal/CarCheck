@@ -40,5 +40,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("NOW()");
+
+        builder.Property(u => u.Credits)
+            .HasColumnName("credits")
+            .HasDefaultValue(0);
     }
 }

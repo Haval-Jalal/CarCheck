@@ -10,6 +10,7 @@ public class User
     public bool EmailVerified { get; private set; }
     public bool TwoFactorEnabled { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public int Credits { get; private set; }
 
     private User() { }
 
@@ -41,5 +42,19 @@ public class User
             throw new ArgumentException("Password hash is required.", nameof(newPasswordHash));
 
         PasswordHash = newPasswordHash;
+    }
+
+    public void AddCredits(int amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentException("Amount must be positive.", nameof(amount));
+        Credits += amount;
+    }
+
+    public bool ConsumeCredit()
+    {
+        if (Credits <= 0) return false;
+        Credits--;
+        return true;
     }
 }

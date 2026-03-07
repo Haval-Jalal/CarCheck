@@ -27,6 +27,39 @@ export function formatMil(km: number): string {
   return `${formatNumber(Math.round(km / 10))} mil`
 }
 
+const COLOR_TRANSLATIONS: Record<string, string> = {
+  black: 'Svart',
+  white: 'Vit',
+  silver: 'Silver',
+  grey: 'Grå',
+  gray: 'Grå',
+  red: 'Röd',
+  blue: 'Blå',
+  green: 'Grön',
+  yellow: 'Gul',
+  orange: 'Orange',
+  brown: 'Brun',
+  beige: 'Beige',
+  purple: 'Lila',
+  gold: 'Guld',
+  dark: 'Mörk',
+  light: 'Ljus',
+  pearl: 'Pärlemor',
+  metallic: 'Metallic',
+}
+
+export function translateColor(color: string | null | undefined): string {
+  if (!color) return '–'
+  const lower = color.toLowerCase().trim()
+  if (COLOR_TRANSLATIONS[lower]) return COLOR_TRANSLATIONS[lower]
+  // Multi-word colors like "Dark Blue" → "Mörk Blå"
+  const translated = lower
+    .split(/\s+/)
+    .map((word) => COLOR_TRANSLATIONS[word] ?? (word.charAt(0).toUpperCase() + word.slice(1)))
+    .join(' ')
+  return translated
+}
+
 export function getScoreColor(score: number): string {
   if (score >= 85) return 'text-green-600'
   if (score >= 70) return 'text-lime-600'

@@ -44,7 +44,7 @@ export function FavoritesPage() {
             {data?.items.map((fav) => (
               <Card key={fav.id} className="relative">
                 <CardContent className="pt-4">
-                  <Link to={`/car/${fav.carId}`} className="block">
+                  <Link to={`/car/${fav.carId}/analysis`} className="block">
                     <p className="font-semibold">
                       {fav.registrationNumber || 'Okänt reg.nr'}
                     </p>
@@ -61,7 +61,7 @@ export function FavoritesPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="absolute top-1 right-1 h-10 w-10 text-muted-foreground hover:text-destructive"
                     onClick={() => handleRemove(fav.carId)}
                     disabled={removeMutation.isPending}
                   >

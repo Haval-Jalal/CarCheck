@@ -57,3 +57,19 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 }
+
+@media print {
+  header,
+  aside,
+  [data-no-print] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .rounded-xl,
+  .rounded-lg {
+    border: 1px solid #ccc !important;
+  }
+}

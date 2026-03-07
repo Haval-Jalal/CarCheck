@@ -40,12 +40,12 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Sökhistorik</h1>
           <p className="text-muted-foreground">Dina tidigare bilsökningar</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {data && (
             <Badge variant="secondary">{data.todayCount} sökningar idag</Badge>
           )}
@@ -56,7 +56,7 @@ export function HistoryPage() {
               onClick={handleClearAll}
               disabled={clearHistory.isPending}
             >
-              Rensa all historik
+              Rensa historik
             </Button>
           )}
         </div>
@@ -78,7 +78,7 @@ export function HistoryPage() {
               {data?.items.map((item) => (
                 <Link
                   key={item.id}
-                  to={`/car/${item.carId}`}
+                  to={`/car/${item.carId}/analysis`}
                   className="flex items-center justify-between py-3 hover:bg-muted/50 -mx-2 px-2 rounded"
                 >
                   <div>
@@ -94,13 +94,13 @@ export function HistoryPage() {
                       <p className="text-sm text-muted-foreground">Årsmodell {item.year}</p>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {formatRelativeTime(item.searchedAt)}
                     </span>
                     <button
                       onClick={(e) => handleDelete(e, item.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                      className="text-muted-foreground hover:text-destructive transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       aria-label="Ta bort sökning"
                     >
                       <Trash2 className="h-4 w-4" />

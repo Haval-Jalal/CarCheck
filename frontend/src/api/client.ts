@@ -40,8 +40,10 @@ apiClient.interceptors.response.use(
     const tier = response.headers['x-subscription-tier']
     if (quotaLimit) {
       useQuotaStore.getState().setQuota({
-        limit: parseInt(quotaLimit, 10),
-        remaining: parseInt(quotaRemaining, 10),
+        limit: quotaLimit === 'unlimited' ? 'unlimited'
+          : quotaLimit === 'credits' ? 'credits'
+          : parseInt(quotaLimit, 10),
+        remaining: quotaRemaining === 'unlimited' ? 'unlimited' : parseInt(quotaRemaining, 10),
         tier: tier || 'Free',
       })
     }
