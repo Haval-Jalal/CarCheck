@@ -420,3 +420,8 @@ FodyWeavers.xsd
 
 # Local docs/research
 docs/api-comparison.html
+backend/docs/api-comparison.html
+
+# Claude Code project settings
+.claude/
+backend/.claude/

@@ -12,13 +12,14 @@ CarCheck/
 │   │   ├── CarCheck.Application/
 │   │   ├── CarCheck.Domain/
 │   │   └── CarCheck.Infrastructure/
+│   ├── tests/
 │   ├── db/migrations/
+│   ├── docs/
 │   ├── scripts/
 │   ├── CarCheck.sln
 │   └── Dockerfile
-├── frontend/   # React 19 + TypeScript + Vite + TailwindCSS v4
-│   └── src/
-└── docs/       # Architecture docs, runbooks, API specs
+└── frontend/   # React 19 + TypeScript + Vite + TailwindCSS v4
+    └── src/
 ```
 
 ## Quick start
