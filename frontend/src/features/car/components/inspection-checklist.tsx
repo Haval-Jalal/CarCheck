@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight, Printer } from 'lucide-react'
+import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -149,6 +149,7 @@ export function InspectionChecklist({ breakdown, details }: {
 }) {
   const groups = buildChecklist(breakdown, details)
   const allIds = groups.flatMap(g => g.items.map(i => i.id))
+  const [isOpen, setIsOpen] = useState(false)
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState(false)
@@ -169,6 +170,92 @@ export function InspectionChecklist({ breakdown, details }: {
     })
   }
 
+  const handleDownload = useCallback(async () => {
+    const { jsPDF } = await import('jspdf')
+    const doc = new jsPDF()
+    const today = new Date().toLocaleDateString('sv-SE')
+    const M = 14
+    const MAX_Y = 277
+    let y = 20
+
+    const checkPage = (needed: number) => {
+      if (y + needed > MAX_Y) { doc.addPage(); y = 20 }
+    }
+
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Besiktningschecklista - CarCheck', M, y)
+    y += 7
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(120, 120, 120)
+    doc.text(`Genererad: ${today}`, M, y)
+    doc.setTextColor(0, 0, 0)
+    y += 10
+
+    const PRIORITY_COLOR: Record<CheckItem['priority'], [number, number, number]> = {
+      critical: [220, 38, 38],
+      important: [202, 138, 4],
+      normal: [100, 116, 139],
+    }
+
+    for (const group of groups) {
+      checkPage(12)
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text(group.title, M, y)
+      y += 6
+
+      for (const item of group.items) {
+        checkPage(8)
+        const isChecked = checked.has(item.id)
+        const [r, g, b] = PRIORITY_COLOR[item.priority]
+        doc.setFontSize(8)
+        doc.setTextColor(r, g, b)
+        doc.text('\u25CF', M + 2, y)
+        doc.setTextColor(isChecked ? 150 : 0, isChecked ? 150 : 0, isChecked ? 150 : 0)
+        doc.setFontSize(9)
+        doc.setFont('helvetica', isChecked ? 'italic' : 'normal')
+        const prefix = isChecked ? '[x] ' : '[ ] '
+        const lines = doc.splitTextToSize(prefix + item.text, 165)
+        doc.text(lines, M + 8, y)
+        y += lines.length * 5 + 1
+      }
+      y += 4
+    }
+
+    checkPage(14)
+    y += 2
+    doc.setDrawColor(200, 200, 200)
+    doc.line(M, y, 196, y)
+    y += 5
+
+    const legendItems: [string, [number, number, number]][] = [
+      ['Kritiskt', [220, 38, 38]],
+      ['Viktigt', [202, 138, 4]],
+      ['Normal', [100, 116, 139]],
+    ]
+    let lx = M
+    doc.setFontSize(7)
+    for (const [label, [r, g, b]] of legendItems) {
+      doc.setTextColor(r, g, b)
+      doc.text('\u25CF', lx, y)
+      doc.setTextColor(80, 80, 80)
+      doc.text(label, lx + 4, y)
+      lx += 22
+    }
+    y += 5
+    doc.setTextColor(160, 160, 160)
+    doc.text(
+      'Checklistan genereras baserat pa bilens analysdata. Ersatter inte en professionell besiktning.',
+      M, y
+    )
+
+    doc.save('besiktningschecklista.pdf')
+  }, [groups, checked])
+
   const handleCopy = useCallback(() => {
     const text = groups
       .map(g => {
@@ -186,26 +273,46 @@ export function InspectionChecklist({ breakdown, details }: {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setIsOpen(prev => !prev)}
+      >
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
             <ClipboardCheck className="h-4 w-4 text-blue-500" />
             Besiktningschecklista för visning
           </CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{doneCount}/{totalCount} klara</span>
-            <Button variant="outline" size="sm" onClick={handleCopy} className="h-7 text-xs">
-              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              <span className="ml-1">{copied ? 'Kopierat!' : 'Kopiera'}</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="h-7 text-xs">
-              <Printer className="h-3.5 w-3.5" />
-              <span className="ml-1">Skriv ut</span>
-            </Button>
+            {isOpen && (
+              <>
+                <span className="text-xs text-muted-foreground">{doneCount}/{totalCount} klara</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={e => { e.stopPropagation(); handleDownload() }}
+                  className="h-7 text-xs"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span className="ml-1">Ladda ner</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={e => { e.stopPropagation(); handleCopy() }}
+                  className="h-7 text-xs"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  <span className="ml-1">{copied ? 'Kopierat!' : 'Kopiera'}</span>
+                </Button>
+              </>
+            )}
+            {isOpen
+              ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      {isOpen && <CardContent className="space-y-4">
         {groups.map((group) => {
           const isCollapsed = collapsed.has(group.title)
           const groupDone = group.items.filter(i => checked.has(i.id)).length
@@ -265,7 +372,7 @@ export function InspectionChecklist({ breakdown, details }: {
         <p className="text-xs text-muted-foreground/60 italic">
           Checklistan genereras baserat på bilens analysdata. Ersätter inte en professionell besiktning.
         </p>
-      </CardContent>
+      </CardContent>}
     </Card>
   )
 }
