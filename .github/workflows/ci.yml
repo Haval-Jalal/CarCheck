@@ -20,13 +20,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore CarCheck.sln
+        run: dotnet restore backend/CarCheck.sln
 
       - name: Build
-        run: dotnet build CarCheck.sln --no-restore --configuration Release
+        run: dotnet build backend/CarCheck.sln --no-restore --configuration Release
 
       - name: Run tests with coverage
-        run: dotnet test CarCheck.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+        run: dotnet test backend/CarCheck.sln --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
 
       - name: Upload coverage reports
         if: always()
@@ -50,10 +50,10 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore CarCheck.sln
+        run: dotnet restore backend/CarCheck.sln
 
       - name: Check for vulnerable packages
-        run: dotnet list CarCheck.sln package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+        run: dotnet list backend/CarCheck.sln package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
 
       - name: Upload vulnerability report
         if: always()

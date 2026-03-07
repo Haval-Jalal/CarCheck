@@ -27,9 +27,9 @@ jobs:
 
       - name: Run tests
         run: |
-          dotnet restore CarCheck.sln
-          dotnet build CarCheck.sln --no-restore --configuration Release
-          dotnet test CarCheck.sln --no-build --configuration Release --verbosity minimal
+          dotnet restore backend/CarCheck.sln
+          dotnet build backend/CarCheck.sln --no-restore --configuration Release
+          dotnet test backend/CarCheck.sln --no-build --configuration Release --verbosity minimal
 
       - name: Log in to Container Registry
         uses: docker/login-action@v3
@@ -50,7 +50,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: backend
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
