@@ -4,6 +4,8 @@ import type {
   LoginRequest,
   RefreshRequest,
   ChangePasswordRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
   AuthResponse,
   UserResponse,
 } from '@/types/auth.types'
@@ -26,4 +28,10 @@ export const authApi = {
 
   changePassword: (data: ChangePasswordRequest) =>
     apiClient.post('/auth/change-password', data),
+
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    apiClient.post('/auth/forgot-password', data),
+
+  resetPassword: (data: ResetPasswordRequest) =>
+    apiClient.post('/auth/reset-password', data),
 }

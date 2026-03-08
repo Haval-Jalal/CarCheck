@@ -35,7 +35,23 @@ export const carSearchSchema = z.object({
     .regex(/^[A-Za-z0-9 ]+$/, 'Endast bokstäver, siffror och mellanslag'),
 })
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Ange en giltig e-postadress'),
+})
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z.string().min(8, 'Lösenordet måste vara minst 8 tecken'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Lösenorden matchar inte',
+    path: ['confirmPassword'],
+  })
+
 export type LoginFormData = z.infer<typeof loginSchema>
 export type RegisterFormData = z.infer<typeof registerSchema>
 export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>
 export type CarSearchFormData = z.infer<typeof carSearchSchema>
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>

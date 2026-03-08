@@ -78,6 +78,24 @@ public static class AuthEndpoints
         })
         .WithName("ChangePassword")
         .RequireAuthorization();
+
+        group.MapPost("/forgot-password", async (PasswordResetRequest request, AuthService authService) =>
+        {
+            await authService.ForgotPasswordAsync(request);
+            return Results.Ok(new { message = "Om e-postadressen finns registrerad skickas en återställningslänk." });
+        })
+        .WithName("ForgotPassword")
+        .AllowAnonymous();
+
+        group.MapPost("/reset-password", async (PasswordResetConfirmRequest request, AuthService authService) =>
+        {
+            var result = await authService.ResetPasswordAsync(request);
+            return result.IsSuccess
+                ? Results.Ok(new { message = "Lösenordet har återställts. Du kan nu logga in." })
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .WithName("ResetPassword")
+        .AllowAnonymous();
     }
 
     private static Guid? GetUserId(ClaimsPrincipal user)
