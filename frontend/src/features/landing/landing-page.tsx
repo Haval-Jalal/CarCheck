@@ -132,12 +132,16 @@ export function LandingPage() {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 flex items-center justify-between px-6 py-4 text-xs text-slate-700 md:px-10">
+      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-2 px-6 py-4 text-xs text-slate-700 md:px-10">
         <div className="flex items-center gap-1.5 font-medium">
           <Car className="h-3.5 w-3.5" />
           CarCheck
         </div>
-        <p>&copy; {new Date().getFullYear()} CarCheck. Alla rättigheter förbehållna.</p>
+        <div className="flex items-center gap-4">
+          <Link to="/privacy" className="hover:text-slate-400 transition-colors">Integritetspolicy</Link>
+          <Link to="/terms" className="hover:text-slate-400 transition-colors">Användarvillkor</Link>
+          <p>&copy; {new Date().getFullYear()} CarCheck</p>
+        </div>
       </footer>
     </div>
   )

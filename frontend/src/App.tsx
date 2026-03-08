@@ -4,6 +4,7 @@ import { AuthProvider } from '@/hooks/use-auth'
 import { Toaster } from '@/components/ui/sonner'
 import { router } from '@/routes/router'
 import { ErrorBoundary } from '@/components/common/error-boundary'
+import { CookieBanner } from '@/components/common/cookie-banner'
 
 // Apply saved theme before first render to avoid flash
 const savedTheme = localStorage.getItem('theme')
@@ -29,6 +30,7 @@ function App() {
         <AuthProvider>
           <RouterProvider router={router} />
           <Toaster />
+          <CookieBanner />
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
