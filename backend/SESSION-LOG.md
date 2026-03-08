@@ -354,6 +354,42 @@ Repot hade tidigare all backend-kod direkt i roten (`src/`, `db/`, `scripts/`, `
 
 ---
 
+## Session 2026-03-08 — Lösenordsåterställning + GDPR-sidor
+
+### #122 → PR #124 ✅ — Lösenordsåterställning (`feat/password-reset`)
+
+#### Backend
+- `IPasswordResetRepository` + `PasswordResetRepository` (ny)
+- `AuthService.ForgotPasswordAsync` — genererar token (1h giltighetstid), loggar till console (TODO: e-post via SMTP)
+- `AuthService.ResetPasswordAsync` — validerar token, uppdaterar lösenord, revokerar alla refresh-tokens
+- `POST /api/auth/forgot-password` (AllowAnonymous) — returnerar alltid 200 (skyddar mot user enumeration)
+- `POST /api/auth/reset-password` (AllowAnonymous) — returnerar 400 om token ogiltigt/utgånget/använt
+- `AuthServiceTests` uppdaterat med `IPasswordResetRepository`-mock
+
+#### Frontend
+- `/forgot-password` — e-postformulär, bekräftelsevy efter submit
+- `/reset-password?token=` — nytt lösenord + bekräfta, success-vy med navigering till login
+- "Glömt lösenord?"-länk vid lösenordsfältet på login-sidan
+- `forgotPasswordSchema` + `resetPasswordSchema` i validators
+- `authApi.forgotPassword` + `authApi.resetPassword`
+- `ForgotPasswordRequest` + `ResetPasswordRequest` i auth.types.ts
+
+### #123 → PR #125 ✅ — GDPR-sidor och cookie-samtycke (`feat/gdpr-pages`)
+
+#### Frontend
+- `/privacy` — fullständig integritetspolicy på svenska (datainsamling, lagring EU/Supabase, GDPR-rättigheter, radering)
+- `/terms` — användarvillkor (tjänstebeskrivning, ansvarsbegränsning, betalning, tillåten användning, svensk rätt)
+- `CookieBanner` — visas för nya besökare, sparar val (`cookie-consent`) i localStorage, Acceptera/Avvisa/stäng
+- Footer på landing-sidan utökad med länkar till `/privacy` och `/terms`
+- `CookieBanner` läggs in globalt i `App.tsx`
+
+### Nuvarande status
+- main är på commit `657c084`
+- Launch blockers kvar: Transportstyrelsen API (extern ansökan), Stripe betalning (kräver företag), SMTP för lösenordsmail
+- Project board: 87/87 Done
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
