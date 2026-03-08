@@ -7,6 +7,8 @@ import { AppShell } from '@/components/layout/app-shell'
 const LandingPage = lazy(() => import('@/features/landing/landing-page').then(m => ({ default: m.LandingPage })))
 const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.RegisterPage })))
+const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })))
+const ResetPasswordPage = lazy(() => import('@/features/auth/reset-password-page').then(m => ({ default: m.ResetPasswordPage })))
 const DashboardPage = lazy(() => import('@/features/dashboard/dashboard-page').then(m => ({ default: m.DashboardPage })))
 const CarResultPage = lazy(() => import('@/features/car/car-result-page').then(m => ({ default: m.CarResultPage })))
 const CarAnalysisPage = lazy(() => import('@/features/car/car-analysis-page').then(m => ({ default: m.CarAnalysisPage })))
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
       { path: '/', element: <Lazy><LandingPage /></Lazy> },
       { path: '/login', element: <Lazy><LoginPage /></Lazy> },
       { path: '/register', element: <Lazy><RegisterPage /></Lazy> },
+      { path: '/forgot-password', element: <Lazy><ForgotPasswordPage /></Lazy> },
+      { path: '/reset-password', element: <Lazy><ResetPasswordPage /></Lazy> },
       { path: '/share/:carId', element: <Lazy><SharePage /></Lazy> },
     ],
   },

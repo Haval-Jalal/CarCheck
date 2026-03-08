@@ -15,6 +15,7 @@ public class AuthServiceTests
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
+    private readonly IPasswordResetRepository _passwordResetRepository;
     private readonly AuthService _sut;
 
     public AuthServiceTests()
@@ -24,13 +25,15 @@ public class AuthServiceTests
         _tokenService = Substitute.For<ITokenService>();
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         _securityEventLogger = Substitute.For<ISecurityEventLogger>();
+        _passwordResetRepository = Substitute.For<IPasswordResetRepository>();
 
         _sut = new AuthService(
             _userRepository,
             _passwordHasher,
             _tokenService,
             _refreshTokenRepository,
-            _securityEventLogger);
+            _securityEventLogger,
+            _passwordResetRepository);
     }
 
     // ===== Register =====

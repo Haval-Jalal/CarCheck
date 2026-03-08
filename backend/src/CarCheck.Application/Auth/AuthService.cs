@@ -13,19 +13,22 @@ public class AuthService
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
+    private readonly IPasswordResetRepository _passwordResetRepository;
 
     public AuthService(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IRefreshTokenRepository refreshTokenRepository,
-        ISecurityEventLogger securityEventLogger)
+        ISecurityEventLogger securityEventLogger,
+        IPasswordResetRepository passwordResetRepository)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _refreshTokenRepository = refreshTokenRepository;
         _securityEventLogger = securityEventLogger;
+        _passwordResetRepository = passwordResetRepository;
     }
 
     public async Task<Result<UserResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -120,6 +123,53 @@ public class AuthService
     {
         await _refreshTokenRepository.RevokeAllForUserAsync(userId, cancellationToken);
         await _securityEventLogger.LogAsync(userId, "LogoutAll", null, cancellationToken);
+
+        return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<bool>> ForgotPasswordAsync(PasswordResetRequest request, CancellationToken cancellationToken = default)
+    {
+        var email = Email.Create(request.Email);
+        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
+
+        // Always return success to avoid user enumeration
+        if (user is null)
+            return Result<bool>.Success(true);
+
+        var reset = PasswordReset.Create(user.Id, TimeSpan.FromHours(1));
+        await _passwordResetRepository.AddAsync(reset, cancellationToken);
+
+        // TODO: Send email with reset link when SMTP is configured
+        // Reset URL: /reset-password?token={reset.Token}
+        Console.WriteLine($"[PASSWORD RESET] Token for {email.Value}: {reset.Token}");
+
+        await _securityEventLogger.LogAsync(user.Id, "PasswordResetRequested", null, cancellationToken);
+
+        return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<bool>> ResetPasswordAsync(PasswordResetConfirmRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request.NewPassword.Length < 8)
+            return Result<bool>.Failure("Lösenordet måste vara minst 8 tecken.");
+
+        var reset = await _passwordResetRepository.GetByTokenAsync(request.Token, cancellationToken);
+
+        if (reset is null || reset.IsExpired() || reset.Used)
+            return Result<bool>.Failure("Ogiltig eller utgången länk. Begär en ny.");
+
+        var user = await _userRepository.GetByIdAsync(reset.UserId, cancellationToken);
+        if (user is null)
+            return Result<bool>.Failure("Användare hittades inte.");
+
+        reset.MarkUsed();
+        await _passwordResetRepository.UpdateAsync(reset, cancellationToken);
+
+        user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
+        await _userRepository.UpdateAsync(user, cancellationToken);
+
+        await _refreshTokenRepository.RevokeAllForUserAsync(user.Id, cancellationToken);
+        await _securityEventLogger.LogAsync(user.Id, "PasswordReset", null, cancellationToken);
 
         return Result<bool>.Success(true);
     }
