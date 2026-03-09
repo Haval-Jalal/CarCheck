@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 
@@ -31,9 +30,9 @@ export function CookieBanner() {
         <p className="text-sm text-muted-foreground">
           Vi använder nödvändiga cookies för att hålla dig inloggad och spara dina inställningar.
           Inga spårningscookies.{' '}
-          <Link to="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
+          <a href="/privacy" className="underline underline-offset-2 hover:text-foreground transition-colors">
             Läs mer
-          </Link>
+          </a>
         </p>
         <div className="flex shrink-0 items-center gap-2">
           <Button
