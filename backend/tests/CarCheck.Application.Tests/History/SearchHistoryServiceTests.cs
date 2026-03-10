@@ -29,6 +29,8 @@ public class SearchHistoryServiceTests
             .Returns(new List<SearchHistory> { entry });
         _searchHistoryRepository.GetCountByUserIdTodayAsync(userId, Arg.Any<CancellationToken>())
             .Returns(3);
+        _searchHistoryRepository.GetCountByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(1);
         _carRepository.GetByIdAsync(car.Id, Arg.Any<CancellationToken>())
             .Returns(car);
 
@@ -53,6 +55,8 @@ public class SearchHistoryServiceTests
             .Returns(new List<SearchHistory> { entry });
         _searchHistoryRepository.GetCountByUserIdTodayAsync(userId, Arg.Any<CancellationToken>())
             .Returns(1);
+        _searchHistoryRepository.GetCountByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(1);
         _carRepository.GetByIdAsync(carId, Arg.Any<CancellationToken>())
             .Returns((Car?)null);
 
@@ -73,6 +77,8 @@ public class SearchHistoryServiceTests
             .Returns(new List<SearchHistory>());
         _searchHistoryRepository.GetCountByUserIdTodayAsync(userId, Arg.Any<CancellationToken>())
             .Returns(0);
+        _searchHistoryRepository.GetCountByUserIdAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(0);
 
         var result = await _sut.GetHistoryAsync(userId);
 
@@ -89,6 +95,8 @@ public class SearchHistoryServiceTests
         _searchHistoryRepository.GetByUserIdAsync(userId, 1, 100, Arg.Any<CancellationToken>())
             .Returns(new List<SearchHistory>());
         _searchHistoryRepository.GetCountByUserIdTodayAsync(userId, Arg.Any<CancellationToken>())
+            .Returns(0);
+        _searchHistoryRepository.GetCountByUserIdAsync(userId, Arg.Any<CancellationToken>())
             .Returns(0);
 
         var result = await _sut.GetHistoryAsync(userId, page: 0, pageSize: 999);
