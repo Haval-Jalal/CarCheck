@@ -71,6 +71,15 @@ public static class DependencyInjection
         // GDPR
         services.AddScoped<GdprService>();
 
+        // Email (Resend)
+        var resendApiKey = configuration["Resend:ApiKey"]
+            ?? throw new InvalidOperationException("Resend:ApiKey is not configured.");
+        services.AddHttpClient<IEmailService, ResendEmailService>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.resend.com/");
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {resendApiKey}");
+        });
+
         return services;
     }
 }
