@@ -21,7 +21,6 @@ public class ResendEmailService : IEmailService
     public async Task SendPasswordResetAsync(string toEmail, string resetToken, CancellationToken cancellationToken = default)
     {
         var resetUrl = $"{_frontendBaseUrl}/reset-password?token={resetToken}";
-    {
         var payload = new
         {
             from = "CarCheck <onboarding@resend.dev>",

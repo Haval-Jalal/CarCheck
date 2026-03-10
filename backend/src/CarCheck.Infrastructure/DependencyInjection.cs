@@ -65,7 +65,11 @@ public static class DependencyInjection
 
         // Billing & Subscriptions
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
-        services.AddScoped<IBillingProvider, MockBillingProvider>();
+        var stripeKey = configuration["Stripe:SecretKey"];
+        services.AddScoped<IBillingProvider>(sp =>
+            string.IsNullOrEmpty(stripeKey)
+                ? new MockBillingProvider()
+                : new StripeBillingProvider(configuration));
         services.AddScoped<SubscriptionService>();
 
         // GDPR

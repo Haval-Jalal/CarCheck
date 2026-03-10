@@ -13,7 +13,14 @@ public class MockBillingProvider : IBillingProvider
     {
         var sessionId = $"mock_session_{Guid.NewGuid():N}";
         var checkoutUrl = $"https://mock-billing.local/checkout/{sessionId}";
+        return Task.FromResult(new CreateCheckoutResult(sessionId, checkoutUrl));
+    }
 
+    public Task<CreateCheckoutResult> CreateCreditsCheckoutSessionAsync(
+        Guid userId, int credits, decimal priceSek, CancellationToken cancellationToken = default)
+    {
+        var sessionId = $"mock_credits_{Guid.NewGuid():N}";
+        var checkoutUrl = $"https://mock-billing.local/credits/{sessionId}";
         return Task.FromResult(new CreateCheckoutResult(sessionId, checkoutUrl));
     }
 

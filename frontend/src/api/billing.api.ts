@@ -25,6 +25,9 @@ export const billingApi = {
   buyCredits: (data: BuyCreditsRequest) =>
     apiClient.post<CreditsBalanceResponse>('/billing/buy-credits', data),
 
+  creditsCheckout: (data: BuyCreditsRequest) =>
+    apiClient.post<CheckoutResponse>('/billing/credits-checkout', data),
+
   cancelSubscription: () =>
     apiClient.post('/billing/cancel'),
 }

@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
+import { useSearchParams } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check, Zap, Infinity, CreditCard, Calendar } from 'lucide-react'
-import { useSubscription, useCreateCheckout, useCancelSubscription, useBuyCredits, useCreditPackages } from '@/hooks/use-billing'
+import { useSubscription, useCreateCheckout, useCancelSubscription, useCreditsCheckout, useCreditPackages } from '@/hooks/use-billing'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { ErrorDisplay } from '@/components/common/error-display'
 import { formatDate } from '@/lib/format'
@@ -21,11 +23,27 @@ function formatSek(amount: number) {
 }
 
 export function BillingPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data: sub, isLoading: subLoading, error: subError } = useSubscription()
   const { data: packs, isLoading: packsLoading } = useCreditPackages()
   const checkoutMutation = useCreateCheckout()
-  const buyMutation = useBuyCredits()
+  const creditsCheckoutMutation = useCreditsCheckout()
   const cancelMutation = useCancelSubscription()
+
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      const credits = searchParams.get('credits')
+      if (credits) {
+        toast.success(`${credits} ${Number(credits) === 1 ? 'sökning' : 'sökningar'} tillagda på ditt konto!`)
+      } else {
+        toast.success('Månadsplanen är nu aktiv — obegränsade sökningar!')
+      }
+      setSearchParams({}, { replace: true })
+    } else if (searchParams.get('canceled') === 'true') {
+      toast.info('Betalningen avbröts.')
+      setSearchParams({}, { replace: true })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (subLoading || packsLoading) return <LoadingSpinner />
   if (subError) return <ErrorDisplay error={subError} />
@@ -46,13 +64,13 @@ export function BillingPage() {
   }
 
   const handleBuyCredits = (packSize: number) => {
-    buyMutation.mutate(packSize, {
+    creditsCheckoutMutation.mutate(packSize, {
       onSuccess: (data) => {
-        toast.success(`${packSize} ${packSize === 1 ? 'sökning' : 'sökningar'} tillagda! Saldo: ${data.credits}`)
+        window.location.href = data.checkoutUrl
       },
       onError: (err) => {
         const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error
-        toast.error(msg || 'Köpet misslyckades')
+        toast.error(msg || 'Kunde inte starta betalning')
       },
     })
   }
@@ -166,7 +184,7 @@ export function BillingPage() {
                     className={cn('w-full', pack.isBestValue ? 'bg-blue-600 hover:bg-blue-500' : '')}
                     variant={pack.isBestValue ? 'default' : 'outline'}
                     onClick={() => handleBuyCredits(pack.credits)}
-                    disabled={buyMutation.isPending}
+                    disabled={creditsCheckoutMutation.isPending}
                   >
                     Köp nu
                   </Button>

@@ -1,6 +1,9 @@
 using System.Security.Claims;
-using CarCheck.Application.Billing;
 using CarCheck.Application.Billing.DTOs;
+using CarCheck.Domain.Enums;
+using Microsoft.Extensions.Configuration;
+using Stripe;
+using AppSubscriptionService = CarCheck.Application.Billing.SubscriptionService;
 
 namespace CarCheck.API.Endpoints;
 
@@ -10,7 +13,7 @@ public static class BillingEndpoints
     {
         var group = app.MapGroup("/api/billing").WithTags("Billing");
 
-        group.MapGet("/tiers", (SubscriptionService subscriptionService) =>
+        group.MapGet("/tiers", (AppSubscriptionService subscriptionService) =>
         {
             var tiers = subscriptionService.GetAvailableTiers();
             return Results.Ok(tiers);
@@ -18,7 +21,7 @@ public static class BillingEndpoints
         .WithName("GetTiers")
         .AllowAnonymous();
 
-        group.MapGet("/credit-packages", (SubscriptionService subscriptionService) =>
+        group.MapGet("/credit-packages", (AppSubscriptionService subscriptionService) =>
         {
             var packages = subscriptionService.GetCreditPackages();
             return Results.Ok(packages);
@@ -26,7 +29,7 @@ public static class BillingEndpoints
         .WithName("GetCreditPackages")
         .AllowAnonymous();
 
-        group.MapGet("/subscription", async (SubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        group.MapGet("/subscription", async (AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
@@ -39,7 +42,7 @@ public static class BillingEndpoints
         .WithName("GetSubscription")
         .RequireAuthorization();
 
-        group.MapPost("/checkout", async (SubscribeRequest request, SubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        group.MapPost("/checkout", async (SubscribeRequest request, AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
@@ -52,7 +55,7 @@ public static class BillingEndpoints
         .WithName("CreateCheckout")
         .RequireAuthorization();
 
-        group.MapPost("/buy-credits", async (BuyCreditsRequest request, SubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        group.MapPost("/buy-credits", async (BuyCreditsRequest request, AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
@@ -65,7 +68,7 @@ public static class BillingEndpoints
         .WithName("BuyCredits")
         .RequireAuthorization();
 
-        group.MapPost("/cancel", async (SubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        group.MapPost("/cancel", async (AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
@@ -77,6 +80,70 @@ public static class BillingEndpoints
         })
         .WithName("CancelSubscription")
         .RequireAuthorization();
+
+        group.MapPost("/credits-checkout", async (BuyCreditsRequest request, AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        {
+            var userId = GetUserId(user);
+            if (userId is null) return Results.Unauthorized();
+
+            var result = await subscriptionService.BuyCreditsCheckoutAsync(userId.Value, request);
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .WithName("BuyCreditsCheckout")
+        .RequireAuthorization();
+
+        group.MapPost("/webhook", async (HttpRequest request, AppSubscriptionService subscriptionService, IConfiguration config) =>
+        {
+            string json;
+            using (var reader = new StreamReader(request.Body))
+                json = await reader.ReadToEndAsync();
+
+            Event stripeEvent;
+            var webhookSecret = config["Stripe:WebhookSecret"];
+            try
+            {
+                if (!string.IsNullOrEmpty(webhookSecret))
+                {
+                    var signature = request.Headers["Stripe-Signature"].ToString();
+                    stripeEvent = EventUtility.ConstructEvent(json, signature, webhookSecret);
+                }
+                else
+                {
+                    stripeEvent = EventUtility.ParseEvent(json);
+                }
+            }
+            catch
+            {
+                return Results.BadRequest();
+            }
+
+            if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
+            {
+                var session = stripeEvent.Data.Object as Stripe.Checkout.Session;
+                if (session?.Metadata?.TryGetValue("userId", out var userIdStr) == true
+                    && Guid.TryParse(userIdStr, out var userId))
+                {
+                    session.Metadata.TryGetValue("type", out var type);
+
+                    if (type == "subscription" && session.SubscriptionId is not null)
+                    {
+                        await subscriptionService.ActivateSubscriptionAsync(userId, SubscriptionTier.Pro, session.SubscriptionId);
+                    }
+                    else if (type == "credits"
+                        && session.Metadata.TryGetValue("credits", out var creditsStr)
+                        && int.TryParse(creditsStr, out var credits))
+                    {
+                        await subscriptionService.GrantCreditsAsync(userId, credits);
+                    }
+                }
+            }
+
+            return Results.Ok();
+        })
+        .WithName("StripeWebhook")
+        .AllowAnonymous();
     }
 
     private static Guid? GetUserId(ClaimsPrincipal user)

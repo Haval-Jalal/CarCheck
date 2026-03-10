@@ -99,6 +99,39 @@ public class SubscriptionService
         return Result<CreditsBalanceResponse>.Success(new CreditsBalanceResponse(user.Credits, hasMonthly));
     }
 
+    public async Task<Result<CheckoutResponse>> BuyCreditsCheckoutAsync(
+        Guid userId, BuyCreditsRequest request, CancellationToken cancellationToken = default)
+    {
+        var pack = TierConfiguration.CreditPacks.FirstOrDefault(p => p.Credits == request.PackSize);
+        if (pack is null)
+            return Result<CheckoutResponse>.Failure($"Invalid pack size. Choose from: {string.Join(", ", TierConfiguration.CreditPacks.Select(p => p.Credits))}.");
+
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+            return Result<CheckoutResponse>.Failure("User not found.");
+
+        var checkout = await _billingProvider.CreateCreditsCheckoutSessionAsync(userId, pack.Credits, pack.PriceSek, cancellationToken);
+
+        await _securityEventLogger.LogAsync(userId, "CreditsCheckoutCreated", null, cancellationToken);
+
+        return Result<CheckoutResponse>.Success(new CheckoutResponse(checkout.SessionId, checkout.CheckoutUrl));
+    }
+
+    public async Task<Result<bool>> GrantCreditsAsync(
+        Guid userId, int credits, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        if (user is null)
+            return Result<bool>.Failure("User not found.");
+
+        user.AddCredits(credits);
+        await _userRepository.UpdateAsync(user, cancellationToken);
+
+        await _securityEventLogger.LogAsync(userId, "CreditsGranted", null, cancellationToken);
+
+        return Result<bool>.Success(true);
+    }
+
     public async Task<Result<SubscriptionResponse>> ActivateSubscriptionAsync(
         Guid userId, SubscriptionTier tier, string externalSubscriptionId, CancellationToken cancellationToken = default)
     {
