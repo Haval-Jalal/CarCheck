@@ -14,6 +14,7 @@ public class AuthService
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
     private readonly IPasswordResetRepository _passwordResetRepository;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         IUserRepository userRepository,
@@ -21,7 +22,8 @@ public class AuthService
         ITokenService tokenService,
         IRefreshTokenRepository refreshTokenRepository,
         ISecurityEventLogger securityEventLogger,
-        IPasswordResetRepository passwordResetRepository)
+        IPasswordResetRepository passwordResetRepository,
+        IEmailService emailService)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
@@ -29,6 +31,7 @@ public class AuthService
         _refreshTokenRepository = refreshTokenRepository;
         _securityEventLogger = securityEventLogger;
         _passwordResetRepository = passwordResetRepository;
+        _emailService = emailService;
     }
 
     public async Task<Result<UserResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -139,9 +142,7 @@ public class AuthService
         var reset = PasswordReset.Create(user.Id, TimeSpan.FromHours(1));
         await _passwordResetRepository.AddAsync(reset, cancellationToken);
 
-        // TODO: Send email with reset link when SMTP is configured
-        // Reset URL: /reset-password?token={reset.Token}
-        Console.WriteLine($"[PASSWORD RESET] Token for {email.Value}: {reset.Token}");
+        await _emailService.SendPasswordResetAsync(email.Value, reset.Token, cancellationToken);
 
         await _securityEventLogger.LogAsync(user.Id, "PasswordResetRequested", null, cancellationToken);
 
