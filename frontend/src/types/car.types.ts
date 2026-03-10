@@ -23,6 +23,10 @@ export interface CarAnalysisResponse {
   brand: string
   model: string
   year: number
+  mileage: number
+  fuelType: string | null
+  horsePower: number | null
+  color: string | null
   score: number
   recommendation: string
   breakdown: AnalysisBreakdown

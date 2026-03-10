@@ -25,7 +25,9 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+  const fromState = (location.state as { from?: { pathname: string } })?.from?.pathname
+  const fromQuery = new URLSearchParams(location.search).get('from')
+  const from = fromState || (fromQuery ? decodeURIComponent(fromQuery) : '/dashboard')
   const regNumber = (location.state as { regNumber?: string })?.regNumber
 
   const {
@@ -41,7 +43,11 @@ export function LoginPage() {
     setIsSubmitting(true)
     try {
       await login(data)
-      navigate(from, { replace: true })
+      if (regNumber) {
+        navigate('/dashboard', { replace: true, state: { pendingSearch: regNumber } })
+      } else {
+        navigate(from, { replace: true })
+      }
     } catch (err) {
       const axiosError = err as AxiosError<ApiError>
       setError(axiosError.response?.data?.error || 'Inloggningen misslyckades. Försök igen.')

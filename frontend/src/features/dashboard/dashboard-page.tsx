@@ -1,4 +1,5 @@
-import { useNavigate, Link } from 'react-router'
+import { useNavigate, useLocation, Link } from 'react-router'
+import { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Search, Clock, ChevronRight, Car } from 'lucide-react'
@@ -65,6 +66,7 @@ function RecentSearches() {
 
 export function DashboardPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const searchMutation = useCarSearch()
 
   const handleSearch = (regNumber: string) => {
@@ -77,6 +79,14 @@ export function DashboardPage() {
       }
     )
   }
+
+  useEffect(() => {
+    const pending = (location.state as { pendingSearch?: string })?.pendingSearch
+    if (pending) {
+      window.history.replaceState({}, '')
+      handleSearch(pending)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const errorMessage = searchMutation.error
     ? (searchMutation.error as AxiosError<ApiError>).response?.data?.error ||

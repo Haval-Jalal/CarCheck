@@ -43,9 +43,11 @@ export function SettingsPage() {
         newPassword: data.newPassword,
       })
       reset()
-      toast.success('Lösenordet ändrat. Logga in igen.')
-      clearTokens()
-      navigate('/login')
+      toast.success('Lösenordet ändrat. Du loggas ut om ett ögonblick...')
+      setTimeout(() => {
+        clearTokens()
+        navigate('/login')
+      }, 2000)
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
       setPwError(axiosErr.response?.data?.error || 'Kunde inte ändra lösenord.')

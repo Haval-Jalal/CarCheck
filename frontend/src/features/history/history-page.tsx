@@ -30,10 +30,15 @@ export function HistoryPage() {
   const handleClearAll = () => {
     if (!window.confirm('Är du säker på att du vill rensa all historik?')) return
     clearHistory.mutate(undefined, {
-      onSuccess: () => toast.success('All historik rensad'),
+      onSuccess: () => {
+        setPage(1)
+        toast.success('All historik rensad')
+      },
       onError: () => toast.error('Kunde inte rensa historik'),
     })
   }
+
+  const anyPending = deleteEntry.isPending || clearHistory.isPending
 
   if (isLoading) return <LoadingSpinner />
   if (error) return <ErrorDisplay error={error} />
@@ -54,7 +59,7 @@ export function HistoryPage() {
               variant="destructive"
               size="sm"
               onClick={handleClearAll}
-              disabled={clearHistory.isPending}
+              disabled={anyPending}
             >
               Rensa historik
             </Button>
@@ -100,7 +105,8 @@ export function HistoryPage() {
                     </span>
                     <button
                       onClick={(e) => handleDelete(e, item.id)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      disabled={anyPending}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center disabled:opacity-40"
                       aria-label="Ta bort sökning"
                     >
                       <Trash2 className="h-4 w-4" />

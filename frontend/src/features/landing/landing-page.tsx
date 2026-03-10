@@ -8,9 +8,17 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [regNumber, setRegNumber] = useState('')
 
+  const [regError, setRegError] = useState(false)
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/login', { state: { regNumber } })
+    const reg = regNumber.trim().toUpperCase().replace(/\s/g, '')
+    if (!/^[A-Z]{3}\d{3}$/.test(reg)) {
+      setRegError(true)
+      return
+    }
+    setRegError(false)
+    navigate('/login', { state: { regNumber: reg } })
   }
 
   return (
@@ -74,14 +82,14 @@ export function LandingPage() {
           </p>
 
           {/* Search bar */}
-          <form onSubmit={handleSearch} className="mx-auto mb-8 max-w-lg">
+          <form onSubmit={handleSearch} className="mx-auto mb-2 max-w-lg">
             <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl shadow-black/40 transition focus-within:border-blue-500">
               <div className="ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600/20">
                 <Car className="h-4 w-4 text-blue-400" />
               </div>
               <input
                 value={regNumber}
-                onChange={e => setRegNumber(e.target.value.toUpperCase())}
+                onChange={e => { setRegNumber(e.target.value.toUpperCase()); setRegError(false) }}
                 placeholder="ABC 123"
                 maxLength={10}
                 autoFocus
@@ -96,6 +104,12 @@ export function LandingPage() {
               </button>
             </div>
           </form>
+
+          {regError && (
+            <p className="mx-auto mb-4 max-w-lg text-sm text-red-400">
+              Ange ett giltigt regnummer (t.ex. ABC 123).
+            </p>
+          )}
 
           {/* Trust row */}
           <div className="mb-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-slate-500 sm:gap-x-6">
