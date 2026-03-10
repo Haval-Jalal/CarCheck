@@ -71,15 +71,13 @@ export function DashboardPage() {
 
   const didAutoSearch = useRef(false)
 
-  const handleSearch = (regNumber: string) => {
-    searchMutation.mutate(
-      { registrationNumber: regNumber },
-      {
-        onSuccess: (data) => {
-          navigate(`/car/${data.carId}/analysis`, { state: { car: data } })
-        },
-      }
-    )
+  const handleSearch = async (regNumber: string) => {
+    try {
+      const data = await searchMutation.mutateAsync({ registrationNumber: regNumber })
+      navigate(`/car/${data.carId}/analysis`, { state: { car: data } })
+    } catch {
+      // searchMutation.error hanterar felvisningen
+    }
   }
 
   useEffect(() => {
