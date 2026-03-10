@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams, Link, useLocation } from 'react-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -248,6 +248,13 @@ export function CarAnalysisPage() {
     })
   }, [carId])
 
+  useEffect(() => {
+    if (analysis) {
+      document.title = `${analysis.brand} ${analysis.model} (${analysis.registrationNumber}) — CarCheck`
+      return () => { document.title = 'CarCheck' }
+    }
+  }, [analysis])
+
   if (isLoading) return <LoadingSpinner />
   if (error) return <ErrorDisplay error={error} />
   if (!analysis) return null
@@ -275,11 +282,11 @@ export function CarAnalysisPage() {
                 { label: 'Märke & Modell', value: `${analysis!.brand} ${analysis!.model}`, icon: <Car className="h-3.5 w-3.5" /> },
                 { label: 'Årsmodell', value: String(analysis!.year), icon: null },
                 { label: 'Registreringsnummer', value: analysis!.registrationNumber, icon: null },
-                { label: 'Miltal', value: formatMil(analysis!.details?.mileageHistory?.at(-1)?.mileage ?? 0), icon: <Gauge className="h-3.5 w-3.5" /> },
-                ...(carState?.fuelType ? [{ label: 'Bränsle', value: carState.fuelType, icon: <Fuel className="h-3.5 w-3.5" /> }] : []),
-                ...(carState?.horsePower ? [{ label: 'Hästkrafter', value: `${carState.horsePower} hk`, icon: null }] : []),
-                ...(carState?.color ? [{ label: 'Färg', value: translateColor(carState.color), icon: <Palette className="h-3.5 w-3.5" /> }] : []),
-                ...(carState?.marketValueSek ? [{ label: 'Marknadsvärde', value: formatSek(carState.marketValueSek), icon: null }] : []),
+                { label: 'Miltal', value: formatMil(analysis!.details?.mileageHistory?.at(-1)?.mileage ?? analysis!.mileage), icon: <Gauge className="h-3.5 w-3.5" /> },
+                ...(analysis!.fuelType ? [{ label: 'Bränsle', value: analysis!.fuelType, icon: <Fuel className="h-3.5 w-3.5" /> }] : []),
+                ...(analysis!.horsePower ? [{ label: 'Hästkrafter', value: `${analysis!.horsePower} hk`, icon: null }] : []),
+                ...(analysis!.color ? [{ label: 'Färg', value: translateColor(analysis!.color), icon: <Palette className="h-3.5 w-3.5" /> }] : []),
+                ...((analysis!.details?.marketValueSek ?? carState?.marketValueSek) ? [{ label: 'Marknadsvärde', value: formatSek((analysis!.details?.marketValueSek ?? carState?.marketValueSek)!), icon: null }] : []),
               ].map((f) => (
                 <div key={f.label} className="rounded-lg border border-border bg-card px-4 py-3">
                   <p className="text-xs text-muted-foreground flex items-center gap-1">{f.icon}{f.label}</p>
@@ -491,11 +498,13 @@ export function CarAnalysisPage() {
       <ScoreGauge score={scoreRounded} recommendation={analysis.recommendation} />
 
       {/* Mobile: horisontell scrollmeny */}
-      <div className="flex md:hidden gap-1 overflow-x-auto pb-1">
+      <div role="tablist" aria-label="Analysavsnitt" className="flex md:hidden gap-1 overflow-x-auto pb-1">
         {visibleSections.map((s) => (
           <button
             key={s.id}
+            role="tab"
             type="button"
+            aria-selected={activeSection === s.id}
             onClick={() => setActiveSection(s.id)}
             className={cn(
               'flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-colors shrink-0',
@@ -514,11 +523,13 @@ export function CarAnalysisPage() {
       <div className="hidden md:flex gap-5 items-start">
 
         {/* Sidebar — enbart navigering, ingen poäng här */}
-        <aside className="w-48 shrink-0 sticky top-4 space-y-0.5">
+        <aside role="tablist" aria-label="Analysavsnitt" className="w-48 shrink-0 sticky top-4 space-y-0.5">
           {visibleSections.map((s) => (
             <button
               key={s.id}
+              role="tab"
               type="button"
+              aria-selected={activeSection === s.id}
               onClick={() => setActiveSection(s.id)}
               className={cn(
                 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors text-left',

@@ -142,6 +142,7 @@ public class CarSearchServiceTests
         var carId = Guid.NewGuid();
         var cachedAnalysis = new CarAnalysisResponse(
             Guid.NewGuid(), carId, "ABC123", "Volvo", "XC60", 2021,
+            35000, "Diesel", 235, "Black",
             88.5m, "Utmärkt skick. Fordonet verkar vara ett starkt val med minimala riskfaktorer.", new AnalysisBreakdown(90, 85, 100, 100, 100, 100, 80, 85, 90, 75, 80, 70),
             DateTime.UtcNow);
 

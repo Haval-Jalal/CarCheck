@@ -101,7 +101,8 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null)
         clearTokens()
-        window.location.href = '/login'
+        const from = encodeURIComponent(window.location.pathname + window.location.search)
+        window.location.href = `/login?from=${from}`
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

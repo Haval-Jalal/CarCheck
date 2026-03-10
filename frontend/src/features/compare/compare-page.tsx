@@ -73,6 +73,7 @@ function CarSearchBox({
   onFound: (carId: string) => void
 }) {
   const [regNumber, setRegNumber] = useState('')
+  const [regError, setRegError] = useState(false)
   const search = useCarSearch()
 
   const errorMessage = search.error
@@ -81,9 +82,14 @@ function CarSearchBox({
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!regNumber.trim()) return
+    const reg = regNumber.trim().toUpperCase().replace(/\s/g, '')
+    if (!/^[A-Z]{3}\d{3}$/.test(reg)) {
+      setRegError(true)
+      return
+    }
+    setRegError(false)
     search.mutate(
-      { registrationNumber: regNumber.trim() },
+      { registrationNumber: reg },
       { onSuccess: (data) => onFound(data.carId) }
     )
   }
@@ -94,16 +100,19 @@ function CarSearchBox({
       <div className="flex gap-2">
         <Input
           value={regNumber}
-          onChange={(e) => setRegNumber(e.target.value.toUpperCase())}
+          onChange={(e) => { setRegNumber(e.target.value.toUpperCase()); setRegError(false) }}
           placeholder="ABC 123"
           maxLength={10}
           className="text-center font-mono text-lg font-bold tracking-widest"
         />
-        <Button type="submit" disabled={search.isPending || !regNumber.trim()}>
+        <Button type="submit" disabled={search.isPending || !regNumber.trim() || regError}>
           {search.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sök'}
         </Button>
       </div>
-      {errorMessage && (
+      {regError && (
+        <p className="text-xs text-destructive">Ogiltigt regnummer. Använd formatet ABC 123.</p>
+      )}
+      {errorMessage && !regError && (
         <Alert variant="destructive">
           <AlertDescription className="text-xs">{errorMessage}</AlertDescription>
         </Alert>

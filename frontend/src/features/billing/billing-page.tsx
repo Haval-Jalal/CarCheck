@@ -58,7 +58,7 @@ export function BillingPage() {
   }
 
   const handleCancel = () => {
-    if (!confirm('Är du säker på att du vill avbryta din månadsplan?')) return
+    if (!confirm('Är du säker på att du vill avbryta din månadsplan? Dina köpta krediter påverkas inte.')) return
     cancelMutation.mutate(undefined, {
       onSuccess: () => toast.success('Månadsplanen avbruten'),
     })

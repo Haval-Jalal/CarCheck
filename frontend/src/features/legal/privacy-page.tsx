@@ -1,7 +1,9 @@
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 import { Car, ArrowLeft } from 'lucide-react'
 
 export function PrivacyPage() {
+  const navigate = useNavigate()
+
   return (
     <div className="min-h-screen bg-background px-4 py-12">
       <div className="mx-auto max-w-2xl space-y-8">
@@ -11,13 +13,13 @@ export function PrivacyPage() {
             <Car className="h-5 w-5 text-blue-400" />
             <span className="text-base font-bold">CarCheck</span>
           </div>
-          <Link
-            to="/"
+          <button
+            onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Tillbaka
-          </Link>
+          </button>
         </div>
 
         <div className="space-y-1">

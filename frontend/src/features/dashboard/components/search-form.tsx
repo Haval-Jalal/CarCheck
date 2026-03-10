@@ -95,7 +95,7 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
       </div>
       <Button
         type="submit"
-        disabled={isLoading || urlError || (isInputUrl && !urlHint)}
+        disabled={isLoading || urlError || regError || (isInputUrl && !urlHint)}
         className="sm:w-auto"
       >
         {isLoading ? (
