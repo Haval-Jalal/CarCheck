@@ -30,10 +30,25 @@ export function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   })
+
+  const passwordValue = watch('password', '')
+  const passwordStrength = (() => {
+    if (!passwordValue) return 0
+    let score = 0
+    if (passwordValue.length >= 8) score++
+    if (passwordValue.length >= 12) score++
+    if (/[A-Z]/.test(passwordValue)) score++
+    if (/[0-9]/.test(passwordValue)) score++
+    if (/[^A-Za-z0-9]/.test(passwordValue)) score++
+    return score
+  })()
+  const strengthLabel = ['', 'Svagt', 'Svagt', 'Okej', 'Bra', 'Starkt'][passwordStrength]
+  const strengthColor = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'][passwordStrength]
 
   const onSubmit = async (data: RegisterFormData) => {
     setError(null)
@@ -163,6 +178,24 @@ export function RegisterPage() {
                 autoComplete="new-password"
                 {...register('password')}
               />
+              {passwordValue.length > 0 && (
+                <div className="space-y-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded-full transition-colors ${
+                          level <= passwordStrength ? strengthColor : 'bg-muted'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Styrka: <span className="font-medium text-foreground">{strengthLabel}</span>
+                    {passwordValue.length < 8 && ' — minst 8 tecken krävs'}
+                  </p>
+                </div>
+              )}
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}

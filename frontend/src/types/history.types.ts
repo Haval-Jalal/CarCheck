@@ -13,4 +13,5 @@ export interface SearchHistoryPageResponse {
   page: number
   pageSize: number
   todayCount: number
+  totalCount: number
 }

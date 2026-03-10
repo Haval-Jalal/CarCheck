@@ -23,6 +23,12 @@ public class SearchHistoryRepository : ISearchHistoryRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<int> GetCountByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.SearchHistories
+            .CountAsync(s => s.UserId == userId, cancellationToken);
+    }
+
     public async Task<int> GetCountByUserIdTodayAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var todayUtc = DateTime.UtcNow.Date;

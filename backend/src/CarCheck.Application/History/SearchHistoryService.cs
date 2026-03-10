@@ -26,6 +26,7 @@ public class SearchHistoryService
 
         var entries = await _searchHistoryRepository.GetByUserIdAsync(userId, page, pageSize, cancellationToken);
         var todayCount = await _searchHistoryRepository.GetCountByUserIdTodayAsync(userId, cancellationToken);
+        var totalCount = await _searchHistoryRepository.GetCountByUserIdAsync(userId, cancellationToken);
 
         var items = new List<SearchHistoryResponse>();
         foreach (var entry in entries)
@@ -42,7 +43,7 @@ public class SearchHistoryService
         }
 
         return Result<SearchHistoryPageResponse>.Success(
-            new SearchHistoryPageResponse(items, page, pageSize, todayCount));
+            new SearchHistoryPageResponse(items, page, pageSize, todayCount, totalCount));
     }
 
     public async Task<Result<bool>> DeleteEntryAsync(

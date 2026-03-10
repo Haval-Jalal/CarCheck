@@ -118,7 +118,7 @@ export function HistoryPage() {
             {data && (
               <PaginationControls
                 page={page}
-                hasMore={data.items.length === 20}
+                hasMore={page * data.pageSize < data.totalCount}
                 onPageChange={setPage}
               />
             )}

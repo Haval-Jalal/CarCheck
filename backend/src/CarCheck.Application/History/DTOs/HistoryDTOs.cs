@@ -13,4 +13,5 @@ public record SearchHistoryPageResponse(
     IReadOnlyList<SearchHistoryResponse> Items,
     int Page,
     int PageSize,
-    int TodayCount);
+    int TodayCount,
+    int TotalCount);
