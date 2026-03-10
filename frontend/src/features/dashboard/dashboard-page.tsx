@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, Link } from 'react-router'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Search, Clock, ChevronRight, Car } from 'lucide-react'
@@ -69,6 +69,8 @@ export function DashboardPage() {
   const location = useLocation()
   const searchMutation = useCarSearch()
 
+  const didAutoSearch = useRef(false)
+
   const handleSearch = (regNumber: string) => {
     searchMutation.mutate(
       { registrationNumber: regNumber },
@@ -82,7 +84,8 @@ export function DashboardPage() {
 
   useEffect(() => {
     const pending = (location.state as { pendingSearch?: string })?.pendingSearch
-    if (pending) {
+    if (pending && !didAutoSearch.current) {
+      didAutoSearch.current = true
       window.history.replaceState({}, '')
       handleSearch(pending)
     }
