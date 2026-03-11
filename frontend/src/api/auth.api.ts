@@ -34,4 +34,7 @@ export const authApi = {
 
   resetPassword: (data: ResetPasswordRequest) =>
     apiClient.post('/auth/reset-password', data),
+
+  verifyEmail: (token: string) =>
+    apiClient.get('/auth/verify-email', { params: { token } }),
 }

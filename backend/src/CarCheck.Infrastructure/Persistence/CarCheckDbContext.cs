@@ -14,6 +14,8 @@ public class CarCheckDbContext : DbContext
     public DbSet<SearchHistory> SearchHistories => Set<SearchHistory>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<PasswordReset> PasswordResets => Set<PasswordReset>();
+    public DbSet<EmailVerification> EmailVerifications => Set<EmailVerification>();
+    public DbSet<CreditTransaction> CreditTransactions => Set<CreditTransaction>();
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
     public DbSet<RefreshTokenEntry> RefreshTokens => Set<RefreshTokenEntry>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();

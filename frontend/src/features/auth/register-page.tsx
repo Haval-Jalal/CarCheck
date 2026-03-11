@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Car, Lock, Zap, Trophy, ChevronRight, Search } from 'lucide-react'
+import { Car, Lock, Zap, Trophy, ChevronRight, Search, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +24,7 @@ export function RegisterPage() {
   const { register: registerUser } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
 
   const regNumber = (location.state as { regNumber?: string })?.regNumber
 
@@ -55,7 +56,7 @@ export function RegisterPage() {
     setIsSubmitting(true)
     try {
       await registerUser({ email: data.email, password: data.password })
-      navigate('/login', { state: { registered: true, regNumber } })
+      setRegisteredEmail(data.email)
     } catch (err) {
       const axiosError = err as AxiosError<ApiError>
       setError(axiosError.response?.data?.error || 'Registreringen misslyckades. Försök igen.')
@@ -67,6 +68,35 @@ export function RegisterPage() {
   const formattedReg = regNumber
     ? regNumber.replace(/^([A-Za-z]{3})(\d{3})$/, '$1 $2').toUpperCase()
     : null
+
+  if (registeredEmail) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
+        <div className="w-full max-w-sm space-y-8">
+          <div className="flex items-center gap-2">
+            <Car className="h-5 w-5 text-blue-400" />
+            <span className="text-base font-bold">CarCheck</span>
+          </div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600/10">
+            <Mail className="h-6 w-6 text-blue-400" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">Kolla din e-post</h1>
+            <p className="text-sm text-muted-foreground">
+              Vi har skickat en verifieringslänk till <strong>{registeredEmail}</strong>.
+              Klicka på länken för att aktivera ditt konto och få din gratis sökning.
+            </p>
+          </div>
+          <Link
+            to="/login"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Gå till inloggning
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen">

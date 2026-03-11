@@ -18,7 +18,6 @@ public class DailyQuotaMiddleware
 
     public async Task InvokeAsync(
         HttpContext context,
-        ISearchHistoryRepository searchHistoryRepository,
         ISubscriptionRepository subscriptionRepository,
         IUserRepository userRepository)
     {
@@ -43,7 +42,6 @@ public class DailyQuotaMiddleware
 
         if (hasMonthly)
         {
-            // Unlimited monthly plan
             context.Response.Headers["X-DailyQuota-Limit"] = "unlimited";
             context.Response.Headers["X-DailyQuota-Remaining"] = "unlimited";
             context.Response.Headers["X-Subscription-Tier"] = subscription!.Tier.ToString();
@@ -53,16 +51,26 @@ public class DailyQuotaMiddleware
 
         var user = await userRepository.GetByIdAsync(userId);
 
+        // Block unverified users
+        if (user is not null && !user.EmailVerified)
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = "Du måste verifiera din e-postadress innan du kan söka. Kolla din inkorg.",
+                requiresEmailVerification = true
+            });
+            return;
+        }
+
         if (user is not null && user.Credits > 0)
         {
-            // Credit-based access
             context.Response.Headers["X-DailyQuota-Limit"] = "credits";
             context.Response.Headers["X-DailyQuota-Remaining"] = user.Credits.ToString();
             context.Response.Headers["X-Subscription-Tier"] = SubscriptionTier.Free.ToString();
 
             await _next(context);
 
-            // Deduct 1 credit after a successful search
             if (context.Response.StatusCode is >= 200 and < 300)
             {
                 user.ConsumeCredit();
@@ -71,28 +79,12 @@ public class DailyQuotaMiddleware
             return;
         }
 
-        // Free tier: limited daily searches
-        var todayCount = await searchHistoryRepository.GetCountByUserIdTodayAsync(userId);
-        var freeLimit = TierConfiguration.FreeDaily;
-
-        context.Response.Headers["X-DailyQuota-Limit"] = freeLimit.ToString();
-        context.Response.Headers["X-DailyQuota-Remaining"] = Math.Max(0, freeLimit - todayCount).ToString();
-        context.Response.Headers["X-Subscription-Tier"] = SubscriptionTier.Free.ToString();
-
-        if (todayCount >= freeLimit)
+        // No credits, no subscription → blocked
+        context.Response.StatusCode = StatusCodes.Status402PaymentRequired;
+        await context.Response.WriteAsJsonAsync(new
         {
-            context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                error = "Du har använt dina gratis sökningar för idag. Köp sökningar eller teckna ett abonnemang.",
-                tier = SubscriptionTier.Free.ToString(),
-                limit = freeLimit,
-                used = todayCount,
-                resetsAt = DateTime.UtcNow.Date.AddDays(1).ToString("o")
-            });
-            return;
-        }
-
-        await _next(context);
+            error = "Du har inga sökningar kvar. Köp sökningar eller teckna ett abonnemang.",
+            tier = SubscriptionTier.Free.ToString()
+        });
     }
 }

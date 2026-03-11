@@ -49,3 +49,12 @@ export interface CreditsBalanceResponse {
   credits: number
   hasMonthlySubscription: boolean
 }
+
+export interface TransactionResponse {
+  id: string
+  type: 'credits' | 'subscription' | 'trial'
+  credits: number | null
+  amountSek: number
+  description: string
+  createdAt: string
+}
