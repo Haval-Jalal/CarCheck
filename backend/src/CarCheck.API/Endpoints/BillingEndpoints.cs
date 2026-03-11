@@ -75,10 +75,23 @@ public static class BillingEndpoints
 
             var result = await subscriptionService.CancelSubscriptionAsync(userId.Value);
             return result.IsSuccess
-                ? Results.Ok(new { message = "Subscription cancelled." })
+                ? Results.Ok(new { message = "Abonnemanget har avslutats." })
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("CancelSubscription")
+        .RequireAuthorization();
+
+        group.MapGet("/transactions", async (AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
+        {
+            var userId = GetUserId(user);
+            if (userId is null) return Results.Unauthorized();
+
+            var result = await subscriptionService.GetTransactionsAsync(userId.Value);
+            return result.IsSuccess
+                ? Results.Ok(result.Value)
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .WithName("GetTransactions")
         .RequireAuthorization();
 
         group.MapPost("/credits-checkout", async (BuyCreditsRequest request, AppSubscriptionService subscriptionService, ClaimsPrincipal user) =>
@@ -126,16 +139,20 @@ public static class BillingEndpoints
                     && Guid.TryParse(userIdStr, out var userId))
                 {
                     session.Metadata.TryGetValue("type", out var type);
+                    var paymentId = session.Id; // Stripe session ID as idempotency key
 
                     if (type == "subscription" && session.SubscriptionId is not null)
                     {
-                        await subscriptionService.ActivateSubscriptionAsync(userId, SubscriptionTier.Pro, session.SubscriptionId);
+                        await subscriptionService.ActivateSubscriptionAsync(
+                            userId, SubscriptionTier.Pro, session.SubscriptionId,
+                            externalPaymentId: paymentId);
                     }
                     else if (type == "credits"
                         && session.Metadata.TryGetValue("credits", out var creditsStr)
                         && int.TryParse(creditsStr, out var credits))
                     {
-                        await subscriptionService.GrantCreditsAsync(userId, credits);
+                        await subscriptionService.GrantCreditsAsync(
+                            userId, credits, externalPaymentId: paymentId);
                     }
                 }
             }

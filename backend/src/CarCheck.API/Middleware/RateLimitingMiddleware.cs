@@ -27,7 +27,7 @@ public class RateLimitingMiddleware
         {
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
             context.Response.Headers["Retry-After"] = ((int)(result.ResetsAt - DateTime.UtcNow).TotalSeconds).ToString();
-            await context.Response.WriteAsJsonAsync(new { error = "Too many requests. Please try again later." });
+            await context.Response.WriteAsJsonAsync(new { error = "För många förfrågningar. Försök igen om en stund." });
             return;
         }
 

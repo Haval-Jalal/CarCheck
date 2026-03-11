@@ -43,3 +43,11 @@ public record CreditPackResponse(
 public record CreditsBalanceResponse(
     int Credits,
     bool HasMonthlySubscription);
+
+public record TransactionResponse(
+    Guid Id,
+    string Type,
+    int? Credits,
+    decimal AmountSek,
+    string Description,
+    DateTime CreatedAt);

@@ -50,10 +50,10 @@ public class FavoriteService
     {
         var car = await _carRepository.GetByIdAsync(request.CarId, cancellationToken);
         if (car is null)
-            return Result<FavoriteResponse>.Failure("Car not found.");
+            return Result<FavoriteResponse>.Failure("Bilen hittades inte.");
 
         if (await _favoriteRepository.ExistsAsync(userId, request.CarId, cancellationToken))
-            return Result<FavoriteResponse>.Failure("Car is already in favorites.");
+            return Result<FavoriteResponse>.Failure("Bilen finns redan i favoriter.");
 
         var favorite = Favorite.Create(userId, request.CarId);
         await _favoriteRepository.AddAsync(favorite, cancellationToken);
@@ -79,7 +79,7 @@ public class FavoriteService
         Guid userId, Guid carId, CancellationToken cancellationToken = default)
     {
         if (!await _favoriteRepository.ExistsAsync(userId, carId, cancellationToken))
-            return Result<bool>.Failure("Favorite not found.");
+            return Result<bool>.Failure("Favoriten hittades inte.");
 
         await _favoriteRepository.RemoveAsync(userId, carId, cancellationToken);
         return Result<bool>.Success(true);

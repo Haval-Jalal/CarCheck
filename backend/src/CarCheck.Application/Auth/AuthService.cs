@@ -14,6 +14,8 @@ public class AuthService
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
     private readonly IPasswordResetRepository _passwordResetRepository;
+    private readonly IEmailVerificationRepository _emailVerificationRepository;
+    private readonly ICreditTransactionRepository _transactionRepository;
     private readonly IEmailService _emailService;
 
     public AuthService(
@@ -23,6 +25,8 @@ public class AuthService
         IRefreshTokenRepository refreshTokenRepository,
         ISecurityEventLogger securityEventLogger,
         IPasswordResetRepository passwordResetRepository,
+        IEmailVerificationRepository emailVerificationRepository,
+        ICreditTransactionRepository transactionRepository,
         IEmailService emailService)
     {
         _userRepository = userRepository;
@@ -31,6 +35,8 @@ public class AuthService
         _refreshTokenRepository = refreshTokenRepository;
         _securityEventLogger = securityEventLogger;
         _passwordResetRepository = passwordResetRepository;
+        _emailVerificationRepository = emailVerificationRepository;
+        _transactionRepository = transactionRepository;
         _emailService = emailService;
     }
 
@@ -39,10 +45,10 @@ public class AuthService
         var email = Email.Create(request.Email);
 
         if (await _userRepository.ExistsByEmailAsync(email, cancellationToken))
-            return Result<UserResponse>.Failure("Email is already registered.");
+            return Result<UserResponse>.Failure("E-postadressen är redan registrerad.");
 
         if (request.Password.Length < 8)
-            return Result<UserResponse>.Failure("Password must be at least 8 characters.");
+            return Result<UserResponse>.Failure("Lösenordet måste vara minst 8 tecken.");
 
         var hash = _passwordHasher.Hash(request.Password);
         var user = User.Create(request.Email, hash);
@@ -50,7 +56,45 @@ public class AuthService
         await _userRepository.AddAsync(user, cancellationToken);
         await _securityEventLogger.LogAsync(user.Id, "Registered", null, cancellationToken);
 
+        // Send verification email
+        var verification = EmailVerification.Create(user.Id, TimeSpan.FromHours(24));
+        await _emailVerificationRepository.AddAsync(verification, cancellationToken);
+        await _emailService.SendEmailVerificationAsync(email.Value, verification.Token, cancellationToken);
+
         return Result<UserResponse>.Success(new UserResponse(user.Id, user.Email.Value, user.EmailVerified, user.TwoFactorEnabled));
+    }
+
+    public async Task<Result<bool>> VerifyEmailAsync(string token, CancellationToken cancellationToken = default)
+    {
+        var verification = await _emailVerificationRepository.GetByTokenAsync(token, cancellationToken);
+
+        if (verification is null || verification.IsExpired() || verification.Used)
+            return Result<bool>.Failure("Ogiltig eller utgången verifieringslänk.");
+
+        var user = await _userRepository.GetByIdAsync(verification.UserId, cancellationToken);
+        if (user is null)
+            return Result<bool>.Failure("Användare hittades inte.");
+
+        if (user.EmailVerified)
+        {
+            verification.MarkUsed();
+            await _emailVerificationRepository.UpdateAsync(verification, cancellationToken);
+            return Result<bool>.Success(true);
+        }
+
+        user.VerifyEmail();
+        user.AddCredits(1);
+        await _userRepository.UpdateAsync(user, cancellationToken);
+
+        await _transactionRepository.AddAsync(
+            CreditTransaction.CreateTrial(user.Id), cancellationToken);
+
+        verification.MarkUsed();
+        await _emailVerificationRepository.UpdateAsync(verification, cancellationToken);
+
+        await _securityEventLogger.LogAsync(user.Id, "EmailVerified", null, cancellationToken);
+
+        return Result<bool>.Success(true);
     }
 
     public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
@@ -63,7 +107,7 @@ public class AuthService
             if (user is not null)
                 await _securityEventLogger.LogAsync(user.Id, "LoginFailed", null, cancellationToken);
 
-            return Result<AuthResponse>.Failure("Invalid email or password.");
+            return Result<AuthResponse>.Failure("Felaktig e-postadress eller lösenord.");
         }
 
         var accessToken = _tokenService.GenerateAccessToken(user);
@@ -89,11 +133,11 @@ public class AuthService
         var existing = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
 
         if (existing is null || existing.Revoked || existing.ExpiresAt < DateTime.UtcNow)
-            return Result<AuthResponse>.Failure("Invalid or expired refresh token.");
+            return Result<AuthResponse>.Failure("Ogiltig eller utgången session. Logga in igen.");
 
         var user = await _userRepository.GetByIdAsync(existing.UserId, cancellationToken);
         if (user is null)
-            return Result<AuthResponse>.Failure("User not found.");
+            return Result<AuthResponse>.Failure("Användare hittades inte.");
 
         // Rotate: revoke old, issue new
         await _refreshTokenRepository.RevokeAsync(existing.Token, cancellationToken);
@@ -179,13 +223,13 @@ public class AuthService
     {
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<bool>.Failure("User not found.");
+            return Result<bool>.Failure("Användare hittades inte.");
 
         if (!_passwordHasher.Verify(request.CurrentPassword, user.PasswordHash))
-            return Result<bool>.Failure("Current password is incorrect.");
+            return Result<bool>.Failure("Nuvarande lösenord är felaktigt.");
 
         if (request.NewPassword.Length < 8)
-            return Result<bool>.Failure("New password must be at least 8 characters.");
+            return Result<bool>.Failure("Lösenordet måste vara minst 8 tecken.");
 
         user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
         await _userRepository.UpdateAsync(user, cancellationToken);

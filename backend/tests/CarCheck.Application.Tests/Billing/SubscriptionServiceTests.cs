@@ -14,6 +14,7 @@ public class SubscriptionServiceTests
     private readonly IUserRepository _userRepository;
     private readonly IBillingProvider _billingProvider;
     private readonly ISecurityEventLogger _securityEventLogger;
+    private readonly ICreditTransactionRepository _transactionRepository;
     private readonly SubscriptionService _sut;
 
     public SubscriptionServiceTests()
@@ -22,12 +23,14 @@ public class SubscriptionServiceTests
         _userRepository = Substitute.For<IUserRepository>();
         _billingProvider = Substitute.For<IBillingProvider>();
         _securityEventLogger = Substitute.For<ISecurityEventLogger>();
+        _transactionRepository = Substitute.For<ICreditTransactionRepository>();
 
         _sut = new SubscriptionService(
             _subscriptionRepository,
             _userRepository,
             _billingProvider,
-            _securityEventLogger);
+            _securityEventLogger,
+            _transactionRepository);
     }
 
     // ===== Get Current Subscription =====

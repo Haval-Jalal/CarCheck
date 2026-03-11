@@ -17,5 +17,6 @@ export const queryKeys = {
   billing: {
     tiers: ['billing', 'tiers'] as const,
     subscription: ['billing', 'subscription'] as const,
+    transactions: ['billing', 'transactions'] as const,
   },
 }

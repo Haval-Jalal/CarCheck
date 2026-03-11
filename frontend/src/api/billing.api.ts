@@ -7,6 +7,7 @@ import type {
   CreditPackResponse,
   BuyCreditsRequest,
   CreditsBalanceResponse,
+  TransactionResponse,
 } from '@/types/billing.types'
 
 export const billingApi = {
@@ -30,4 +31,7 @@ export const billingApi = {
 
   cancelSubscription: () =>
     apiClient.post('/billing/cancel'),
+
+  getTransactions: () =>
+    apiClient.get<TransactionResponse[]>('/billing/transactions'),
 }

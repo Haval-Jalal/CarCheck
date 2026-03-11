@@ -47,7 +47,7 @@ public static class AuthEndpoints
 
             var result = await authService.LogoutAsync(userId.Value, request.RefreshToken);
             return result.IsSuccess
-                ? Results.Ok(new { message = "Logged out successfully." })
+                ? Results.Ok(new { message = "Du har loggats ut." })
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("Logout")
@@ -60,7 +60,7 @@ public static class AuthEndpoints
 
             var result = await authService.LogoutAllAsync(userId.Value);
             return result.IsSuccess
-                ? Results.Ok(new { message = "All sessions invalidated." })
+                ? Results.Ok(new { message = "Alla sessioner har avslutats." })
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("LogoutAll")
@@ -73,7 +73,7 @@ public static class AuthEndpoints
 
             var result = await authService.ChangePasswordAsync(userId.Value, request);
             return result.IsSuccess
-                ? Results.Ok(new { message = "Password changed successfully." })
+                ? Results.Ok(new { message = "Lösenordet har ändrats." })
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("ChangePassword")
@@ -95,6 +95,16 @@ public static class AuthEndpoints
                 : Results.BadRequest(new { error = result.Error });
         })
         .WithName("ResetPassword")
+        .AllowAnonymous();
+
+        group.MapGet("/verify-email", async (string token, AuthService authService) =>
+        {
+            var result = await authService.VerifyEmailAsync(token);
+            return result.IsSuccess
+                ? Results.Ok(new { message = "E-postadressen är verifierad. Du har fått 1 gratis sökning!" })
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .WithName("VerifyEmail")
         .AllowAnonymous();
     }
 

@@ -51,10 +51,10 @@ public class SearchHistoryService
     {
         var entry = await _searchHistoryRepository.GetByIdAsync(entryId, cancellationToken);
         if (entry is null)
-            return Result<bool>.Failure("Entry not found.");
+            return Result<bool>.Failure("Historikposten hittades inte.");
 
         if (entry.UserId != userId)
-            return Result<bool>.Failure("Entry not found.");
+            return Result<bool>.Failure("Historikposten hittades inte.");
 
         await _searchHistoryRepository.DeleteByIdAsync(entryId, cancellationToken);
         return Result<bool>.Success(true);

@@ -41,6 +41,8 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IPasswordResetRepository, PasswordResetRepository>();
+        services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
+        services.AddScoped<ICreditTransactionRepository, CreditTransactionRepository>();
         services.AddScoped<ISecurityEventLogger, SecurityEventLogger>();
         services.AddScoped<AuthService>();
 

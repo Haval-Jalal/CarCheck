@@ -66,7 +66,7 @@ public class CarSearchService
         // Fetch from external provider
         var externalData = await _carDataProvider.FetchByRegistrationAsync(regNum, cancellationToken);
         if (externalData is null)
-            return Result<CarSearchResponse>.Failure("No vehicle found with this registration number.");
+            return Result<CarSearchResponse>.Failure("Inget fordon hittades med det registreringsnumret.");
 
         // Persist car
         var car = Car.Create(
@@ -101,7 +101,7 @@ public class CarSearchService
     {
         var car = await _carRepository.GetByIdAsync(carId, cancellationToken);
         if (car is null)
-            return Result<CarSearchResponse>.Failure("Car not found.");
+            return Result<CarSearchResponse>.Failure("Bilen hittades inte.");
 
         var externalData = await _carDataProvider.FetchByRegistrationAsync(car.RegistrationNumber.Value, cancellationToken);
         return Result<CarSearchResponse>.Success(MapToResponse(car, externalData));
@@ -119,11 +119,11 @@ public class CarSearchService
         // Fetch car from DB
         var car2 = await _carRepository.GetByIdAsync(carId, cancellationToken);
         if (car2 is null)
-            return Result<CarAnalysisResponse>.Failure("Car not found.");
+            return Result<CarAnalysisResponse>.Failure("Bilen hittades inte.");
 
         var externalData = await _carDataProvider.FetchByRegistrationAsync(car2.RegistrationNumber.Value, cancellationToken);
         if (externalData is null)
-            return Result<CarAnalysisResponse>.Failure("Unable to fetch vehicle data for analysis.");
+            return Result<CarAnalysisResponse>.Failure("Kunde inte hämta fordonsdata för analys.");
 
         // Run analysis
         var (score, recommendation, breakdown) = _analysisEngine.Analyze(externalData);

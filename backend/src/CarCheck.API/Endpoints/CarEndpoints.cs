@@ -20,7 +20,7 @@ public static class CarEndpoints
             {
                 var captchaValid = await captchaService.ValidateAsync(request.CaptchaToken);
                 if (!captchaValid)
-                    return Results.BadRequest(new { error = "CAPTCHA validation failed." });
+                    return Results.BadRequest(new { error = "CAPTCHA-validering misslyckades." });
             }
 
             var result = await carSearchService.SearchByRegistrationAsync(userId.Value, request);

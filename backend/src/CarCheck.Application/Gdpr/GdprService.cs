@@ -35,7 +35,7 @@ public class GdprService
     {
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<UserDataExport>.Failure("User not found.");
+            return Result<UserDataExport>.Failure("Användare hittades inte.");
 
         var searchHistory = await _searchHistoryRepository.GetByUserIdAsync(userId, 1, 10000, cancellationToken);
         var favorites = await _favoriteRepository.GetByUserIdAsync(userId, 1, 10000, cancellationToken);
@@ -58,7 +58,7 @@ public class GdprService
     {
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<DataDeletionResponse>.Failure("User not found.");
+            return Result<DataDeletionResponse>.Failure("Användare hittades inte.");
 
         // Revoke all sessions
         await _refreshTokenRepository.RevokeAllForUserAsync(userId, cancellationToken);
@@ -71,7 +71,7 @@ public class GdprService
 
         return Result<DataDeletionResponse>.Success(new DataDeletionResponse(
             true,
-            "Your account and all associated data have been permanently deleted.",
+            "Ditt konto och all tillhörande data har raderats permanent.",
             DateTime.UtcNow));
     }
 }

@@ -28,7 +28,7 @@ public static class HistoryEndpoints
 
             var result = await historyService.DeleteEntryAsync(userId.Value, id);
             return result.IsSuccess
-                ? Results.Ok(new { message = "Entry deleted." })
+                ? Results.Ok(new { message = "Historikposten har tagits bort." })
                 : Results.NotFound(new { error = result.Error });
         })
         .WithName("DeleteHistoryEntry");
@@ -39,7 +39,7 @@ public static class HistoryEndpoints
             if (userId is null) return Results.Unauthorized();
 
             var result = await historyService.ClearHistoryAsync(userId.Value);
-            return Results.Ok(new { message = "History cleared." });
+            return Results.Ok(new { message = "Historiken har rensats." });
         })
         .WithName("ClearHistory");
     }

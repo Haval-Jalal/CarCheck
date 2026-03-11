@@ -9,6 +9,7 @@ const LoginPage = lazy(() => import('@/features/auth/login-page').then(m => ({ d
 const RegisterPage = lazy(() => import('@/features/auth/register-page').then(m => ({ default: m.RegisterPage })))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/forgot-password-page').then(m => ({ default: m.ForgotPasswordPage })))
 const ResetPasswordPage = lazy(() => import('@/features/auth/reset-password-page').then(m => ({ default: m.ResetPasswordPage })))
+const VerifyEmailPage = lazy(() => import('@/features/auth/verify-email-page').then(m => ({ default: m.VerifyEmailPage })))
 const PrivacyPage = lazy(() => import('@/features/legal/privacy-page').then(m => ({ default: m.PrivacyPage })))
 const TermsPage = lazy(() => import('@/features/legal/terms-page').then(m => ({ default: m.TermsPage })))
 const DashboardPage = lazy(() => import('@/features/dashboard/dashboard-page').then(m => ({ default: m.DashboardPage })))
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { path: '/register', element: <Lazy><RegisterPage /></Lazy> },
       { path: '/forgot-password', element: <Lazy><ForgotPasswordPage /></Lazy> },
       { path: '/reset-password', element: <Lazy><ResetPasswordPage /></Lazy> },
+      { path: '/verify-email', element: <Lazy><VerifyEmailPage /></Lazy> },
       { path: '/privacy', element: <Lazy><PrivacyPage /></Lazy> },
       { path: '/terms', element: <Lazy><TermsPage /></Lazy> },
       { path: '/share/:carId', element: <Lazy><SharePage /></Lazy> },

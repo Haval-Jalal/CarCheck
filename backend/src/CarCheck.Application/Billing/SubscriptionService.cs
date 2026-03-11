@@ -13,17 +13,20 @@ public class SubscriptionService
     private readonly IUserRepository _userRepository;
     private readonly IBillingProvider _billingProvider;
     private readonly ISecurityEventLogger _securityEventLogger;
+    private readonly ICreditTransactionRepository _transactionRepository;
 
     public SubscriptionService(
         ISubscriptionRepository subscriptionRepository,
         IUserRepository userRepository,
         IBillingProvider billingProvider,
-        ISecurityEventLogger securityEventLogger)
+        ISecurityEventLogger securityEventLogger,
+        ICreditTransactionRepository transactionRepository)
     {
         _subscriptionRepository = subscriptionRepository;
         _userRepository = userRepository;
         _billingProvider = billingProvider;
         _securityEventLogger = securityEventLogger;
+        _transactionRepository = transactionRepository;
     }
 
     public async Task<Result<SubscriptionResponse>> GetCurrentSubscriptionAsync(
@@ -64,11 +67,11 @@ public class SubscriptionService
         Guid userId, SubscribeRequest request, CancellationToken cancellationToken = default)
     {
         if (request.Tier == SubscriptionTier.Free)
-            return Result<CheckoutResponse>.Failure("Cannot purchase a free subscription.");
+            return Result<CheckoutResponse>.Failure("Det går inte att köpa ett gratisabonnemang.");
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<CheckoutResponse>.Failure("User not found.");
+            return Result<CheckoutResponse>.Failure("Användare hittades inte.");
 
         var checkout = await _billingProvider.CreateCheckoutSessionAsync(userId, request.Tier, cancellationToken);
 
@@ -82,11 +85,11 @@ public class SubscriptionService
     {
         var validPacks = TierConfiguration.CreditPacks.Select(p => p.Credits).ToHashSet();
         if (!validPacks.Contains(request.PackSize))
-            return Result<CreditsBalanceResponse>.Failure($"Invalid pack size. Choose from: {string.Join(", ", validPacks)}.");
+            return Result<CreditsBalanceResponse>.Failure($"Ogiltigt antal sökningar. Välj bland: {string.Join(", ", validPacks)}.");
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<CreditsBalanceResponse>.Failure("User not found.");
+            return Result<CreditsBalanceResponse>.Failure("Användare hittades inte.");
 
         user.AddCredits(request.PackSize);
         await _userRepository.UpdateAsync(user, cancellationToken);
@@ -104,11 +107,11 @@ public class SubscriptionService
     {
         var pack = TierConfiguration.CreditPacks.FirstOrDefault(p => p.Credits == request.PackSize);
         if (pack is null)
-            return Result<CheckoutResponse>.Failure($"Invalid pack size. Choose from: {string.Join(", ", TierConfiguration.CreditPacks.Select(p => p.Credits))}.");
+            return Result<CheckoutResponse>.Failure($"Ogiltigt antal sökningar. Välj bland: {string.Join(", ", TierConfiguration.CreditPacks.Select(p => p.Credits))}.");
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<CheckoutResponse>.Failure("User not found.");
+            return Result<CheckoutResponse>.Failure("Användare hittades inte.");
 
         var checkout = await _billingProvider.CreateCreditsCheckoutSessionAsync(userId, pack.Credits, pack.PriceSek, cancellationToken);
 
@@ -118,14 +121,26 @@ public class SubscriptionService
     }
 
     public async Task<Result<bool>> GrantCreditsAsync(
-        Guid userId, int credits, CancellationToken cancellationToken = default)
+        Guid userId, int credits, CancellationToken cancellationToken = default,
+        string? externalPaymentId = null)
     {
+        // Idempotency: skip if this payment was already processed
+        if (externalPaymentId is not null &&
+            await _transactionRepository.ExistsByExternalPaymentIdAsync(externalPaymentId, cancellationToken))
+            return Result<bool>.Success(true);
+
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
-            return Result<bool>.Failure("User not found.");
+            return Result<bool>.Failure("Användare hittades inte.");
 
         user.AddCredits(credits);
         await _userRepository.UpdateAsync(user, cancellationToken);
+
+        var pack = TierConfiguration.CreditPacks.FirstOrDefault(p => p.Credits == credits);
+        var amountOre = pack is not null ? (int)(pack.PriceSek * 100) : 0;
+        await _transactionRepository.AddAsync(
+            CreditTransaction.CreateCredits(userId, credits, amountOre, externalPaymentId),
+            cancellationToken);
 
         await _securityEventLogger.LogAsync(userId, "CreditsGranted", null, cancellationToken);
 
@@ -133,8 +148,21 @@ public class SubscriptionService
     }
 
     public async Task<Result<SubscriptionResponse>> ActivateSubscriptionAsync(
-        Guid userId, SubscriptionTier tier, string externalSubscriptionId, CancellationToken cancellationToken = default)
+        Guid userId, SubscriptionTier tier, string externalSubscriptionId, CancellationToken cancellationToken = default,
+        string? externalPaymentId = null)
     {
+        // Idempotency: skip if this payment was already processed
+        if (externalPaymentId is not null &&
+            await _transactionRepository.ExistsByExternalPaymentIdAsync(externalPaymentId, cancellationToken))
+        {
+            var existing2 = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
+            var user2 = await _userRepository.GetByIdAsync(userId, cancellationToken);
+            var limits2 = TierConfiguration.GetLimits(tier);
+            return Result<SubscriptionResponse>.Success(new SubscriptionResponse(
+                existing2?.Id ?? Guid.Empty, tier, limits2.Name, true,
+                existing2?.StartDate ?? DateTime.UtcNow, null, MapLimits(limits2), user2?.Credits ?? 0));
+        }
+
         var existing = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
         if (existing is not null)
         {
@@ -144,6 +172,10 @@ public class SubscriptionService
 
         var subscription = Subscription.Create(userId, tier, externalSubscriptionId);
         await _subscriptionRepository.AddAsync(subscription, cancellationToken);
+
+        await _transactionRepository.AddAsync(
+            CreditTransaction.CreateSubscription(userId, 49900, externalPaymentId),
+            cancellationToken);
 
         await _securityEventLogger.LogAsync(userId, "SubscriptionActivated", null, cancellationToken);
 
@@ -165,7 +197,7 @@ public class SubscriptionService
     {
         var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
         if (subscription is null)
-            return Result<bool>.Failure("No active subscription found.");
+            return Result<bool>.Failure("Inget aktivt abonnemang hittades.");
 
         if (subscription.ExternalSubscriptionId is not null)
             await _billingProvider.CancelSubscriptionAsync(subscription.ExternalSubscriptionId, cancellationToken);
@@ -203,6 +235,23 @@ public class SubscriptionService
                     limits.PricePerMonthSek);
             })
             .ToList();
+    }
+
+    public async Task<Result<IReadOnlyList<TransactionResponse>>> GetTransactionsAsync(
+        Guid userId, CancellationToken cancellationToken = default)
+    {
+        var transactions = await _transactionRepository.GetByUserIdAsync(userId, cancellationToken);
+        var result = transactions
+            .Select(t => new TransactionResponse(
+                t.Id,
+                t.Type,
+                t.Credits,
+                t.AmountOre / 100m,
+                t.Description,
+                t.CreatedAt))
+            .ToList();
+
+        return Result<IReadOnlyList<TransactionResponse>>.Success(result);
     }
 
     private static TierLimitsResponse MapLimits(TierLimits limits) =>

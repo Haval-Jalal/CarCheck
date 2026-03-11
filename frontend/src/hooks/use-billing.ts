@@ -47,6 +47,13 @@ export function useCreditsCheckout() {
   })
 }
 
+export function useTransactions() {
+  return useQuery({
+    queryKey: queryKeys.billing.transactions,
+    queryFn: () => billingApi.getTransactions().then((r) => r.data),
+  })
+}
+
 export function useCancelSubscription() {
   const queryClient = useQueryClient()
   return useMutation({

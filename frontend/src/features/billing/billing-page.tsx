@@ -3,13 +3,21 @@ import { useSearchParams } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check, Zap, Infinity, CreditCard, Calendar } from 'lucide-react'
-import { useSubscription, useCreateCheckout, useCancelSubscription, useCreditsCheckout, useCreditPackages } from '@/hooks/use-billing'
+import { Check, Zap, Infinity, CreditCard, Calendar, Receipt } from 'lucide-react'
+import {
+  useSubscription,
+  useCreateCheckout,
+  useCancelSubscription,
+  useCreditsCheckout,
+  useCreditPackages,
+  useTransactions,
+} from '@/hooks/use-billing'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { ErrorDisplay } from '@/components/common/error-display'
 import { formatDate } from '@/lib/format'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import type { TransactionResponse } from '@/types/billing.types'
 
 const MONTHLY_TIER = 1 // SubscriptionTier.Pro = monthly unlimited
 
@@ -20,6 +28,46 @@ function formatSek(amount: number) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
+}
+
+function TransactionBadge({ type }: { type: TransactionResponse['type'] }) {
+  if (type === 'subscription') return <Badge className="bg-green-600 hover:bg-green-600">Månadsplan</Badge>
+  if (type === 'trial') return <Badge variant="secondary">Provssökning</Badge>
+  return <Badge className="bg-blue-600 hover:bg-blue-600">Krediter</Badge>
+}
+
+function PurchaseHistory() {
+  const { data: transactions, isLoading } = useTransactions()
+
+  if (isLoading) return null
+  if (!transactions?.length) return null
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Receipt className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold">Köphistorik</h2>
+      </div>
+      <Card>
+        <CardContent className="pt-4 divide-y divide-border">
+          {transactions.map((t) => (
+            <div key={t.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium">{t.description}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(t.createdAt)}</p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <TransactionBadge type={t.type} />
+                <span className="text-sm font-semibold text-right min-w-[60px]">
+                  {t.amountSek > 0 ? formatSek(t.amountSek) : 'Gratis'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
 
 export function BillingPage() {
@@ -100,11 +148,6 @@ export function BillingPage() {
                 <p className="text-4xl font-black text-foreground mt-1">
                   {hasMonthly ? <Infinity className="h-8 w-8 text-blue-500 inline" /> : credits}
                 </p>
-                {!hasMonthly && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    + {3} gratis per dag
-                  </p>
-                )}
               </div>
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600/10">
                 <Zap className="h-7 w-7 text-blue-500" />
@@ -245,6 +288,9 @@ export function BillingPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Purchase history */}
+      <PurchaseHistory />
     </div>
   )
 }

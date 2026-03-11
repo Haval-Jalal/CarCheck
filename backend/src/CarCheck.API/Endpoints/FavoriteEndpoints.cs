@@ -51,7 +51,7 @@ public static class FavoriteEndpoints
 
             var result = await favoriteService.RemoveFavoriteAsync(userId.Value, carId);
             return result.IsSuccess
-                ? Results.Ok(new { message = "Favorite removed." })
+                ? Results.Ok(new { message = "Favoriten har tagits bort." })
                 : Results.NotFound(new { error = result.Error });
         })
         .WithName("RemoveFavorite");
