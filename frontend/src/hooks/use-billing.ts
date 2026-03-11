@@ -41,6 +41,12 @@ export function useBuyCredits() {
   })
 }
 
+export function useCreditsCheckout() {
+  return useMutation({
+    mutationFn: (packSize: number) => billingApi.creditsCheckout({ packSize }).then((r) => r.data),
+  })
+}
+
 export function useCancelSubscription() {
   const queryClient = useQueryClient()
   return useMutation({
