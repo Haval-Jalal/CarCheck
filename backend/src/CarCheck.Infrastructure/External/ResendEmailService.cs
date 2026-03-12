@@ -23,7 +23,7 @@ public class ResendEmailService : IEmailService
         var resetUrl = $"{_frontendBaseUrl}/reset-password?token={resetToken}";
         var payload = new
         {
-            from = "CarCheck <onboarding@resend.dev>",
+            from = "CarCheck <noreply@carcheck.se>",
             to = new[] { toEmail },
             subject = "Återställ ditt lösenord",
             html = $"""
@@ -58,7 +58,7 @@ public class ResendEmailService : IEmailService
         var verifyUrl = $"{_frontendBaseUrl}/verify-email?token={verificationToken}";
         var payload = new
         {
-            from = "CarCheck <onboarding@resend.dev>",
+            from = "CarCheck <noreply@carcheck.se>",
             to = new[] { toEmail },
             subject = "Verifiera din e-postadress",
             html = $"""
