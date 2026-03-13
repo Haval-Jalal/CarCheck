@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Car, Lock, Zap, Trophy, ChevronRight, Search, Mail } from 'lucide-react'
@@ -19,7 +19,6 @@ const BENEFITS = [
 ]
 
 export function RegisterPage() {
-  const navigate = useNavigate()
   const location = useLocation()
   const { register: registerUser } = useAuth()
   const [error, setError] = useState<string | null>(null)

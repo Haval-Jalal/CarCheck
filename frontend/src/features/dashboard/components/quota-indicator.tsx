@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useQuotaStore } from '@/stores/quota.store'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Infinity } from 'lucide-react'
+import { Infinity as InfinityIcon } from 'lucide-react'
 
 export function QuotaIndicator() {
   const quota = useQuotaStore((s) => s.quota)
@@ -11,13 +11,13 @@ export function QuotaIndicator() {
 
   const isUnlimited = quota.limit === 'unlimited'
   const isCredits = quota.limit === 'credits'
-  const remaining = quota.remaining === 'unlimited' ? Infinity : (quota.remaining as number)
+  const remaining = quota.remaining === 'unlimited' ? Number.POSITIVE_INFINITY : (quota.remaining as number)
 
   if (isUnlimited) {
     return (
       <div className="flex items-center justify-between text-sm">
         <span className="flex items-center gap-1.5 text-muted-foreground">
-          <Infinity className="h-3.5 w-3.5" />
+          <InfinityIcon className="h-3.5 w-3.5" />
           Obegränsade sökningar
         </span>
         <Badge variant="secondary">Månatlig</Badge>
