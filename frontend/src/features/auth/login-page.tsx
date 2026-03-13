@@ -2,15 +2,15 @@ import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Car, Shield, BarChart3, Lightbulb, ChevronRight, Search } from 'lucide-react'
+import { Car, Shield, BarChart3, Lightbulb, ChevronRight, Search, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/hooks/use-auth'
+import { authApi } from '@/api/auth.api'
 import { loginSchema, type LoginFormData } from '@/lib/validators'
 import type { AxiosError } from 'axios'
-import type { ApiError } from '@/types/api.types'
 
 const FEATURES = [
   { icon: <Shield className="h-4 w-4 text-green-400" />, text: 'Se vad säljaren inte berättar — skulder, köpspärr och återkallelser' },
@@ -24,6 +24,9 @@ export function LoginPage() {
   const { login } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
+  const [resendSent, setResendSent] = useState(false)
 
   const fromState = (location.state as { from?: { pathname: string } })?.from?.pathname
   const fromQuery = new URLSearchParams(location.search).get('from')
@@ -39,7 +42,8 @@ export function LoginPage() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    setError(null)
+    setUnverifiedEmail(null)
+    setResendSent(false)
     setIsSubmitting(true)
     try {
       await login(data)
@@ -49,10 +53,26 @@ export function LoginPage() {
         navigate(from, { replace: true })
       }
     } catch (err) {
-      const axiosError = err as AxiosError<ApiError>
-      setError(axiosError.response?.data?.error || 'Inloggningen misslyckades. Försök igen.')
+      const axiosError = err as AxiosError<{ error?: string; code?: string }>
+      const code = axiosError.response?.data?.code
+      if (code === 'email_not_verified') {
+        setUnverifiedEmail(data.email)
+        setError(null)
+      } else {
+        setError(axiosError.response?.data?.error || 'Inloggningen misslyckades. Försök igen.')
+      }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return
+    try {
+      await authApi.resendVerification(unverifiedEmail)
+      setResendSent(true)
+    } catch {
+      // fail silently — backend always returns 200
     }
   }
 
@@ -146,6 +166,24 @@ export function LoginPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {unverifiedEmail && (
+              <Alert>
+                <AlertDescription className="space-y-2">
+                  <p>Du behöver verifiera din e-postadress innan du kan logga in. Kolla din inkorg.</p>
+                  {resendSent ? (
+                    <p className="text-sm font-medium text-green-600">En ny verifieringslänk har skickats!</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      className="text-sm font-medium underline hover:no-underline"
+                    >
+                      Skicka ny verifieringslänk
+                    </button>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>
@@ -172,12 +210,24 @@ export function LoginPage() {
                   Glömt lösenord?
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                {...register('password')}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  className="pr-10"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Dölj lösenord' : 'Visa lösenord'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}

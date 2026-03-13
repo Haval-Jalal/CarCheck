@@ -9,6 +9,7 @@ export function useCarSearch() {
     mutationFn: (data: CarSearchRequest) => carsApi.search(data).then((r) => r.data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.history.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription })
     },
   })
 }

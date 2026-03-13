@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight, Download } from 'lucide-react'
+import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight, Download, Printer } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -149,7 +149,7 @@ export function InspectionChecklist({ breakdown, details }: {
 }) {
   const groups = buildChecklist(breakdown, details)
   const allIds = groups.flatMap(g => g.items.map(i => i.id))
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(true)
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [copied, setCopied] = useState(false)
@@ -272,6 +272,16 @@ export function InspectionChecklist({ breakdown, details }: {
   const totalCount = allIds.length
 
   return (
+    <>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #checklist-print-root,
+          #checklist-print-root * { visibility: visible; }
+          #checklist-print-root { position: absolute; top: 0; left: 0; width: 100%; padding: 24px; }
+        }
+      `}</style>
+      <div id="checklist-print-root">
     <Card>
       <CardHeader
         className="cursor-pointer select-none"
@@ -294,6 +304,15 @@ export function InspectionChecklist({ breakdown, details }: {
                 >
                   <Download className="h-3.5 w-3.5" />
                   <span className="ml-1">Ladda ner</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={e => { e.stopPropagation(); window.print() }}
+                  className="h-7 text-xs"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  <span className="ml-1">Skriv ut</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -374,5 +393,7 @@ export function InspectionChecklist({ breakdown, details }: {
         </p>
       </CardContent>}
     </Card>
+    </div>
+    </>
   )
 }

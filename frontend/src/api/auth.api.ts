@@ -37,4 +37,7 @@ export const authApi = {
 
   verifyEmail: (token: string) =>
     apiClient.get('/auth/verify-email', { params: { token } }),
+
+  resendVerification: (email: string) =>
+    apiClient.post('/auth/resend-verification', { email }),
 }

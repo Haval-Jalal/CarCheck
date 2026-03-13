@@ -12,6 +12,8 @@ public record PasswordResetRequest(string Email);
 
 public record PasswordResetConfirmRequest(string Token, string NewPassword);
 
+public record ResendVerificationRequest(string Email);
+
 public record AuthResponse(string AccessToken, string RefreshToken, DateTime ExpiresAt);
 
 public record UserResponse(Guid Id, string Email, bool EmailVerified, bool TwoFactorEnabled);
