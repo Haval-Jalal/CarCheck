@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { ClipboardCheck, Copy, Check, ChevronDown, ChevronRight, Download, Printer } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -171,6 +172,7 @@ export function InspectionChecklist({ breakdown, details }: {
   }
 
   const handleDownload = useCallback(async () => {
+    try {
     const { jsPDF } = await import('jspdf')
     const doc = new jsPDF()
     const today = new Date().toLocaleDateString('sv-SE')
@@ -254,6 +256,9 @@ export function InspectionChecklist({ breakdown, details }: {
     )
 
     doc.save('besiktningschecklista.pdf')
+    } catch {
+      toast.error('Kunde inte generera PDF. Försök igen.')
+    }
   }, [groups, checked])
 
   const handleCopy = useCallback(() => {

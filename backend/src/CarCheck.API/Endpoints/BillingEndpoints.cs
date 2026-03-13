@@ -2,6 +2,7 @@ using System.Security.Claims;
 using CarCheck.Application.Billing.DTOs;
 using CarCheck.Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Stripe;
 using AppSubscriptionService = CarCheck.Application.Billing.SubscriptionService;
 
@@ -107,8 +108,9 @@ public static class BillingEndpoints
         .WithName("BuyCreditsCheckout")
         .RequireAuthorization();
 
-        group.MapPost("/webhook", async (HttpRequest request, AppSubscriptionService subscriptionService, IConfiguration config) =>
+        group.MapPost("/webhook", async (HttpRequest request, AppSubscriptionService subscriptionService, IConfiguration config, ILoggerFactory loggerFactory) =>
         {
+            var logger = loggerFactory.CreateLogger("BillingWebhook");
             string json;
             using (var reader = new StreamReader(request.Body))
                 json = await reader.ReadToEndAsync();
@@ -127,8 +129,9 @@ public static class BillingEndpoints
                     stripeEvent = EventUtility.ParseEvent(json);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogWarning(ex, "Stripe webhook signature validation failed");
                 return Results.BadRequest();
             }
 
