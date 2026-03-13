@@ -3,12 +3,11 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy solution and project files first (for layer caching)
-COPY CarCheck.sln .
 COPY src/CarCheck.Domain/CarCheck.Domain.csproj src/CarCheck.Domain/
 COPY src/CarCheck.Application/CarCheck.Application.csproj src/CarCheck.Application/
 COPY src/CarCheck.Infrastructure/CarCheck.Infrastructure.csproj src/CarCheck.Infrastructure/
 COPY src/CarCheck.API/CarCheck.API.csproj src/CarCheck.API/
-RUN dotnet restore CarCheck.sln --runtime linux-x64
+RUN dotnet restore src/CarCheck.API/CarCheck.API.csproj --runtime linux-x64
 
 # Copy everything and build
 COPY . .
