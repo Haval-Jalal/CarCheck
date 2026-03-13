@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Check, Zap, Infinity, CreditCard, Calendar, Receipt } from 'lucide-react'
 import {
   useSubscription,
@@ -77,6 +78,7 @@ export function BillingPage() {
   const checkoutMutation = useCreateCheckout()
   const creditsCheckoutMutation = useCreditsCheckout()
   const cancelMutation = useCancelSubscription()
+  const [cancelOpen, setCancelOpen] = useState(false)
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -124,9 +126,15 @@ export function BillingPage() {
   }
 
   const handleCancel = () => {
-    if (!confirm('Är du säker på att du vill avbryta din månadsplan? Dina köpta krediter påverkas inte.')) return
     cancelMutation.mutate(undefined, {
-      onSuccess: () => toast.success('Månadsplanen avbruten'),
+      onSuccess: () => {
+        setCancelOpen(false)
+        toast.success('Månadsplanen avbruten')
+      },
+      onError: () => {
+        setCancelOpen(false)
+        toast.error('Kunde inte avbryta månadsplanen. Försök igen.')
+      },
     })
   }
 
@@ -172,8 +180,7 @@ export function BillingPage() {
                 )}
                 {hasMonthly && (
                   <button
-                    onClick={handleCancel}
-                    disabled={cancelMutation.isPending}
+                    onClick={() => setCancelOpen(true)}
                     className="text-xs text-red-500 hover:underline mt-2"
                   >
                     Avbryt plan
@@ -291,6 +298,30 @@ export function BillingPage() {
 
       {/* Purchase history */}
       <PurchaseHistory />
+
+      {/* Cancel confirmation dialog */}
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Avbryt månadsplan?</DialogTitle>
+            <DialogDescription>
+              Din plan avslutas omedelbart. Dina köpta sökningar (krediter) påverkas inte.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+              Behåll planen
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancel}
+              disabled={cancelMutation.isPending}
+            >
+              {cancelMutation.isPending ? 'Avslutar...' : 'Ja, avbryt planen'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
