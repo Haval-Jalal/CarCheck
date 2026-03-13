@@ -14,19 +14,22 @@ public class SubscriptionService
     private readonly IBillingProvider _billingProvider;
     private readonly ISecurityEventLogger _securityEventLogger;
     private readonly ICreditTransactionRepository _transactionRepository;
+    private readonly IEmailService _emailService;
 
     public SubscriptionService(
         ISubscriptionRepository subscriptionRepository,
         IUserRepository userRepository,
         IBillingProvider billingProvider,
         ISecurityEventLogger securityEventLogger,
-        ICreditTransactionRepository transactionRepository)
+        ICreditTransactionRepository transactionRepository,
+        IEmailService emailService)
     {
         _subscriptionRepository = subscriptionRepository;
         _userRepository = userRepository;
         _billingProvider = billingProvider;
         _securityEventLogger = securityEventLogger;
         _transactionRepository = transactionRepository;
+        _emailService = emailService;
     }
 
     public async Task<Result<SubscriptionResponse>> GetCurrentSubscriptionAsync(
@@ -144,6 +147,17 @@ public class SubscriptionService
 
         await _securityEventLogger.LogAsync(userId, "CreditsGranted", null, cancellationToken);
 
+        try
+        {
+            await _emailService.SendCreditsPurchaseConfirmationAsync(
+                user.Email.Value, credits, amountOre / 100m, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Non-fatal: log but don't fail the purchase
+            _ = ex;
+        }
+
         return Result<bool>.Success(true);
     }
 
@@ -180,6 +194,13 @@ public class SubscriptionService
         await _securityEventLogger.LogAsync(userId, "SubscriptionActivated", null, cancellationToken);
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+
+        if (user is not null)
+        {
+            try { await _emailService.SendSubscriptionConfirmationAsync(user.Email.Value, cancellationToken); }
+            catch (Exception ex) { _ = ex; }
+        }
+
         var limits = TierConfiguration.GetLimits(tier);
         return Result<SubscriptionResponse>.Success(new SubscriptionResponse(
             subscription.Id,

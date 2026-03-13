@@ -110,6 +110,10 @@ public class AuthService
             return Result<AuthResponse>.Failure("Felaktig e-postadress eller lösenord.");
         }
 
+        if (!user.EmailVerified)
+            return Result<AuthResponse>.Failure("Du måste verifiera din e-postadress innan du loggar in. Kontrollera din inkorg.");
+
+
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
