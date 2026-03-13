@@ -6,6 +6,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api/auth.api'
 import { getTokens, setTokens, clearTokens } from '@/lib/token'
 import type { LoginRequest, RegisterRequest } from '@/types/auth.types'
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
     userEmail: null,
   })
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const tokens = getTokens()
@@ -81,9 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshToken: response.data.refreshToken,
       expiresAt: response.data.expiresAt,
     })
+    queryClient.clear()
     const email = getEmailFromToken(response.data.accessToken)
     dispatch({ type: 'LOGIN_SUCCESS', email: email || data.email })
-  }, [])
+  }, [queryClient])
 
   const register = useCallback(async (data: RegisterRequest) => {
     await authApi.register(data)
@@ -97,18 +100,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } finally {
       clearTokens()
+      queryClient.clear()
       dispatch({ type: 'LOGOUT' })
     }
-  }, [])
+  }, [queryClient])
 
   const logoutAll = useCallback(async () => {
     try {
       await authApi.logoutAll()
     } finally {
       clearTokens()
+      queryClient.clear()
       dispatch({ type: 'LOGOUT' })
     }
-  }, [])
+  }, [queryClient])
 
   return (
     <AuthContext.Provider value={{ ...state, login, register, logout, logoutAll }}>

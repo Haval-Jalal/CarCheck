@@ -66,7 +66,7 @@ public class DailyQuotaMiddleware
         if (user is not null && user.Credits > 0)
         {
             context.Response.Headers["X-DailyQuota-Limit"] = "credits";
-            context.Response.Headers["X-DailyQuota-Remaining"] = user.Credits.ToString();
+            context.Response.Headers["X-DailyQuota-Remaining"] = (user.Credits - 1).ToString();
             context.Response.Headers["X-Subscription-Tier"] = SubscriptionTier.Free.ToString();
 
             await _next(context);

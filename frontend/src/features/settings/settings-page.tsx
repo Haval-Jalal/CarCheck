@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -79,21 +79,42 @@ export function SettingsPage() {
 
   // Delete account
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteReason, setDeleteReason] = useState('')
+  const [deleteReasonOther, setDeleteReasonOther] = useState('')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const deletingRef = useRef(false)
 
   const handleDelete = async () => {
+    if (deletingRef.current) return
+    deletingRef.current = true
+    setDeleteError(null)
     setDeleting(true)
+    const reason = deleteReason === 'other'
+      ? (deleteReasonOther.trim() || 'other')
+      : deleteReason || undefined
     try {
-      await gdprApi.deleteAccount()
+      await gdprApi.deleteAccount({ password: deletePassword, reason })
       clearTokens()
       navigate('/')
       toast.success('Ditt konto har raderats')
-    } catch {
-      toast.error('Kunde inte radera konto')
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiError>
+      setDeleteError(axiosErr.response?.data?.error || 'Kunde inte radera konto')
     } finally {
+      deletingRef.current = false
       setDeleting(false)
-      setDeleteOpen(false)
+    }
+  }
+
+  const handleDeleteOpenChange = (open: boolean) => {
+    setDeleteOpen(open)
+    if (!open) {
+      setDeletePassword('')
+      setDeleteReason('')
+      setDeleteReasonOther('')
+      setDeleteError(null)
     }
   }
 
@@ -190,36 +211,76 @@ export function SettingsPage() {
       </Card>
 
       {/* Delete confirmation dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <Dialog open={deleteOpen} onOpenChange={handleDeleteOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Radera konto</DialogTitle>
             <DialogDescription>
-              Detta kan inte ångras. All data, historik, favoriter och prenumerationer
-              kommer att raderas permanent.
+              Detta kan inte ångras. Ditt konto, all historik, favoriter och kvarvarande krediter
+              raderas permanent.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="deleteConfirm">
-              Skriv <strong>RADERA</strong> för att bekräfta
-            </Label>
-            <Input
-              id="deleteConfirm"
-              value={deleteConfirm}
-              onChange={(e) => setDeleteConfirm(e.target.value)}
-              placeholder="RADERA"
-            />
+          <div className="space-y-4">
+            {deleteError && (
+              <Alert variant="destructive">
+                <AlertDescription>{deleteError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="deletePassword">Bekräfta med ditt lösenord</Label>
+              <Input
+                id="deletePassword"
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Ditt lösenord"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Anledning (valfritt)</Label>
+              <div className="space-y-2 text-sm">
+                {[
+                  { value: 'no_value', label: 'Hittade inte vad jag sökte' },
+                  { value: 'too_expensive', label: 'För dyrt' },
+                  { value: 'not_using', label: 'Använder inte tjänsten längre' },
+                  { value: 'other', label: 'Annan anledning' },
+                ].map((option) => (
+                  <div key={option.value}>
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="deleteReason"
+                        value={option.value}
+                        checked={deleteReason === option.value}
+                        onChange={(e) => setDeleteReason(e.target.value)}
+                        className="accent-destructive"
+                      />
+                      {option.label}
+                    </label>
+                    {option.value === 'other' && deleteReason === 'other' && (
+                      <textarea
+                        className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                        rows={2}
+                        placeholder="Berätta gärna mer..."
+                        value={deleteReasonOther}
+                        onChange={(e) => setDeleteReasonOther(e.target.value)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+            <Button variant="outline" onClick={() => handleDeleteOpenChange(false)}>
               Avbryt
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={deleteConfirm !== 'RADERA' || deleting}
+              disabled={!deletePassword || deleting}
             >
-              {deleting ? 'Raderar...' : 'Bekräfta radering'}
+              {deleting ? 'Raderar...' : 'Radera mitt konto'}
             </Button>
           </DialogFooter>
         </DialogContent>

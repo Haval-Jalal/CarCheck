@@ -4,6 +4,9 @@ import {
   Car, LogOut, Settings, History, Heart, CreditCard,
   Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2, Zap,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import type { AxiosError } from 'axios'
+import type { ApiError } from '@/types/api.types'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -43,6 +46,11 @@ function HeaderSearch() {
           setValue('')
           inputRef.current?.blur()
           navigate(`/car/${data.carId}/analysis`, { state: { car: data } })
+        },
+        onError: (err) => {
+          const msg = (err as AxiosError<ApiError>).response?.data?.error
+            ?? 'Sökningen misslyckades. Försök igen.'
+          toast.error(msg)
         },
       }
     )

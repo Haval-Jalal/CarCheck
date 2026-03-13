@@ -13,6 +13,8 @@ public class GdprService
     private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly IDeletionFeedbackRepository _deletionFeedbackRepository;
 
     public GdprService(
         IUserRepository userRepository,
@@ -20,7 +22,9 @@ public class GdprService
         IFavoriteRepository favoriteRepository,
         ISubscriptionRepository subscriptionRepository,
         IRefreshTokenRepository refreshTokenRepository,
-        ISecurityEventLogger securityEventLogger)
+        ISecurityEventLogger securityEventLogger,
+        IPasswordHasher passwordHasher,
+        IDeletionFeedbackRepository deletionFeedbackRepository)
     {
         _userRepository = userRepository;
         _searchHistoryRepository = searchHistoryRepository;
@@ -28,6 +32,8 @@ public class GdprService
         _subscriptionRepository = subscriptionRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _securityEventLogger = securityEventLogger;
+        _passwordHasher = passwordHasher;
+        _deletionFeedbackRepository = deletionFeedbackRepository;
     }
 
     public async Task<Result<UserDataExport>> ExportUserDataAsync(
@@ -54,14 +60,21 @@ public class GdprService
     }
 
     public async Task<Result<DataDeletionResponse>> RequestDataDeletionAsync(
-        Guid userId, CancellationToken cancellationToken = default)
+        Guid userId, string password, string? reason, CancellationToken cancellationToken = default)
     {
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
             return Result<DataDeletionResponse>.Failure("Användare hittades inte.");
 
+        if (!_passwordHasher.Verify(password, user.PasswordHash))
+            return Result<DataDeletionResponse>.Failure("Felaktigt lösenord.");
+
         // Revoke all sessions
         await _refreshTokenRepository.RevokeAllForUserAsync(userId, cancellationToken);
+
+        // Save feedback before deleting (no FK to users, survives cascade delete)
+        if (!string.IsNullOrWhiteSpace(reason))
+            await _deletionFeedbackRepository.AddAsync(reason, cancellationToken);
 
         // Log the deletion request
         await _securityEventLogger.LogAsync(userId, "DataDeletionRequested", null, cancellationToken);

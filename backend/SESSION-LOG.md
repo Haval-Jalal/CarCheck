@@ -390,8 +390,74 @@ Repot hade tidigare all backend-kod direkt i roten (`src/`, `db/`, `scripts/`, `
 
 ---
 
+---
+
+## Session 2026-03-10 — Resend e-post + e-postverifiering (PR #130, #131)
+
+### Vad gjordes
+- `IEmailService` interface + `ResendEmailService` (Infrastructure) — typed HttpClient mot Resend API
+- `SendPasswordResetAsync` + `SendEmailVerificationAsync` — skickar mejl från `noreply@carcheck.se`
+- `EmailVerification`-entitet (token-baserad, 24h giltighetstid) — samma mönster som PasswordReset
+- `IEmailVerificationRepository` + `EmailVerificationRepository`
+- `AuthService.RegisterAsync` — skickar verifieringsmejl istället för att direkt returnera success
+- `AuthService.VerifyEmailAsync` — verifierar token, sätter `EmailVerified = true`, ger 1 gratis kredit
+- `DailyQuotaMiddleware` — blockerar overifierade användare med 403 + `requiresEmailVerification: true`
+- Gratis 3/dag-kvot borttagen — ersatt med 1 gratis kredit vid e-postverifiering
+- Frontend: `/verify-email?token=` — loading/success/error-vy
+- Frontend: `register-page.tsx` — visar "kolla din inkorg"-vy efter registrering istället för redirect
+- DB-migrations: `email_verifications` + uppdaterad `credit_transactions`-tabell
+
+### Resend-domän
+- Domän `carcheck.se` köpt via Strato
+- DNS (DKIM, SPF, DMARC, MX) migrerat från Strato till Cloudflare (Strato stödde inte subdomain MX)
+- Avsändare: `CarCheck <noreply@carcheck.se>`
+
+---
+
+## Session 2026-03-13 — Köphistorik, kontoborttagning, bugfixar
+
+### Köphistorik
+- `CreditTransaction`-entitet (append-only ledger) med factory methods: `CreateCredits`, `CreateSubscription`, `CreateTrial`
+- `ICreditTransactionRepository` med `ExistsByExternalPaymentIdAsync` för Stripe-idempotens
+- `SubscriptionService` — dedup vid webhook (Stripe session ID), loggar transaktion
+- `GET /api/billing/transactions` endpoint
+- Frontend: `PurchaseHistory`-komponent i billing-sidan
+- DB-migration: `credit_transactions`-tabell
+
+### Kontoborttagning
+- `DELETE /api/gdpr/delete-account` tar nu emot `{ password, reason? }` i request body
+- `GdprService` verifierar lösenord mot DB-hash innan radering
+- `deletion_feedback`-tabell (ingen FK till users — överlever cascade delete) sparar valfri anledning
+- Frontend: dialog ersätter "skriv RADERA" med lösenordsfält + valfria radioknappar + fritext för "Annan anledning"
+
+### Bugfixar & förbättringar
+- **TanStack Query cache** rensas vid login/logout — förhindrar att gammal användares data visas för ny användare
+- **verify-email-page**: `useRef`-guard mot React StrictMode double-effect (token markerades som använd vid andra körning)
+- **DailyQuotaMiddleware**: `X-DailyQuota-Remaining` sätts till `Credits - 1` (post-deduction) så QuotaIndicator är korrekt
+- **HeaderSearch**: `onError`-callback med toast — användare ser nu felmeddelande vid sökning utan krediter
+- **Timezone**: `ALTER DATABASE postgres SET timezone TO 'Europe/Stockholm'`
+- **RLS**: `deletion_feedback`-tabellen har RLS aktiverat
+
+### DB-migrationer (körs manuellt i Supabase SQL Editor)
+```sql
+-- email_verifications
+CREATE TABLE IF NOT EXISTS email_verifications (id UUID PRIMARY KEY, user_id UUID NOT NULL, token VARCHAR(512) NOT NULL, expires_at TIMESTAMPTZ NOT NULL, used BOOLEAN NOT NULL DEFAULT false);
+-- credit_transactions
+CREATE TABLE IF NOT EXISTS credit_transactions (id UUID PRIMARY KEY, user_id UUID NOT NULL, type VARCHAR(32) NOT NULL, credits INTEGER, amount_ore INTEGER NOT NULL, description VARCHAR(256) NOT NULL, external_payment_id VARCHAR(256), created_at TIMESTAMPTZ NOT NULL);
+-- deletion_feedback
+CREATE TABLE IF NOT EXISTS deletion_feedback (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), reason TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+ALTER TABLE deletion_feedback ENABLE ROW LEVEL SECURITY;
+```
+
+### Nuvarande status
+- Stripe CLI behövs för lokal webhook-testning (krediter efter köp)
+- Launch blockers kvar: Transportstyrelsen API, Stripe produktion (kräver registrerat företag)
+
+---
+
 ## Kända problem & noteringar
 - Supabase använder IPv6 för direktanslutningar; måste använda session pooler för IPv4
 - Gamla Vite-processer kan blockera port 5173+; kan behöva `taskkill /f /im node.exe`
 - shadcn/ui kräver `class-variance-authority` explicit installerat
 - sonner.tsx från shadcn importerar next-themes (Next.js) — omskriven för vanlig React
+- Stripe CLI krävs lokalt för att testa webhook: `stripe listen --forward-to localhost:5171/api/billing/webhook`

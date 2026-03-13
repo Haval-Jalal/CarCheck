@@ -5,6 +5,6 @@ export const gdprApi = {
   exportData: () =>
     apiClient.get<UserDataExport>('/gdpr/export'),
 
-  deleteAccount: () =>
-    apiClient.delete<DataDeletionResponse>('/gdpr/delete-account'),
+  deleteAccount: (data: { password: string; reason?: string }) =>
+    apiClient.delete<DataDeletionResponse>('/gdpr/delete-account', { data }),
 }
