@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/hooks/use-auth'
 import { authApi } from '@/api/auth.api'
 import { loginSchema, type LoginFormData } from '@/lib/validators'
+import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 
 const FEATURES = [
@@ -72,7 +73,7 @@ export function LoginPage() {
       await authApi.resendVerification(unverifiedEmail)
       setResendSent(true)
     } catch {
-      // fail silently — backend always returns 200
+      toast.error('Kunde inte skicka verifieringslänk. Försök igen.')
     }
   }
 

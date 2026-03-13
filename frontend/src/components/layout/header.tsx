@@ -91,7 +91,7 @@ function CreditsChip() {
   return (
     <Link
       to="/billing"
-      className="hidden md:flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
+      className="flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
     >
       <Zap className="h-3 w-3" />
       {label}

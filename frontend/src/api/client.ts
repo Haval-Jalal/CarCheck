@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { getTokens, setTokens, clearTokens } from '@/lib/token'
 import { useQuotaStore } from '@/stores/quota.store'
+import { toast } from 'sonner'
 
 const apiClient = axios.create({
   baseURL: '/api',
@@ -39,11 +40,12 @@ apiClient.interceptors.response.use(
     const quotaRemaining = response.headers['x-dailyquota-remaining']
     const tier = response.headers['x-subscription-tier']
     if (quotaLimit) {
+      const parsedRemaining = quotaRemaining === 'unlimited' ? 'unlimited' : (parseInt(quotaRemaining, 10) || 0)
       useQuotaStore.getState().setQuota({
         limit: quotaLimit === 'unlimited' ? 'unlimited'
           : quotaLimit === 'credits' ? 'credits'
-          : parseInt(quotaLimit, 10),
-        remaining: quotaRemaining === 'unlimited' ? 'unlimited' : parseInt(quotaRemaining, 10),
+          : (parseInt(quotaLimit, 10) || 0),
+        remaining: parsedRemaining,
         tier: tier || 'Free',
       })
     }
@@ -54,8 +56,8 @@ apiClient.interceptors.response.use(
     const rlReset = response.headers['x-ratelimit-reset']
     if (rlLimit) {
       useQuotaStore.getState().setRateLimit({
-        limit: parseInt(rlLimit, 10),
-        remaining: parseInt(rlRemaining, 10),
+        limit: parseInt(rlLimit, 10) || 0,
+        remaining: parseInt(rlRemaining, 10) || 0,
         resetsAt: rlReset,
       })
     }
@@ -107,6 +109,14 @@ apiClient.interceptors.response.use(
       } finally {
         isRefreshing = false
       }
+    }
+
+    // 402 = out of credits/quota — navigate to billing
+    if (error.response?.status === 402) {
+      toast.error('Du har inga sökningar kvar.', {
+        action: { label: 'Köp sökningar', onClick: () => { window.location.href = '/billing' } },
+        duration: 6000,
+      })
     }
 
     return Promise.reject(error)

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Check, Zap, Infinity, CreditCard, Calendar, Receipt } from 'lucide-react'
 import {
   useSubscription,
@@ -79,6 +80,7 @@ export function BillingPage() {
   const creditsCheckoutMutation = useCreditsCheckout()
   const cancelMutation = useCancelSubscription()
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -126,14 +128,14 @@ export function BillingPage() {
   }
 
   const handleCancel = () => {
+    setCancelError(null)
     cancelMutation.mutate(undefined, {
       onSuccess: () => {
         setCancelOpen(false)
         toast.success('Månadsplanen avbruten')
       },
       onError: () => {
-        setCancelOpen(false)
-        toast.error('Kunde inte avbryta månadsplanen. Försök igen.')
+        setCancelError('Något gick fel. Försök igen eller kontakta support.')
       },
     })
   }
@@ -300,7 +302,7 @@ export function BillingPage() {
       <PurchaseHistory />
 
       {/* Cancel confirmation dialog */}
-      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+      <Dialog open={cancelOpen} onOpenChange={(open) => { setCancelOpen(open); if (!open) setCancelError(null) }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Avbryt månadsplan?</DialogTitle>
@@ -308,6 +310,11 @@ export function BillingPage() {
               Din plan avslutas omedelbart. Dina köpta sökningar (krediter) påverkas inte.
             </DialogDescription>
           </DialogHeader>
+          {cancelError && (
+            <Alert variant="destructive">
+              <AlertDescription>{cancelError}</AlertDescription>
+            </Alert>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
               Behåll planen
