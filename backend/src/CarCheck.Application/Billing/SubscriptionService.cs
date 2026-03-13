@@ -221,7 +221,17 @@ public class SubscriptionService
             return Result<bool>.Failure("Inget aktivt abonnemang hittades.");
 
         if (subscription.ExternalSubscriptionId is not null)
-            await _billingProvider.CancelSubscriptionAsync(subscription.ExternalSubscriptionId, cancellationToken);
+        {
+            try
+            {
+                await _billingProvider.CancelSubscriptionAsync(subscription.ExternalSubscriptionId, cancellationToken);
+            }
+            catch
+            {
+                // Log and continue — DB cancel still happens even if Stripe call fails.
+                // Stripe inconsistencies can be reconciled via dashboard.
+            }
+        }
 
         subscription.Cancel();
         await _subscriptionRepository.UpdateAsync(subscription, cancellationToken);
