@@ -275,10 +275,10 @@ export function InspectionChecklist({ breakdown, details }: {
     <>
       <style>{`
         @media print {
-          body > * { display: none !important; }
+          body * { visibility: hidden; }
           #checklist-print-root,
-          #checklist-print-root * { display: revert !important; }
-          #checklist-print-root { position: fixed; inset: 0; padding: 24px; }
+          #checklist-print-root * { visibility: visible; }
+          #checklist-print-root { position: absolute; top: 0; left: 0; width: 100%; padding: 24px; }
         }
       `}</style>
       <div id="checklist-print-root">

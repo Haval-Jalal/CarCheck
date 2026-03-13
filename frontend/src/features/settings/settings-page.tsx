@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Settings, Shield, Download, Trash2 } from 'lucide-react'
 import { authApi } from '@/api/auth.api'
 import { gdprApi } from '@/api/gdpr.api'
+import { useSubscription } from '@/hooks/use-billing'
 import { changePasswordSchema, type ChangePasswordFormData } from '@/lib/validators'
 import { clearTokens } from '@/lib/token'
 import { toast } from 'sonner'
@@ -20,6 +21,7 @@ import type { ApiError } from '@/types/api.types'
 
 export function SettingsPage() {
   const navigate = useNavigate()
+  const { data: sub } = useSubscription()
 
   // Change password
   const [pwError, setPwError] = useState<string | null>(null)
@@ -297,8 +299,14 @@ export function SettingsPage() {
                   permanent. Det finns ingen väg tillbaka.
                 </DialogDescription>
               </DialogHeader>
-              <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                Allt raderas: historik, favoriter och eventuella kvarvarande sökningar.
+              <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive space-y-1">
+                <p>Allt raderas: historik, favoriter och eventuella kvarvarande sökningar.</p>
+                {(sub?.credits ?? 0) > 0 && (
+                  <p className="font-semibold">
+                    Du har {sub!.credits} {sub!.credits === 1 ? 'sökning' : 'sökningar'} kvar som
+                    försvinner permanent vid radering.
+                  </p>
+                )}
               </div>
               {deleteError && (
                 <Alert variant="destructive">

@@ -178,6 +178,19 @@ public class AuthService
         return Result<bool>.Success(true);
     }
 
+    public async Task ResendVerificationAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var emailVo = Email.Create(email);
+        var user = await _userRepository.GetByEmailAsync(emailVo, cancellationToken);
+
+        // Silently return for unknown email or already-verified accounts (no user enumeration)
+        if (user is null || user.EmailVerified) return;
+
+        var verification = EmailVerification.Create(user.Id, TimeSpan.FromHours(24));
+        await _emailVerificationRepository.AddAsync(verification, cancellationToken);
+        await _emailService.SendEmailVerificationAsync(emailVo.Value, verification.Token, cancellationToken);
+    }
+
     public async Task<Result<bool>> ForgotPasswordAsync(PasswordResetRequest request, CancellationToken cancellationToken = default)
     {
         var email = Email.Create(request.Email);
