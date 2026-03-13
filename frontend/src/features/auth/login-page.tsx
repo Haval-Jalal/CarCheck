@@ -8,9 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/hooks/use-auth'
-import { authApi } from '@/api/auth.api'
 import { loginSchema, type LoginFormData } from '@/lib/validators'
-import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 
 const FEATURES = [
@@ -26,8 +24,6 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
-  const [resendSent, setResendSent] = useState(false)
 
   const fromState = (location.state as { from?: { pathname: string } })?.from?.pathname
   const fromQuery = new URLSearchParams(location.search).get('from')
@@ -43,8 +39,6 @@ export function LoginPage() {
   })
 
   const onSubmit = async (data: LoginFormData) => {
-    setUnverifiedEmail(null)
-    setResendSent(false)
     setIsSubmitting(true)
     try {
       await login(data)
@@ -54,26 +48,10 @@ export function LoginPage() {
         navigate(from, { replace: true })
       }
     } catch (err) {
-      const axiosError = err as AxiosError<{ error?: string; code?: string }>
-      const code = axiosError.response?.data?.code
-      if (code === 'email_not_verified') {
-        setUnverifiedEmail(data.email)
-        setError(null)
-      } else {
-        setError(axiosError.response?.data?.error || 'Inloggningen misslyckades. Försök igen.')
-      }
+      const axiosError = err as AxiosError<{ error?: string }>
+      setError(axiosError.response?.data?.error || 'Inloggningen misslyckades. Försök igen.')
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handleResend = async () => {
-    if (!unverifiedEmail) return
-    try {
-      await authApi.resendVerification(unverifiedEmail)
-      setResendSent(true)
-    } catch {
-      toast.error('Kunde inte skicka verifieringslänk. Försök igen.')
     }
   }
 
@@ -165,24 +143,6 @@ export function LoginPage() {
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            {unverifiedEmail && (
-              <Alert>
-                <AlertDescription className="space-y-2">
-                  <p>Du behöver verifiera din e-postadress innan du kan logga in. Kolla din inkorg.</p>
-                  {resendSent ? (
-                    <p className="text-sm font-medium text-green-600">En ny verifieringslänk har skickats!</p>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleResend}
-                      className="text-sm font-medium underline hover:no-underline"
-                    >
-                      Skicka ny verifieringslänk
-                    </button>
-                  )}
-                </AlertDescription>
               </Alert>
             )}
 

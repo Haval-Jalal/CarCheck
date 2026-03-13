@@ -19,6 +19,7 @@ public class AuthServiceTests
     private readonly IEmailVerificationRepository _emailVerificationRepository;
     private readonly ICreditTransactionRepository _transactionRepository;
     private readonly IEmailService _emailService;
+    private readonly IEmailRateLimitService _emailRateLimit;
     private readonly AuthService _sut;
 
     public AuthServiceTests()
@@ -32,6 +33,7 @@ public class AuthServiceTests
         _emailVerificationRepository = Substitute.For<IEmailVerificationRepository>();
         _transactionRepository = Substitute.For<ICreditTransactionRepository>();
         _emailService = Substitute.For<IEmailService>();
+        _emailRateLimit = Substitute.For<IEmailRateLimitService>();
 
         _sut = new AuthService(
             _userRepository,
@@ -42,7 +44,8 @@ public class AuthServiceTests
             _passwordResetRepository,
             _emailVerificationRepository,
             _transactionRepository,
-            _emailService);
+            _emailService,
+            _emailRateLimit);
     }
 
     // ===== Register =====
@@ -51,9 +54,9 @@ public class AuthServiceTests
     public async Task Register_WithValidData_ShouldReturnSuccess()
     {
         _userRepository.ExistsByEmailAsync(Arg.Any<Email>()).Returns(false);
-        _passwordHasher.Hash("Password123!").Returns("hashed");
+        _passwordHasher.Hash("Password123!Long").Returns("hashed");
 
-        var result = await _sut.RegisterAsync(new RegisterRequest("user@test.com", "Password123!"));
+        var result = await _sut.RegisterAsync(new RegisterRequest("user@test.com", "Password123!Long"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal("user@test.com", result.Value!.Email);
@@ -66,10 +69,10 @@ public class AuthServiceTests
     {
         _userRepository.ExistsByEmailAsync(Arg.Any<Email>()).Returns(true);
 
-        var result = await _sut.RegisterAsync(new RegisterRequest("existing@test.com", "Password123!"));
+        var result = await _sut.RegisterAsync(new RegisterRequest("existing@test.com", "Password123!Long"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Email is already registered.", result.Error);
+        Assert.Equal("E-postadressen är redan registrerad.", result.Error);
     }
 
     [Fact]
@@ -80,7 +83,29 @@ public class AuthServiceTests
         var result = await _sut.RegisterAsync(new RegisterRequest("user@test.com", "short"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Password must be at least 8 characters.", result.Error);
+        Assert.Equal("Lösenordet måste vara minst 12 tecken.", result.Error);
+    }
+
+    [Fact]
+    public async Task Register_WithNoUppercase_ShouldReturnFailure()
+    {
+        _userRepository.ExistsByEmailAsync(Arg.Any<Email>()).Returns(false);
+
+        var result = await _sut.RegisterAsync(new RegisterRequest("user@test.com", "alllowercase123!"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Lösenordet måste innehålla minst en stor bokstav.", result.Error);
+    }
+
+    [Fact]
+    public async Task Register_WithNoDigit_ShouldReturnFailure()
+    {
+        _userRepository.ExistsByEmailAsync(Arg.Any<Email>()).Returns(false);
+
+        var result = await _sut.RegisterAsync(new RegisterRequest("user@test.com", "NoDigitsHereAtAll!"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Lösenordet måste innehålla minst en siffra.", result.Error);
     }
 
     // ===== Login =====
@@ -89,12 +114,13 @@ public class AuthServiceTests
     public async Task Login_WithValidCredentials_ShouldReturnTokens()
     {
         var user = User.Create("user@test.com", "hashed");
+        user.VerifyEmail();
         _userRepository.GetByEmailAsync(Arg.Any<Email>()).Returns(user);
-        _passwordHasher.Verify("Password123!", "hashed").Returns(true);
+        _passwordHasher.Verify("Password123!Long", "hashed").Returns(true);
         _tokenService.GenerateAccessToken(user).Returns("access_token");
         _tokenService.GenerateRefreshToken().Returns("refresh_token");
 
-        var result = await _sut.LoginAsync(new LoginRequest("user@test.com", "Password123!"));
+        var result = await _sut.LoginAsync(new LoginRequest("user@test.com", "Password123!Long"));
 
         Assert.True(result.IsSuccess);
         Assert.Equal("access_token", result.Value!.AccessToken);
@@ -112,7 +138,7 @@ public class AuthServiceTests
         var result = await _sut.LoginAsync(new LoginRequest("user@test.com", "wrong"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Invalid email or password.", result.Error);
+        Assert.Equal("Felaktig e-postadress eller lösenord.", result.Error);
         await _securityEventLogger.Received(1).LogAsync(user.Id, "LoginFailed", null, Arg.Any<CancellationToken>());
     }
 
@@ -120,11 +146,28 @@ public class AuthServiceTests
     public async Task Login_WithNonExistentEmail_ShouldReturnFailure()
     {
         _userRepository.GetByEmailAsync(Arg.Any<Email>()).Returns((User?)null);
+        _passwordHasher.Verify(Arg.Any<string>(), Arg.Any<string>()).Returns(false);
 
-        var result = await _sut.LoginAsync(new LoginRequest("nonexistent@test.com", "Password123!"));
+        var result = await _sut.LoginAsync(new LoginRequest("nonexistent@test.com", "Password123!Long"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Invalid email or password.", result.Error);
+        Assert.Equal("Felaktig e-postadress eller lösenord.", result.Error);
+    }
+
+    [Fact]
+    public async Task Login_WithLockedAccount_ShouldReturnFailure()
+    {
+        var user = User.Create("user@test.com", "hashed");
+        // Record 5 failures to trigger lockout
+        for (int i = 0; i < 5; i++) user.RecordFailedLogin();
+
+        _userRepository.GetByEmailAsync(Arg.Any<Email>()).Returns(user);
+
+        var result = await _sut.LoginAsync(new LoginRequest("user@test.com", "anypassword"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("låst", result.Error);
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "LoginBlockedLockout", null, Arg.Any<CancellationToken>());
     }
 
     // ===== Refresh =====
@@ -148,13 +191,14 @@ public class AuthServiceTests
         _tokenService.GenerateAccessToken(user).Returns("new_access");
         _tokenService.GenerateRefreshToken().Returns("new_refresh");
 
-        var result = await _sut.RefreshAsync(new RefreshRequest("old_refresh"));
+        var result = await _sut.RefreshAsync("old_refresh");
 
         Assert.True(result.IsSuccess);
         Assert.Equal("new_access", result.Value!.AccessToken);
         Assert.Equal("new_refresh", result.Value.RefreshToken);
         await _refreshTokenRepository.Received(1).RevokeAsync("old_refresh", Arg.Any<CancellationToken>());
         await _refreshTokenRepository.Received(1).AddAsync(Arg.Any<RefreshTokenEntry>(), Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "TokenRefreshed", null, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -168,7 +212,7 @@ public class AuthServiceTests
         };
         _refreshTokenRepository.GetByTokenAsync("revoked_token").Returns(entry);
 
-        var result = await _sut.RefreshAsync(new RefreshRequest("revoked_token"));
+        var result = await _sut.RefreshAsync("revoked_token");
 
         Assert.False(result.IsSuccess);
     }
@@ -184,7 +228,7 @@ public class AuthServiceTests
         };
         _refreshTokenRepository.GetByTokenAsync("expired_token").Returns(entry);
 
-        var result = await _sut.RefreshAsync(new RefreshRequest("expired_token"));
+        var result = await _sut.RefreshAsync("expired_token");
 
         Assert.False(result.IsSuccess);
     }
@@ -223,9 +267,9 @@ public class AuthServiceTests
         var user = User.Create("user@test.com", "old_hash");
         _userRepository.GetByIdAsync(user.Id).Returns(user);
         _passwordHasher.Verify("OldPass123!", "old_hash").Returns(true);
-        _passwordHasher.Hash("NewPass123!").Returns("new_hash");
+        _passwordHasher.Hash("NewPass123!Long").Returns("new_hash");
 
-        var result = await _sut.ChangePasswordAsync(user.Id, new ChangePasswordRequest("OldPass123!", "NewPass123!"));
+        var result = await _sut.ChangePasswordAsync(user.Id, new ChangePasswordRequest("OldPass123!", "NewPass123!Long"));
 
         Assert.True(result.IsSuccess);
         await _userRepository.Received(1).UpdateAsync(user, Arg.Any<CancellationToken>());
@@ -240,10 +284,10 @@ public class AuthServiceTests
         _userRepository.GetByIdAsync(user.Id).Returns(user);
         _passwordHasher.Verify("wrong", "old_hash").Returns(false);
 
-        var result = await _sut.ChangePasswordAsync(user.Id, new ChangePasswordRequest("wrong", "NewPass123!"));
+        var result = await _sut.ChangePasswordAsync(user.Id, new ChangePasswordRequest("wrong", "NewPass123!Long"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Current password is incorrect.", result.Error);
+        Assert.Equal("Nuvarande lösenord är felaktigt.", result.Error);
     }
 
     [Fact]
@@ -256,7 +300,7 @@ public class AuthServiceTests
         var result = await _sut.ChangePasswordAsync(user.Id, new ChangePasswordRequest("OldPass123!", "short"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("New password must be at least 8 characters.", result.Error);
+        Assert.Equal("Lösenordet måste vara minst 12 tecken.", result.Error);
     }
 
     [Fact]
@@ -265,9 +309,9 @@ public class AuthServiceTests
         var userId = Guid.NewGuid();
         _userRepository.GetByIdAsync(userId).Returns((User?)null);
 
-        var result = await _sut.ChangePasswordAsync(userId, new ChangePasswordRequest("old", "NewPass123!"));
+        var result = await _sut.ChangePasswordAsync(userId, new ChangePasswordRequest("old", "NewPass123!Long"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("User not found.", result.Error);
+        Assert.Equal("Användare hittades inte.", result.Error);
     }
 }

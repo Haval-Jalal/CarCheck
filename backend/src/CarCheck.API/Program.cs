@@ -8,13 +8,18 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddOpenApi();
-builder.Services.AddInfrastructure(builder.Configuration);
-
-// JWT Authentication
+// ── JWT settings validation (VULN-009) ──────────────────────────────────────
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
     ?? new JwtSettings();
 
+if (jwtSettings.Secret.Length < 32)
+    throw new InvalidOperationException(
+        "Jwt:Secret must be at least 32 characters. Set a strong secret in environment variables.");
+
+builder.Services.AddOpenApi();
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsProduction());
+
+// ── JWT Authentication ───────────────────────────────────────────────────────
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -28,13 +33,13 @@ builder.Services
             ValidateAudience = true,
             ValidAudience = jwtSettings.Audience,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
         };
     });
 
 builder.Services.AddAuthorization();
 
-// CORS
+// ── CORS (VULN-007: specific methods/headers, VULN-001: credentials) ─────────
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -42,21 +47,57 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
                     ?? ["http://localhost:5173"])
-              .AllowAnyHeader()
-              .AllowAnyMethod()
+              .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+              .WithHeaders(
+                  "Content-Type", "Authorization", "X-Requested-With")
               .WithExposedHeaders(
                   "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset",
                   "X-DailyQuota-Limit", "X-DailyQuota-Remaining", "X-Subscription-Tier",
-                  "X-Request-Id");
+                  "X-Request-Id")
+              .AllowCredentials();
     });
 });
 
+// ── VULN-023: warn if Frontend:BaseUrl is not HTTPS ─────────────────────────
+var frontendBaseUrl = builder.Configuration["Frontend:BaseUrl"] ?? string.Empty;
+if (builder.Environment.IsProduction() &&
+    !frontendBaseUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+{
+    Console.Error.WriteLine(
+        $"[SECURITY WARNING] Frontend:BaseUrl is not HTTPS ({frontendBaseUrl}). " +
+        "Password-reset and verification links sent in emails may be insecure.");
+}
+
 var app = builder.Build();
 
+// ── Swagger only in development (VULN-016) ───────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// ── Security headers middleware (VULN-002) ───────────────────────────────────
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
+
+    // HSTS — only add in production (browsers ignore it on HTTP anyway)
+    if (!context.Request.IsHttps && app.Environment.IsProduction())
+        headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+    else if (context.Request.IsHttps)
+        headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+
+    headers["Content-Security-Policy"] =
+        "default-src 'none'; " +
+        "frame-ancestors 'none'; " +
+        "form-action 'none'";
+
+    await next();
+});
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();

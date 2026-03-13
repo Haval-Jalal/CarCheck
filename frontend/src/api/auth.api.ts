@@ -2,11 +2,10 @@ import apiClient from './client'
 import type {
   RegisterRequest,
   LoginRequest,
-  RefreshRequest,
   ChangePasswordRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
-  AuthResponse,
+  AuthTokenResponse,
   UserResponse,
 } from '@/types/auth.types'
 
@@ -15,13 +14,15 @@ export const authApi = {
     apiClient.post<UserResponse>('/auth/register', data),
 
   login: (data: LoginRequest) =>
-    apiClient.post<AuthResponse>('/auth/login', data),
+    apiClient.post<AuthTokenResponse>('/auth/login', data),
 
-  refresh: (data: RefreshRequest) =>
-    apiClient.post<AuthResponse>('/auth/refresh', data),
+  // Refresh token is in an HttpOnly cookie — no body needed
+  refresh: () =>
+    apiClient.post<AuthTokenResponse>('/auth/refresh', {}),
 
-  logout: (data: RefreshRequest) =>
-    apiClient.post('/auth/logout', data),
+  // Logout revokes the HttpOnly cookie on the server side
+  logout: () =>
+    apiClient.post('/auth/logout'),
 
   logoutAll: () =>
     apiClient.post('/auth/logout-all'),

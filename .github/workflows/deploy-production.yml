@@ -80,9 +80,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run production smoke tests
+      - name: Wait for deployment to stabilise
+        run: sleep 30
+
+      - name: Run production smoke tests (DEPLOY-002)
         run: |
-          echo "Production smoke tests would run here"
           echo "Checking health endpoint..."
-          # curl -f https://api.carcheck.se/health || exit 1
-          echo "Production smoke tests passed (mock)"
+          curl -f --max-time 10 --retry 3 --retry-delay 5 https://api.carcheck.se/health
+          echo ""
+          echo "Verifying security headers..."
+          HEADERS=$(curl -sI https://api.carcheck.se/health)
+          echo "$HEADERS" | grep -i "x-content-type-options" || (echo "::error::Missing X-Content-Type-Options header" && exit 1)
+          echo "$HEADERS" | grep -i "x-frame-options" || (echo "::error::Missing X-Frame-Options header" && exit 1)
+          echo "Production smoke tests passed."

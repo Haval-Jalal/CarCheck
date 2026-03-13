@@ -1,29 +1,28 @@
-const ACCESS_TOKEN_KEY = 'carcheck_at'
-const REFRESH_TOKEN_KEY = 'carcheck_rt'
-const EXPIRES_AT_KEY = 'carcheck_exp'
+/**
+ * In-memory access token storage.
+ * The refresh token is stored in an HttpOnly cookie (server-side) and never
+ * accessible from JavaScript — mitigating XSS token theft.
+ */
+
+let _accessToken: string | null = null
+let _expiresAt: string | null = null
 
 export interface TokenData {
   accessToken: string
-  refreshToken: string
   expiresAt: string
 }
 
 export function getTokens(): TokenData | null {
-  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY)
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
-  const expiresAt = localStorage.getItem(EXPIRES_AT_KEY)
-  if (!accessToken || !refreshToken) return null
-  return { accessToken, refreshToken, expiresAt: expiresAt || '' }
+  if (!_accessToken) return null
+  return { accessToken: _accessToken, expiresAt: _expiresAt || '' }
 }
 
 export function setTokens(data: TokenData): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, data.accessToken)
-  localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken)
-  localStorage.setItem(EXPIRES_AT_KEY, data.expiresAt)
+  _accessToken = data.accessToken
+  _expiresAt = data.expiresAt
 }
 
 export function clearTokens(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY)
-  localStorage.removeItem(REFRESH_TOKEN_KEY)
-  localStorage.removeItem(EXPIRES_AT_KEY)
+  _accessToken = null
+  _expiresAt = null
 }

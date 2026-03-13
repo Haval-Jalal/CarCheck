@@ -44,5 +44,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Credits)
             .HasColumnName("credits")
             .HasDefaultValue(0);
+
+        builder.Property(u => u.FailedLoginAttempts)
+            .HasColumnName("failed_login_attempts")
+            .HasDefaultValue(0);
+
+        builder.Property(u => u.LockoutUntil)
+            .HasColumnName("lockout_until")
+            .IsRequired(false);
     }
 }

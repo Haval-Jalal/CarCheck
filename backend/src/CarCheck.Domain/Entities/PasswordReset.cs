@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace CarCheck.Domain.Entities;
 
 public class PasswordReset
@@ -19,7 +21,7 @@ public class PasswordReset
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+            Token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)),
             ExpiresAt = DateTime.UtcNow.Add(expiration),
             Used = false
         };

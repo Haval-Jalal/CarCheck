@@ -8,10 +8,6 @@ export interface LoginRequest {
   password: string
 }
 
-export interface RefreshRequest {
-  refreshToken: string
-}
-
 export interface ChangePasswordRequest {
   currentPassword: string
   newPassword: string
@@ -26,6 +22,13 @@ export interface ResetPasswordRequest {
   newPassword: string
 }
 
+// accessToken only — refresh token lives in an HttpOnly cookie
+export interface AuthTokenResponse {
+  accessToken: string
+  expiresAt: string
+}
+
+/** @deprecated Use AuthTokenResponse. Kept for reference only. */
 export interface AuthResponse {
   accessToken: string
   refreshToken: string

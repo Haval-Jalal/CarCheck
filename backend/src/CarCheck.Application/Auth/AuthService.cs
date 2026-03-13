@@ -17,6 +17,7 @@ public class AuthService
     private readonly IEmailVerificationRepository _emailVerificationRepository;
     private readonly ICreditTransactionRepository _transactionRepository;
     private readonly IEmailService _emailService;
+    private readonly IEmailRateLimitService _emailRateLimit;
 
     public AuthService(
         IUserRepository userRepository,
@@ -27,7 +28,8 @@ public class AuthService
         IPasswordResetRepository passwordResetRepository,
         IEmailVerificationRepository emailVerificationRepository,
         ICreditTransactionRepository transactionRepository,
-        IEmailService emailService)
+        IEmailService emailService,
+        IEmailRateLimitService emailRateLimit)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
@@ -38,6 +40,7 @@ public class AuthService
         _emailVerificationRepository = emailVerificationRepository;
         _transactionRepository = transactionRepository;
         _emailService = emailService;
+        _emailRateLimit = emailRateLimit;
     }
 
     public async Task<Result<UserResponse>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
@@ -47,8 +50,9 @@ public class AuthService
         if (await _userRepository.ExistsByEmailAsync(email, cancellationToken))
             return Result<UserResponse>.Failure("E-postadressen är redan registrerad.");
 
-        if (request.Password.Length < 8)
-            return Result<UserResponse>.Failure("Lösenordet måste vara minst 8 tecken.");
+        var passwordError = ValidatePasswordStrength(request.Password);
+        if (passwordError is not null)
+            return Result<UserResponse>.Failure(passwordError);
 
         var hash = _passwordHasher.Hash(request.Password);
         var user = User.Create(request.Email, hash);
@@ -56,7 +60,6 @@ public class AuthService
         await _userRepository.AddAsync(user, cancellationToken);
         await _securityEventLogger.LogAsync(user.Id, "Registered", null, cancellationToken);
 
-        // Send verification email
         var verification = EmailVerification.Create(user.Id, TimeSpan.FromHours(24));
         await _emailVerificationRepository.AddAsync(verification, cancellationToken);
         await _emailService.SendEmailVerificationAsync(email.Value, verification.Token, cancellationToken);
@@ -86,8 +89,7 @@ public class AuthService
         user.AddCredits(1);
         await _userRepository.UpdateAsync(user, cancellationToken);
 
-        await _transactionRepository.AddAsync(
-            CreditTransaction.CreateTrial(user.Id), cancellationToken);
+        await _transactionRepository.AddAsync(CreditTransaction.CreateTrial(user.Id), cancellationToken);
 
         verification.MarkUsed();
         await _emailVerificationRepository.UpdateAsync(verification, cancellationToken);
@@ -102,17 +104,33 @@ public class AuthService
         var email = Email.Create(request.Email);
         var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
 
-        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        // Constant-time hash comparison even for unknown users to prevent timing-based enumeration
+        if (user is null)
         {
-            if (user is not null)
-                await _securityEventLogger.LogAsync(user.Id, "LoginFailed", null, cancellationToken);
-
+            _passwordHasher.Verify(request.Password, "$2a$11$dummyhashtopreventtimingattackxx");
             return Result<AuthResponse>.Failure("Felaktig e-postadress eller lösenord.");
         }
 
-        if (!user.EmailVerified)
-            return Result<AuthResponse>.Failure("Du måste verifiera din e-postadress innan du loggar in. Kontrollera din inkorg.");
+        if (user.IsLockedOut())
+        {
+            await _securityEventLogger.LogAsync(user.Id, "LoginBlockedLockout", null, cancellationToken);
+            return Result<AuthResponse>.Failure("Kontot är tillfälligt låst på grund av för många misslyckade inloggningsförsök. Försök igen om 30 minuter.");
+        }
 
+        if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
+        {
+            user.RecordFailedLogin();
+            await _userRepository.UpdateAsync(user, cancellationToken);
+            await _securityEventLogger.LogAsync(user.Id, "LoginFailed", null, cancellationToken);
+            return Result<AuthResponse>.Failure("Felaktig e-postadress eller lösenord.");
+        }
+
+        // Return generic message for unverified email — avoids enumeration via different error codes
+        if (!user.EmailVerified)
+            return Result<AuthResponse>.Failure("Felaktig e-postadress eller lösenord.");
+
+        user.RecordSuccessfulLogin();
+        await _userRepository.UpdateAsync(user, cancellationToken);
 
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
@@ -132,9 +150,9 @@ public class AuthService
         return Result<AuthResponse>.Success(new AuthResponse(accessToken, refreshToken, DateTime.UtcNow.AddMinutes(15)));
     }
 
-    public async Task<Result<AuthResponse>> RefreshAsync(RefreshRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthResponse>> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var existing = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var existing = await _refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
 
         if (existing is null || existing.Revoked || existing.ExpiresAt < DateTime.UtcNow)
             return Result<AuthResponse>.Failure("Ogiltig eller utgången session. Logga in igen.");
@@ -159,12 +177,17 @@ public class AuthService
             CreatedAt = DateTime.UtcNow
         }, cancellationToken);
 
+        // Log rotation event (VULN-019)
+        await _securityEventLogger.LogAsync(user.Id, "TokenRefreshed", null, cancellationToken);
+
         return Result<AuthResponse>.Success(new AuthResponse(newAccessToken, newRefreshToken, DateTime.UtcNow.AddMinutes(15)));
     }
 
-    public async Task<Result<bool>> LogoutAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> LogoutAsync(Guid userId, string? refreshToken, CancellationToken cancellationToken = default)
     {
-        await _refreshTokenRepository.RevokeAsync(refreshToken, cancellationToken);
+        if (!string.IsNullOrEmpty(refreshToken))
+            await _refreshTokenRepository.RevokeAsync(refreshToken, cancellationToken);
+
         await _securityEventLogger.LogAsync(userId, "Logout", null, cancellationToken);
 
         return Result<bool>.Success(true);
@@ -180,6 +203,9 @@ public class AuthService
 
     public async Task ResendVerificationAsync(string email, CancellationToken cancellationToken = default)
     {
+        if (_emailRateLimit.IsRateLimited(email, "resend"))
+            return;
+
         var emailVo = Email.Create(email);
         var user = await _userRepository.GetByEmailAsync(emailVo, cancellationToken);
 
@@ -189,10 +215,15 @@ public class AuthService
         var verification = EmailVerification.Create(user.Id, TimeSpan.FromHours(24));
         await _emailVerificationRepository.AddAsync(verification, cancellationToken);
         await _emailService.SendEmailVerificationAsync(emailVo.Value, verification.Token, cancellationToken);
+
+        _emailRateLimit.IncrementCount(email, "resend");
     }
 
     public async Task<Result<bool>> ForgotPasswordAsync(PasswordResetRequest request, CancellationToken cancellationToken = default)
     {
+        if (_emailRateLimit.IsRateLimited(request.Email, "reset"))
+            return Result<bool>.Success(true); // Always return success to avoid enumeration
+
         var email = Email.Create(request.Email);
         var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
 
@@ -207,13 +238,16 @@ public class AuthService
 
         await _securityEventLogger.LogAsync(user.Id, "PasswordResetRequested", null, cancellationToken);
 
+        _emailRateLimit.IncrementCount(request.Email, "reset");
+
         return Result<bool>.Success(true);
     }
 
     public async Task<Result<bool>> ResetPasswordAsync(PasswordResetConfirmRequest request, CancellationToken cancellationToken = default)
     {
-        if (request.NewPassword.Length < 8)
-            return Result<bool>.Failure("Lösenordet måste vara minst 8 tecken.");
+        var passwordError = ValidatePasswordStrength(request.NewPassword);
+        if (passwordError is not null)
+            return Result<bool>.Failure(passwordError);
 
         var reset = await _passwordResetRepository.GetByTokenAsync(request.Token, cancellationToken);
 
@@ -245,17 +279,28 @@ public class AuthService
         if (!_passwordHasher.Verify(request.CurrentPassword, user.PasswordHash))
             return Result<bool>.Failure("Nuvarande lösenord är felaktigt.");
 
-        if (request.NewPassword.Length < 8)
-            return Result<bool>.Failure("Lösenordet måste vara minst 8 tecken.");
+        var passwordError = ValidatePasswordStrength(request.NewPassword);
+        if (passwordError is not null)
+            return Result<bool>.Failure(passwordError);
 
         user.ChangePassword(_passwordHasher.Hash(request.NewPassword));
         await _userRepository.UpdateAsync(user, cancellationToken);
 
-        // Invalidate all refresh tokens on password change
         await _refreshTokenRepository.RevokeAllForUserAsync(userId, cancellationToken);
         await _securityEventLogger.LogAsync(userId, "PasswordChanged", null, cancellationToken);
 
         return Result<bool>.Success(true);
+    }
+
+    private static string? ValidatePasswordStrength(string password)
+    {
+        if (password.Length < 12)
+            return "Lösenordet måste vara minst 12 tecken.";
+        if (!password.Any(char.IsUpper))
+            return "Lösenordet måste innehålla minst en stor bokstav.";
+        if (!password.Any(char.IsDigit))
+            return "Lösenordet måste innehålla minst en siffra.";
+        return null;
     }
 }
 

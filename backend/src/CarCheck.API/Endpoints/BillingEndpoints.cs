@@ -115,19 +115,18 @@ public static class BillingEndpoints
             using (var reader = new StreamReader(request.Body))
                 json = await reader.ReadToEndAsync();
 
-            Event stripeEvent;
             var webhookSecret = config["Stripe:WebhookSecret"];
+            if (string.IsNullOrEmpty(webhookSecret))
+            {
+                logger.LogError("Stripe:WebhookSecret is not configured — rejecting webhook");
+                return Results.StatusCode(500);
+            }
+
+            Event stripeEvent;
             try
             {
-                if (!string.IsNullOrEmpty(webhookSecret))
-                {
-                    var signature = request.Headers["Stripe-Signature"].ToString();
-                    stripeEvent = EventUtility.ConstructEvent(json, signature, webhookSecret);
-                }
-                else
-                {
-                    stripeEvent = EventUtility.ParseEvent(json);
-                }
+                var signature = request.Headers["Stripe-Signature"].ToString();
+                stripeEvent = EventUtility.ConstructEvent(json, signature, webhookSecret);
             }
             catch (Exception ex)
             {
