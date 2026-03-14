@@ -85,10 +85,8 @@ app.Use(async (context, next) =>
     headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
 
-    // HSTS — only add in production (browsers ignore it on HTTP anyway)
-    if (!context.Request.IsHttps && app.Environment.IsProduction())
-        headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
-    else if (context.Request.IsHttps)
+    // HSTS — always set in production (Render terminates TLS at proxy, so IsHttps is always false internally)
+    if (app.Environment.IsProduction())
         headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
 
     headers["Content-Security-Policy"] =
@@ -101,7 +99,7 @@ app.Use(async (context, next) =>
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseHttpsRedirection();
+// HttpsRedirection is intentionally omitted — Render handles TLS termination at the proxy level
 app.UseCors();
 app.UseMiddleware<RateLimitingMiddleware>();
 app.UseAuthentication();
