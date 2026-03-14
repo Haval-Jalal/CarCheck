@@ -3,7 +3,9 @@ using CarCheck.API.Endpoints;
 using CarCheck.API.Middleware;
 using CarCheck.Infrastructure;
 using CarCheck.Infrastructure.Auth;
+using CarCheck.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +71,13 @@ if (builder.Environment.IsProduction() &&
 }
 
 var app = builder.Build();
+
+// Auto-apply pending EF migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CarCheckDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 // ── Swagger only in development (VULN-016) ───────────────────────────────────
 if (app.Environment.IsDevelopment())
