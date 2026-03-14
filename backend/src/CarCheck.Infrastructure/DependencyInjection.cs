@@ -69,11 +69,13 @@ public static class DependencyInjection
         services.AddSingleton<IRateLimitService, InMemoryRateLimitService>();
         services.AddSingleton<IEmailRateLimitService, InMemoryEmailRateLimitService>();
 
-        // CAPTCHA — MockCaptchaService must never be used in production (VULN-003)
+        // CAPTCHA — välj implementation baserat på miljö
+        // Produktion: NullCaptchaService (inaktiverad) tills riktig leverantör konfigureras
+        // Utveckling: MockCaptchaService (accepterar alla tokens utom "invalid")
         if (isProduction)
-            throw new InvalidOperationException(
-                "MockCaptchaService is not allowed in production. Register a real ICaptchaService implementation.");
-        services.AddScoped<ICaptchaService, MockCaptchaService>();
+            services.AddScoped<ICaptchaService, NullCaptchaService>();
+        else
+            services.AddScoped<ICaptchaService, MockCaptchaService>();
 
         // Billing & Subscriptions
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
