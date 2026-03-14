@@ -2,8 +2,7 @@ import { z } from 'zod'
 
 const passwordSchema = z
   .string()
-  .min(12, 'Lösenordet måste vara minst 12 tecken')
-  .regex(/[A-Z]/, 'Lösenordet måste innehålla minst en stor bokstav')
+  .min(8, 'Lösenordet måste vara minst 8 tecken')
   .regex(/[0-9]/, 'Lösenordet måste innehålla minst en siffra')
 
 export const loginSchema = z.object({
