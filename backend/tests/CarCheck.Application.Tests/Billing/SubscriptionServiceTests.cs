@@ -126,7 +126,7 @@ public class SubscriptionServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal("sess_123", result.Value!.SessionId);
         Assert.Contains("checkout", result.Value.CheckoutUrl);
-        await _securityEventLogger.Received(1).LogAsync(userId, "CheckoutCreated", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "CheckoutCreated", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     // ===== Activate Subscription =====
@@ -144,7 +144,7 @@ public class SubscriptionServiceTests
         Assert.Equal(SubscriptionTier.Pro, result.Value!.Tier);
         await _subscriptionRepository.Received(1).UpdateAsync(existingSub, Arg.Any<CancellationToken>());
         await _subscriptionRepository.Received(1).AddAsync(Arg.Any<Subscription>(), Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(userId, "SubscriptionActivated", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "SubscriptionActivated", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     // ===== Cancel Subscription =====
@@ -173,7 +173,7 @@ public class SubscriptionServiceTests
         Assert.True(result.IsSuccess);
         await _billingProvider.Received(1).CancelSubscriptionAsync("ext_789", Arg.Any<CancellationToken>());
         await _subscriptionRepository.Received(1).UpdateAsync(sub, Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(userId, "SubscriptionCancelled", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "SubscriptionCancelled", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     // ===== Get Available Tiers =====

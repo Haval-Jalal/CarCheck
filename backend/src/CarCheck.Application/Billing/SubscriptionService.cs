@@ -78,7 +78,7 @@ public class SubscriptionService
 
         var checkout = await _billingProvider.CreateCheckoutSessionAsync(userId, request.Tier, cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "CheckoutCreated", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "CheckoutCreated", cancellationToken: cancellationToken);
 
         return Result<CheckoutResponse>.Success(new CheckoutResponse(checkout.SessionId, checkout.CheckoutUrl));
     }
@@ -97,7 +97,7 @@ public class SubscriptionService
         user.AddCredits(request.PackSize);
         await _userRepository.UpdateAsync(user, cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "CreditsPurchased", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "CreditsPurchased", cancellationToken: cancellationToken);
 
         var subscription = await _subscriptionRepository.GetActiveByUserIdAsync(userId, cancellationToken);
         var hasMonthly = subscription is not null && subscription.IsActive;
@@ -118,7 +118,7 @@ public class SubscriptionService
 
         var checkout = await _billingProvider.CreateCreditsCheckoutSessionAsync(userId, pack.Credits, pack.PriceSek, cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "CreditsCheckoutCreated", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "CreditsCheckoutCreated", cancellationToken: cancellationToken);
 
         return Result<CheckoutResponse>.Success(new CheckoutResponse(checkout.SessionId, checkout.CheckoutUrl));
     }
@@ -145,7 +145,7 @@ public class SubscriptionService
             CreditTransaction.CreateCredits(userId, credits, amountOre, externalPaymentId),
             cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "CreditsGranted", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "CreditsGranted", cancellationToken: cancellationToken);
 
         try
         {
@@ -191,7 +191,7 @@ public class SubscriptionService
             CreditTransaction.CreateSubscription(userId, 49900, externalPaymentId),
             cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "SubscriptionActivated", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "SubscriptionActivated", cancellationToken: cancellationToken);
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
 
@@ -236,7 +236,7 @@ public class SubscriptionService
         subscription.Cancel();
         await _subscriptionRepository.UpdateAsync(subscription, cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "SubscriptionCancelled", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "SubscriptionCancelled", cancellationToken: cancellationToken);
 
         return Result<bool>.Success(true);
     }

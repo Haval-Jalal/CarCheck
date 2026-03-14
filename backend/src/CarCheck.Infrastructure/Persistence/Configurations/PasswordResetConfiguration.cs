@@ -17,9 +17,9 @@ public class PasswordResetConfiguration : IEntityTypeConfiguration<PasswordReset
             .HasColumnName("user_id")
             .IsRequired();
 
-        builder.Property(p => p.Token)
-            .HasColumnName("token")
-            .HasMaxLength(512)
+        builder.Property(p => p.TokenHash)
+            .HasColumnName("token_hash")
+            .HasMaxLength(64) // SHA-256 hex = 64 chars
             .IsRequired();
 
         builder.Property(p => p.ExpiresAt)
@@ -31,6 +31,6 @@ public class PasswordResetConfiguration : IEntityTypeConfiguration<PasswordReset
             .HasDefaultValue(false);
 
         builder.HasIndex(p => p.UserId);
-        builder.HasIndex(p => p.Token);
+        builder.HasIndex(p => p.TokenHash).IsUnique();
     }
 }

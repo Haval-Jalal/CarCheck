@@ -54,7 +54,7 @@ public class GdprService
             subscriptions.Select(s => new SubscriptionExport(s.Tier.ToString(), s.IsActive, s.StartDate, s.EndDate)).ToList(),
             DateTime.UtcNow);
 
-        await _securityEventLogger.LogAsync(userId, "DataExported", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "DataExported", cancellationToken: cancellationToken);
 
         return Result<UserDataExport>.Success(export);
     }
@@ -65,6 +65,9 @@ public class GdprService
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
             return Result<DataDeletionResponse>.Failure("Användare hittades inte.");
+
+        if (!user.EmailVerified)
+            return Result<DataDeletionResponse>.Failure("E-postadressen måste verifieras innan kontot kan raderas.");
 
         if (!_passwordHasher.Verify(password, user.PasswordHash))
             return Result<DataDeletionResponse>.Failure("Felaktigt lösenord.");
@@ -77,7 +80,7 @@ public class GdprService
             await _deletionFeedbackRepository.AddAsync(reason, cancellationToken);
 
         // Log the deletion request
-        await _securityEventLogger.LogAsync(userId, "DataDeletionRequested", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "DataDeletionRequested", cancellationToken: cancellationToken);
 
         // Delete user data (cascading deletes handle related records via DB constraints)
         await _userRepository.DeleteAsync(userId, cancellationToken);

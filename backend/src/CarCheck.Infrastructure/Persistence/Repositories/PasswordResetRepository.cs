@@ -19,10 +19,12 @@ public class PasswordResetRepository : IPasswordResetRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<PasswordReset?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
+    /// <summary>Accepts the raw token from the email URL; hashes it before querying the DB.</summary>
+    public async Task<PasswordReset?> GetByTokenAsync(string rawToken, CancellationToken cancellationToken = default)
     {
+        var tokenHash = PasswordReset.HashToken(rawToken);
         return await _context.PasswordResets
-            .FirstOrDefaultAsync(p => p.Token == token, cancellationToken);
+            .FirstOrDefaultAsync(p => p.TokenHash == tokenHash, cancellationToken);
     }
 
     public async Task UpdateAsync(PasswordReset reset, CancellationToken cancellationToken = default)

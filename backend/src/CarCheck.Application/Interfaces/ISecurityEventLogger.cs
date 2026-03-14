@@ -2,5 +2,5 @@ namespace CarCheck.Application.Interfaces;
 
 public interface ISecurityEventLogger
 {
-    Task LogAsync(Guid userId, string eventType, string? metadata = null, CancellationToken cancellationToken = default);
+    Task LogAsync(Guid userId, string eventType, string? metadata = null, string? ipAddress = null, CancellationToken cancellationToken = default);
 }

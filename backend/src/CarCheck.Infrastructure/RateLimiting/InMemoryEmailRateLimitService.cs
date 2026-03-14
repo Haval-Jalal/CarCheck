@@ -6,8 +6,10 @@ namespace CarCheck.Infrastructure.RateLimiting;
 public class InMemoryEmailRateLimitService : IEmailRateLimitService
 {
     private readonly IMemoryCache _cache;
-    private const int Max = 3;
     private static readonly TimeSpan Window = TimeSpan.FromHours(1);
+
+    // Password reset is more sensitive — 1 per hour to limit abuse
+    private static int GetMax(string action) => action == "reset" ? 1 : 3;
 
     public InMemoryEmailRateLimitService(IMemoryCache cache)
     {
@@ -17,7 +19,7 @@ public class InMemoryEmailRateLimitService : IEmailRateLimitService
     public bool IsRateLimited(string email, string action)
     {
         var key = BuildKey(email, action);
-        return _cache.TryGetValue(key, out int count) && count >= Max;
+        return _cache.TryGetValue(key, out int count) && count >= GetMax(action);
     }
 
     public void IncrementCount(string email, string action)

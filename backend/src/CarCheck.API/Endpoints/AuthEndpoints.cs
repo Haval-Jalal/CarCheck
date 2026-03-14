@@ -25,7 +25,8 @@ public static class AuthEndpoints
 
         group.MapPost("/login", async (LoginRequest request, AuthService authService, HttpContext httpContext) =>
         {
-            var result = await authService.LoginAsync(request);
+            var ip = httpContext.Connection.RemoteIpAddress?.ToString();
+            var result = await authService.LoginAsync(request, ip);
             if (!result.IsSuccess)
                 return Results.BadRequest(new { error = "Felaktig e-postadress eller lösenord." });
 
