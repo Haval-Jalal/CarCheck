@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Car, Lock, Zap, Trophy, ChevronRight, Search, Mail } from 'lucide-react'
+import { Car, Lock, Zap, Trophy, ChevronRight, Search, Mail, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,18 +37,8 @@ export function RegisterPage() {
   })
 
   const passwordValue = watch('password', '')
-  const passwordStrength = (() => {
-    if (!passwordValue) return 0
-    let score = 0
-    if (passwordValue.length >= 8) score++
-    if (passwordValue.length >= 12) score++
-    if (/[A-Z]/.test(passwordValue)) score++
-    if (/[0-9]/.test(passwordValue)) score++
-    if (/[^A-Za-z0-9]/.test(passwordValue)) score++
-    return score
-  })()
-  const strengthLabel = ['', 'Svagt', 'Svagt', 'Okej', 'Bra', 'Starkt'][passwordStrength]
-  const strengthColor = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'][passwordStrength]
+  const hasMinLength = passwordValue.length >= 8
+  const hasDigit = /[0-9]/.test(passwordValue)
 
   const onSubmit = async (data: RegisterFormData) => {
     setError(null)
@@ -208,21 +198,20 @@ export function RegisterPage() {
                 {...register('password')}
               />
               {passwordValue.length > 0 && (
-                <div className="space-y-1">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <div
-                        key={level}
-                        className={`h-1 flex-1 rounded-full transition-colors ${
-                          level <= passwordStrength ? strengthColor : 'bg-muted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Styrka: <span className="font-medium text-foreground">{strengthLabel}</span>
-                    {passwordValue.length < 8 && ' — minst 8 tecken krävs'}
-                  </p>
+                <div className="space-y-1 pt-1">
+                  {[
+                    { met: hasMinLength, label: 'Minst 8 tecken' },
+                    { met: hasDigit, label: 'Minst en siffra' },
+                  ].map(({ met, label }) => (
+                    <div key={label} className="flex items-center gap-1.5 text-xs">
+                      {met
+                        ? <Check className="h-3.5 w-3.5 text-green-500" />
+                        : <X className="h-3.5 w-3.5 text-muted-foreground" />}
+                      <span className={met ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                        {label}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
               {errors.password && (
