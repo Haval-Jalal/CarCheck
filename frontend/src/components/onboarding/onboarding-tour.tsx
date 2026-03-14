@@ -48,8 +48,7 @@ function getTooltipPosition(rect: Rect | null, position?: string): React.CSSProp
 }
 
 export function OnboardingTour() {
-  const { isActive, completeTour } = useTourStore()
-  const [stepIndex, setStepIndex] = useState(0)
+  const { isActive, stepIndex, setStep, completeTour } = useTourStore()
   const [targetRect, setTargetRect] = useState<Rect | null>(null)
   const [visible, setVisible] = useState(false)
   const navigate = useNavigate()
@@ -94,7 +93,7 @@ export function OnboardingTour() {
 
   const handleNext = () => {
     if (isLast) { completeTour(); return }
-    setStepIndex(i => i + 1)
+    setStep(stepIndex + 1)
   }
 
   const handleSkip = () => completeTour()
