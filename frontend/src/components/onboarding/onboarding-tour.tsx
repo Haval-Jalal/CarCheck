@@ -5,6 +5,7 @@ import { X, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTourStore } from '@/stores/tour.store'
 import { TOUR_STEPS } from './tour-steps'
+import { TourMiniDemo } from './tour-mini-demo'
 
 const PADDING = 12
 
@@ -68,14 +69,12 @@ export function OnboardingTour() {
     setVisible(false)
     navigatedRef.current = false
 
-    // Navigate to the step's route if not already there
     const needsNav = step.route && location.pathname !== step.route
     if (needsNav) {
       navigate(step.route, { replace: true })
       navigatedRef.current = true
     }
 
-    // Wait longer after navigation for page to render
     const delay = needsNav ? 400 : 80
     const t = setTimeout(() => {
       updateRect()
@@ -178,6 +177,7 @@ export function OnboardingTour() {
           </p>
           <h3 className="mb-2 text-lg font-bold text-white">{step.title}</h3>
           <p className="text-sm leading-relaxed text-slate-400">{step.description}</p>
+          <TourMiniDemo key={step.id} stepId={step.id} />
         </div>
 
         {/* Actions */}

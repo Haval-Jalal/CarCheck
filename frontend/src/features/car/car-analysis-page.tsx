@@ -149,7 +149,7 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
     '#ef4444'
 
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-4 space-y-3 sm:px-5 sm:space-y-4">
+    <div data-tour="analysis-score" className="rounded-xl border border-border bg-card px-4 py-4 space-y-3 sm:px-5 sm:space-y-4">
       <div className="flex items-center gap-4">
         {/* Score circle */}
         <div className={cn(
@@ -304,7 +304,7 @@ export function CarAnalysisPage() {
             )}
 
             {/* 12-faktor detaljanalys */}
-            <div className="space-y-3">
+            <div data-tour="analysis-factors" className="space-y-3">
               <p className="text-sm font-semibold text-muted-foreground">Detaljanalys — 12 faktorer</p>
               <div className="grid gap-3 md:grid-cols-2">
                 {CATEGORY_GROUPS.map((group) => (

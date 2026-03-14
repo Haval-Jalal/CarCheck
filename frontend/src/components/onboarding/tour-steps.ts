@@ -26,13 +26,13 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'analysis-score',
     route: '/dashboard',
     title: 'Analysresultatet — poäng & rekommendation',
-    description: 'När sökningen är klar ser du ett helhetsbetyg från 0–100 samt en tydlig rekommendation: Rekommenderas, Köp med försiktighet eller Undvik. Betyget baseras på faktorer som skadehistorik, antal ägare, körsträcka och marknadspris.',
+    description: 'När sökningen är klar ser du ett helhetsbetyg från 0–100 samt en tydlig rekommendation. Betyget baseras på faktorer som skadehistorik, antal ägare, körsträcka och marknadspris.',
   },
   {
     id: 'analysis-factors',
     route: '/dashboard',
     title: 'Klickbara detaljfaktorer',
-    description: 'Under betyget ser du alla analyserade faktorer, var och en färgkodad — grön, gul eller röd beroende på status. Klicka på valfri faktor för att öppna en detaljvy med fördjupad information, förklaring och vad du bör fråga säljaren.',
+    description: 'Under betyget ser du alla 12 analyserade faktorer. Klicka på valfri faktor för att öppna en detaljvy med fördjupad information och vad du bör fråga säljaren.',
   },
   {
     id: 'history',
