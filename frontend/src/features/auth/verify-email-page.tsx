@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Car, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/api/auth.api'
+import { useAuth } from '@/hooks/use-auth'
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams()
@@ -10,6 +11,7 @@ export function VerifyEmailPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const calledRef = useRef(false)
+  const { markEmailVerified } = useAuth()
 
   useEffect(() => {
     if (calledRef.current) return
@@ -22,7 +24,10 @@ export function VerifyEmailPage() {
     }
 
     authApi.verifyEmail(token)
-      .then(() => setStatus('success'))
+      .then(() => {
+        markEmailVerified()
+        setStatus('success')
+      })
       .catch((err) => {
         const msg = err?.response?.data?.error ?? 'Ogiltig eller utgången verifieringslänk.'
         setErrorMessage(msg)

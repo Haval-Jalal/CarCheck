@@ -15,21 +15,25 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   userEmail: string | null
+  emailVerified: boolean | null
 }
 
 type AuthAction =
-  | { type: 'LOGIN_SUCCESS'; email: string }
+  | { type: 'LOGIN_SUCCESS'; email: string; emailVerified: boolean }
   | { type: 'LOGOUT' }
   | { type: 'SET_LOADING'; isLoading: boolean }
+  | { type: 'EMAIL_VERIFIED' }
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case 'LOGIN_SUCCESS':
-      return { isAuthenticated: true, isLoading: false, userEmail: action.email }
+      return { isAuthenticated: true, isLoading: false, userEmail: action.email, emailVerified: action.emailVerified }
     case 'LOGOUT':
-      return { isAuthenticated: false, isLoading: false, userEmail: null }
+      return { isAuthenticated: false, isLoading: false, userEmail: null, emailVerified: null }
     case 'SET_LOADING':
       return { ...state, isLoading: action.isLoading }
+    case 'EMAIL_VERIFIED':
+      return { ...state, emailVerified: true }
   }
 }
 
@@ -38,6 +42,7 @@ interface AuthContextValue extends AuthState {
   register: (data: RegisterRequest) => Promise<void>
   logout: () => Promise<void>
   logoutAll: () => Promise<void>
+  markEmailVerified: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -58,11 +63,18 @@ function getEmailFromToken(token: string): string | null {
   return (payload.email as string) ?? (payload.sub as string) ?? null
 }
 
+function getEmailVerifiedFromToken(token: string): boolean {
+  const payload = parseJwtPayload(token)
+  if (!payload) return false
+  return payload['email_verified'] === 'true' || payload['email_verified'] === true
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, {
     isAuthenticated: false,
     isLoading: true,
     userEmail: null,
+    emailVerified: null,
   })
   const queryClient = useQueryClient()
 
@@ -73,7 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { accessToken, expiresAt } = response.data
         setTokens({ accessToken, expiresAt })
         const email = getEmailFromToken(accessToken)
-        dispatch({ type: 'LOGIN_SUCCESS', email: email || '' })
+        const emailVerified = getEmailVerifiedFromToken(accessToken)
+        dispatch({ type: 'LOGIN_SUCCESS', email: email || '', emailVerified })
       })
       .catch(() => {
         // No valid session (no cookie or expired) — user is logged out
@@ -89,7 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     queryClient.clear()
     const email = getEmailFromToken(response.data.accessToken)
-    dispatch({ type: 'LOGIN_SUCCESS', email: email || data.email })
+    const emailVerified = getEmailVerifiedFromToken(response.data.accessToken)
+    dispatch({ type: 'LOGIN_SUCCESS', email: email || data.email, emailVerified })
   }, [queryClient])
 
   const register = useCallback(async (data: RegisterRequest) => {
@@ -116,8 +130,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient])
 
+  const markEmailVerified = useCallback(() => {
+    dispatch({ type: 'EMAIL_VERIFIED' })
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout, logoutAll }}>
+    <AuthContext.Provider value={{ ...state, login, register, logout, logoutAll, markEmailVerified }}>
       {children}
     </AuthContext.Provider>
   )
