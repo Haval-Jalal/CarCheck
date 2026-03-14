@@ -26,6 +26,10 @@ public class SecurityEventConfiguration : IEntityTypeConfiguration<SecurityEvent
             .HasColumnName("metadata")
             .HasColumnType("jsonb");
 
+        builder.Property(s => s.IpAddress)
+            .HasColumnName("ip_address")
+            .HasMaxLength(45); // max IPv6 length
+
         builder.Property(s => s.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("NOW()");

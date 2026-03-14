@@ -61,7 +61,7 @@ public class AuthServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal("user@test.com", result.Value!.Email);
         await _userRepository.Received(1).AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(Arg.Any<Guid>(), "Registered", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(Arg.Any<Guid>(), "Registered", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class AuthServiceTests
         Assert.True(result.IsSuccess);
         Assert.Equal("access_token", result.Value!.AccessToken);
         Assert.Equal("refresh_token", result.Value.RefreshToken);
-        await _securityEventLogger.Received(1).LogAsync(user.Id, "Login", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "Login", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class AuthServiceTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Felaktig e-postadress eller lösenord.", result.Error);
-        await _securityEventLogger.Received(1).LogAsync(user.Id, "LoginFailed", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "LoginFailed", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class AuthServiceTests
 
         Assert.False(result.IsSuccess);
         Assert.Contains("låst", result.Error);
-        await _securityEventLogger.Received(1).LogAsync(user.Id, "LoginBlockedLockout", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "LoginBlockedLockout", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     // ===== Refresh =====
@@ -198,7 +198,7 @@ public class AuthServiceTests
         Assert.Equal("new_refresh", result.Value.RefreshToken);
         await _refreshTokenRepository.Received(1).RevokeAsync("old_refresh", Arg.Any<CancellationToken>());
         await _refreshTokenRepository.Received(1).AddAsync(Arg.Any<RefreshTokenEntry>(), Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(user.Id, "TokenRefreshed", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "TokenRefreshed", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class AuthServiceTests
 
         Assert.True(result.IsSuccess);
         await _refreshTokenRepository.Received(1).RevokeAsync("some_refresh_token", Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(userId, "Logout", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "Logout", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class AuthServiceTests
 
         Assert.True(result.IsSuccess);
         await _refreshTokenRepository.Received(1).RevokeAllForUserAsync(userId, Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(userId, "LogoutAll", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "LogoutAll", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     // ===== Change Password =====
@@ -274,7 +274,7 @@ public class AuthServiceTests
         Assert.True(result.IsSuccess);
         await _userRepository.Received(1).UpdateAsync(user, Arg.Any<CancellationToken>());
         await _refreshTokenRepository.Received(1).RevokeAllForUserAsync(user.Id, Arg.Any<CancellationToken>());
-        await _securityEventLogger.Received(1).LogAsync(user.Id, "PasswordChanged", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(user.Id, "PasswordChanged", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]

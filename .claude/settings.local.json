@@ -42,7 +42,9 @@
       "Bash(dotnet ef:*)",
       "Bash(PGPASSWORD='Lawanliam2016' psql:*)",
       "Bash(node:*)",
-      "Bash(start cmd:*)"
+      "Bash(start cmd:*)",
+      "Bash(git:*)",
+      "Bash(cmd:*)"
     ]
   }
 }

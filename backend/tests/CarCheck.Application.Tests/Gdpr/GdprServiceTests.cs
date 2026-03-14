@@ -126,15 +126,31 @@ public class GdprServiceTests
 
         await _sut.ExportUserDataAsync(userId);
 
-        await _securityEventLogger.Received(1).LogAsync(userId, "DataExported", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "DataExported", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     // ===== Request Data Deletion =====
 
     [Fact]
+    public async Task RequestDataDeletion_UnverifiedEmail_ReturnsFailure()
+    {
+        var user = User.Create("delete@example.com", "hashedpass");
+        var userId = user.Id;
+        // user.EmailVerified = false (default)
+
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+
+        var result = await _sut.RequestDataDeletionAsync(userId, "CorrectPass123!", null);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("E-postadressen måste verifieras innan kontot kan raderas.", result.Error);
+    }
+
+    [Fact]
     public async Task RequestDataDeletion_ValidUser_DeletesAndReturnsSuccess()
     {
         var user = User.Create("delete@example.com", "hashedpass");
+        user.VerifyEmail();
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
@@ -164,6 +180,7 @@ public class GdprServiceTests
     public async Task RequestDataDeletion_WrongPassword_ReturnsFailure()
     {
         var user = User.Create("delete@example.com", "hashedpass");
+        user.VerifyEmail();
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
@@ -179,6 +196,7 @@ public class GdprServiceTests
     public async Task RequestDataDeletion_RevokesSessionsBeforeDeletion()
     {
         var user = User.Create("revoke@example.com", "hashedpass");
+        user.VerifyEmail();
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
@@ -189,7 +207,7 @@ public class GdprServiceTests
         Received.InOrder(() =>
         {
             _refreshTokenRepository.RevokeAllForUserAsync(userId, Arg.Any<CancellationToken>());
-            _securityEventLogger.LogAsync(userId, "DataDeletionRequested", null, Arg.Any<CancellationToken>());
+            _securityEventLogger.LogAsync(userId, "DataDeletionRequested", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
             _userRepository.DeleteAsync(userId, Arg.Any<CancellationToken>());
         });
     }
@@ -198,6 +216,7 @@ public class GdprServiceTests
     public async Task RequestDataDeletion_LogsSecurityEvent()
     {
         var user = User.Create("log-del@example.com", "hashedpass");
+        user.VerifyEmail();
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
@@ -205,6 +224,6 @@ public class GdprServiceTests
 
         await _sut.RequestDataDeletionAsync(userId, "CorrectPass123!", null);
 
-        await _securityEventLogger.Received(1).LogAsync(userId, "DataDeletionRequested", null, Arg.Any<CancellationToken>());
+        await _securityEventLogger.Received(1).LogAsync(userId, "DataDeletionRequested", null, Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 }

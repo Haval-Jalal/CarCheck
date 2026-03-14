@@ -6,8 +6,6 @@ namespace CarCheck.API.Middleware;
 public class RateLimitingMiddleware
 {
     private readonly RequestDelegate _next;
-    private const int MaxRequestsPerMinute = 30;
-    private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
 
     public RateLimitingMiddleware(RequestDelegate next)
     {
@@ -16,8 +14,9 @@ public class RateLimitingMiddleware
 
     public async Task InvokeAsync(HttpContext context, IRateLimitService rateLimitService)
     {
+        var (limit, window) = GetRouteLimit(context);
         var key = GetRateLimitKey(context);
-        var result = await rateLimitService.CheckAsync(key, MaxRequestsPerMinute, Window);
+        var result = await rateLimitService.CheckAsync(key, limit, window);
 
         context.Response.Headers["X-RateLimit-Limit"] = result.Limit.ToString();
         context.Response.Headers["X-RateLimit-Remaining"] = result.Remaining.ToString();
@@ -34,16 +33,51 @@ public class RateLimitingMiddleware
         await _next(context);
     }
 
+    private static (int limit, TimeSpan window) GetRouteLimit(HttpContext context)
+    {
+        var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
+        var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
+
+        if (!isAuthenticated)
+        {
+            if (path.StartsWith("/api/auth/login"))
+                return (5, TimeSpan.FromMinutes(1));
+
+            if (path.StartsWith("/api/auth/forgot-password"))
+                return (5, TimeSpan.FromMinutes(1));
+
+            if (path.StartsWith("/api/auth/register"))
+                return (10, TimeSpan.FromMinutes(1));
+
+            if (path.StartsWith("/api/public/"))
+                return (15, TimeSpan.FromMinutes(1));
+        }
+
+        return (30, TimeSpan.FromMinutes(1));
+    }
+
     private static string GetRateLimitKey(HttpContext context)
     {
-        // Use user ID for authenticated requests, IP for anonymous
+        var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
+
         var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? context.User.FindFirst("sub")?.Value;
+
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        // For sensitive unauthenticated routes, always key by IP (not userId)
+        if (!context.User.Identity?.IsAuthenticated == true &&
+            (path.StartsWith("/api/auth/login") ||
+             path.StartsWith("/api/auth/forgot-password") ||
+             path.StartsWith("/api/auth/register") ||
+             path.StartsWith("/api/public/")))
+        {
+            return $"rl:ip:{path.Split('/')[3]}:{ip}";
+        }
 
         if (userId is not null)
             return $"rl:user:{userId}";
 
-        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return $"rl:ip:{ip}";
     }
 }

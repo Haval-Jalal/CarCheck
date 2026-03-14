@@ -13,9 +13,9 @@ public class SecurityEventLogger : ISecurityEventLogger
         _context = context;
     }
 
-    public async Task LogAsync(Guid userId, string eventType, string? metadata = null, CancellationToken cancellationToken = default)
+    public async Task LogAsync(Guid userId, string eventType, string? metadata = null, string? ipAddress = null, CancellationToken cancellationToken = default)
     {
-        var securityEvent = SecurityEvent.Create(userId, eventType, metadata);
+        var securityEvent = SecurityEvent.Create(userId, eventType, metadata, ipAddress);
         await _context.SecurityEvents.AddAsync(securityEvent, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }

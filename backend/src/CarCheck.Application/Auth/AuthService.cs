@@ -1,6 +1,7 @@
 using CarCheck.Application.Auth.DTOs;
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Entities;
+using CarCheck.Domain.Exceptions;
 using CarCheck.Domain.Interfaces;
 using CarCheck.Domain.ValueObjects;
 
@@ -57,8 +58,16 @@ public class AuthService
         var hash = _passwordHasher.Hash(request.Password);
         var user = User.Create(request.Email, hash);
 
-        await _userRepository.AddAsync(user, cancellationToken);
-        await _securityEventLogger.LogAsync(user.Id, "Registered", null, cancellationToken);
+        try
+        {
+            await _userRepository.AddAsync(user, cancellationToken);
+        }
+        catch (DuplicateEmailException)
+        {
+            return Result<UserResponse>.Failure("E-postadressen är redan registrerad.");
+        }
+
+        await _securityEventLogger.LogAsync(user.Id, "Registered", null, null, cancellationToken);
 
         var verification = EmailVerification.Create(user.Id, TimeSpan.FromHours(24));
         await _emailVerificationRepository.AddAsync(verification, cancellationToken);
@@ -94,12 +103,12 @@ public class AuthService
         verification.MarkUsed();
         await _emailVerificationRepository.UpdateAsync(verification, cancellationToken);
 
-        await _securityEventLogger.LogAsync(user.Id, "EmailVerified", null, cancellationToken);
+        await _securityEventLogger.LogAsync(user.Id, "EmailVerified", cancellationToken: cancellationToken);
 
         return Result<bool>.Success(true);
     }
 
-    public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthResponse>> LoginAsync(LoginRequest request, string? ipAddress = null, CancellationToken cancellationToken = default)
     {
         var email = Email.Create(request.Email);
         var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
@@ -113,7 +122,7 @@ public class AuthService
 
         if (user.IsLockedOut())
         {
-            await _securityEventLogger.LogAsync(user.Id, "LoginBlockedLockout", null, cancellationToken);
+            await _securityEventLogger.LogAsync(user.Id, "LoginBlockedLockout", null, ipAddress, cancellationToken);
             return Result<AuthResponse>.Failure("Kontot är tillfälligt låst på grund av för många misslyckade inloggningsförsök. Försök igen om 30 minuter.");
         }
 
@@ -121,7 +130,7 @@ public class AuthService
         {
             user.RecordFailedLogin();
             await _userRepository.UpdateAsync(user, cancellationToken);
-            await _securityEventLogger.LogAsync(user.Id, "LoginFailed", null, cancellationToken);
+            await _securityEventLogger.LogAsync(user.Id, "LoginFailed", null, ipAddress, cancellationToken);
             return Result<AuthResponse>.Failure("Felaktig e-postadress eller lösenord.");
         }
 
@@ -145,7 +154,7 @@ public class AuthService
             CreatedAt = DateTime.UtcNow
         }, cancellationToken);
 
-        await _securityEventLogger.LogAsync(user.Id, "Login", null, cancellationToken);
+        await _securityEventLogger.LogAsync(user.Id, "Login", null, ipAddress, cancellationToken);
 
         return Result<AuthResponse>.Success(new AuthResponse(accessToken, refreshToken, DateTime.UtcNow.AddMinutes(15)));
     }
@@ -178,7 +187,7 @@ public class AuthService
         }, cancellationToken);
 
         // Log rotation event (VULN-019)
-        await _securityEventLogger.LogAsync(user.Id, "TokenRefreshed", null, cancellationToken);
+        await _securityEventLogger.LogAsync(user.Id, "TokenRefreshed", cancellationToken: cancellationToken);
 
         return Result<AuthResponse>.Success(new AuthResponse(newAccessToken, newRefreshToken, DateTime.UtcNow.AddMinutes(15)));
     }
@@ -188,7 +197,7 @@ public class AuthService
         if (!string.IsNullOrEmpty(refreshToken))
             await _refreshTokenRepository.RevokeAsync(refreshToken, cancellationToken);
 
-        await _securityEventLogger.LogAsync(userId, "Logout", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "Logout", cancellationToken: cancellationToken);
 
         return Result<bool>.Success(true);
     }
@@ -196,7 +205,7 @@ public class AuthService
     public async Task<Result<bool>> LogoutAllAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         await _refreshTokenRepository.RevokeAllForUserAsync(userId, cancellationToken);
-        await _securityEventLogger.LogAsync(userId, "LogoutAll", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "LogoutAll", cancellationToken: cancellationToken);
 
         return Result<bool>.Success(true);
     }
@@ -231,12 +240,12 @@ public class AuthService
         if (user is null)
             return Result<bool>.Success(true);
 
-        var reset = PasswordReset.Create(user.Id, TimeSpan.FromHours(1));
+        var (reset, rawToken) = PasswordReset.Create(user.Id, TimeSpan.FromHours(1));
         await _passwordResetRepository.AddAsync(reset, cancellationToken);
 
-        await _emailService.SendPasswordResetAsync(email.Value, reset.Token, cancellationToken);
+        await _emailService.SendPasswordResetAsync(email.Value, rawToken, cancellationToken);
 
-        await _securityEventLogger.LogAsync(user.Id, "PasswordResetRequested", null, cancellationToken);
+        await _securityEventLogger.LogAsync(user.Id, "PasswordResetRequested", cancellationToken: cancellationToken);
 
         _emailRateLimit.IncrementCount(request.Email, "reset");
 
@@ -265,7 +274,7 @@ public class AuthService
         await _userRepository.UpdateAsync(user, cancellationToken);
 
         await _refreshTokenRepository.RevokeAllForUserAsync(user.Id, cancellationToken);
-        await _securityEventLogger.LogAsync(user.Id, "PasswordReset", null, cancellationToken);
+        await _securityEventLogger.LogAsync(user.Id, "PasswordReset", cancellationToken: cancellationToken);
 
         return Result<bool>.Success(true);
     }
@@ -287,7 +296,7 @@ public class AuthService
         await _userRepository.UpdateAsync(user, cancellationToken);
 
         await _refreshTokenRepository.RevokeAllForUserAsync(userId, cancellationToken);
-        await _securityEventLogger.LogAsync(userId, "PasswordChanged", null, cancellationToken);
+        await _securityEventLogger.LogAsync(userId, "PasswordChanged", cancellationToken: cancellationToken);
 
         return Result<bool>.Success(true);
     }

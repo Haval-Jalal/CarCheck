@@ -6,11 +6,12 @@ public class SecurityEvent
     public Guid UserId { get; private set; }
     public string Type { get; private set; } = string.Empty;
     public string? Metadata { get; private set; }
+    public string? IpAddress { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
     private SecurityEvent() { }
 
-    public static SecurityEvent Create(Guid userId, string type, string? metadata = null)
+    public static SecurityEvent Create(Guid userId, string type, string? metadata = null, string? ipAddress = null)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID is required.", nameof(userId));
@@ -24,6 +25,7 @@ public class SecurityEvent
             UserId = userId,
             Type = type,
             Metadata = metadata,
+            IpAddress = ipAddress,
             CreatedAt = DateTime.UtcNow
         };
     }
