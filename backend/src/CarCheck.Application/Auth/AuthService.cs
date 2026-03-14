@@ -303,10 +303,8 @@ public class AuthService
 
     private static string? ValidatePasswordStrength(string password)
     {
-        if (password.Length < 12)
-            return "Lösenordet måste vara minst 12 tecken.";
-        if (!password.Any(char.IsUpper))
-            return "Lösenordet måste innehålla minst en stor bokstav.";
+        if (password.Length < 8)
+            return "Lösenordet måste vara minst 8 tecken.";
         if (!password.Any(char.IsDigit))
             return "Lösenordet måste innehålla minst en siffra.";
         return null;
