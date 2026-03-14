@@ -7,9 +7,11 @@ const apiClient = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 10_000,
+  // Needed so the browser sends the HttpOnly refresh-token cookie on cross-origin requests
+  withCredentials: true,
 })
 
-// Request interceptor: attach access token
+// Request interceptor: attach in-memory access token
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const tokens = getTokens()
   if (tokens?.accessToken) {
@@ -84,16 +86,11 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const tokens = getTokens()
-        if (!tokens?.refreshToken) throw new Error('No refresh token')
-
-        const { data } = await axios.post('/api/auth/refresh', {
-          refreshToken: tokens.refreshToken,
-        })
+        // Refresh token is in an HttpOnly cookie — sent automatically (withCredentials: true)
+        const { data } = await axios.post('/api/auth/refresh', {}, { withCredentials: true })
 
         setTokens({
           accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
           expiresAt: data.expiresAt,
         })
 

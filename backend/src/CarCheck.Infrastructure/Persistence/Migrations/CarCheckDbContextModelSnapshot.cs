@@ -367,6 +367,16 @@ namespace CarCheck.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("credits");
 
+                    b.Property<int>("FailedLoginAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("failed_login_attempts");
+
+                    b.Property<DateTime?>("LockoutUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lockout_until");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

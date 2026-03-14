@@ -7,6 +7,8 @@ namespace CarCheck.API.Endpoints;
 
 public static class AuthEndpoints
 {
+    private const string RefreshTokenCookie = "__rt";
+
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/auth").WithTags("Authentication");
@@ -21,16 +23,15 @@ public static class AuthEndpoints
         .WithName("Register")
         .AllowAnonymous();
 
-        group.MapPost("/login", async (LoginRequest request, AuthService authService) =>
+        group.MapPost("/login", async (LoginRequest request, AuthService authService, HttpContext httpContext) =>
         {
             var result = await authService.LoginAsync(request);
-            if (result.IsSuccess) return Results.Ok(result.Value);
+            if (!result.IsSuccess)
+                return Results.BadRequest(new { error = "Felaktig e-postadress eller lösenord." });
 
-            // Unverified email gets a distinct code so the frontend can offer a resend link.
-            // All other failures return the same generic message (no user enumeration).
-            return result.Error!.Contains("verifiera")
-                ? Results.BadRequest(new { error = result.Error, code = "email_not_verified" })
-                : Results.BadRequest(new { error = "Felaktig e-postadress eller lösenord." });
+            SetRefreshTokenCookie(httpContext, result.Value!.RefreshToken, httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>());
+
+            return Results.Ok(new AuthTokenResponse(result.Value.AccessToken, result.Value.ExpiresAt));
         })
         .WithName("Login")
         .AllowAnonymous();
@@ -44,22 +45,35 @@ public static class AuthEndpoints
         .WithName("ResendVerification")
         .AllowAnonymous();
 
-        group.MapPost("/refresh", async (RefreshRequest request, AuthService authService) =>
+        group.MapPost("/refresh", async (AuthService authService, HttpContext httpContext) =>
         {
-            var result = await authService.RefreshAsync(request);
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.Unauthorized();
+            var refreshToken = httpContext.Request.Cookies[RefreshTokenCookie];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Results.Unauthorized();
+
+            var result = await authService.RefreshAsync(refreshToken);
+            if (!result.IsSuccess)
+            {
+                ClearRefreshTokenCookie(httpContext);
+                return Results.Unauthorized();
+            }
+
+            SetRefreshTokenCookie(httpContext, result.Value!.RefreshToken, httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>());
+
+            return Results.Ok(new AuthTokenResponse(result.Value.AccessToken, result.Value.ExpiresAt));
         })
         .WithName("RefreshToken")
         .AllowAnonymous();
 
-        group.MapPost("/logout", async (RefreshRequest request, AuthService authService, ClaimsPrincipal user) =>
+        group.MapPost("/logout", async (AuthService authService, ClaimsPrincipal user, HttpContext httpContext) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
 
-            var result = await authService.LogoutAsync(userId.Value, request.RefreshToken);
+            var refreshToken = httpContext.Request.Cookies[RefreshTokenCookie];
+            ClearRefreshTokenCookie(httpContext);
+
+            var result = await authService.LogoutAsync(userId.Value, refreshToken);
             return result.IsSuccess
                 ? Results.Ok(new { message = "Du har loggats ut." })
                 : Results.BadRequest(new { error = result.Error });
@@ -67,10 +81,12 @@ public static class AuthEndpoints
         .WithName("Logout")
         .RequireAuthorization();
 
-        group.MapPost("/logout-all", async (AuthService authService, ClaimsPrincipal user) =>
+        group.MapPost("/logout-all", async (AuthService authService, ClaimsPrincipal user, HttpContext httpContext) =>
         {
             var userId = GetUserId(user);
             if (userId is null) return Results.Unauthorized();
+
+            ClearRefreshTokenCookie(httpContext);
 
             var result = await authService.LogoutAllAsync(userId.Value);
             return result.IsSuccess
@@ -120,6 +136,23 @@ public static class AuthEndpoints
         })
         .WithName("VerifyEmail")
         .AllowAnonymous();
+    }
+
+    private static void SetRefreshTokenCookie(HttpContext ctx, string token, IWebHostEnvironment env)
+    {
+        ctx.Response.Cookies.Append(RefreshTokenCookie, token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = !env.IsDevelopment(),
+            SameSite = env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.None,
+            Expires = DateTimeOffset.UtcNow.AddDays(7),
+            Path = "/api/auth",
+        });
+    }
+
+    private static void ClearRefreshTokenCookie(HttpContext ctx)
+    {
+        ctx.Response.Cookies.Delete(RefreshTokenCookie, new CookieOptions { Path = "/api/auth" });
     }
 
     private static Guid? GetUserId(ClaimsPrincipal user)

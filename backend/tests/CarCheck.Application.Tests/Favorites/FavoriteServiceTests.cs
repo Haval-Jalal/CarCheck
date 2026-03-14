@@ -88,7 +88,7 @@ public class FavoriteServiceTests
         var result = await _sut.AddFavoriteAsync(userId, new AddFavoriteRequest(carId));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Car not found.", result.Error);
+        Assert.Equal("Bilen hittades inte.", result.Error);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class FavoriteServiceTests
         var result = await _sut.AddFavoriteAsync(userId, new AddFavoriteRequest(car.Id));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Car is already in favorites.", result.Error);
+        Assert.Equal("Bilen finns redan i favoriter.", result.Error);
     }
 
     // ===== Remove Favorite =====
@@ -137,7 +137,7 @@ public class FavoriteServiceTests
         var result = await _sut.RemoveFavoriteAsync(userId, carId);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Favorite not found.", result.Error);
+        Assert.Equal("Favoriten hittades inte.", result.Error);
     }
 
     // ===== Check Favorite =====

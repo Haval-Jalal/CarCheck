@@ -9,6 +9,10 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Only run when backend files change (DEPLOY-004)
+    if: >
+      contains(toJson(github.event.commits), 'backend/') ||
+      github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -53,7 +57,12 @@ jobs:
         run: dotnet restore backend/CarCheck.sln
 
       - name: Check for vulnerable packages
-        run: dotnet list backend/CarCheck.sln package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+        run: |
+          dotnet list backend/CarCheck.sln package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+          if grep -q "has the following vulnerable packages" vulnerability-report.txt; then
+            echo "::error::Critical vulnerable packages found — see vulnerability-report.txt"
+            exit 1
+          fi
 
       - name: Upload vulnerability report
         if: always()
@@ -61,3 +70,29 @@ jobs:
         with:
           name: vulnerability-report
           path: vulnerability-report.txt
+
+  frontend-typecheck:
+    runs-on: ubuntu-latest
+    # Only run when frontend files change (DEPLOY-004)
+    if: >
+      contains(toJson(github.event.commits), 'frontend/') ||
+      github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+        working-directory: frontend

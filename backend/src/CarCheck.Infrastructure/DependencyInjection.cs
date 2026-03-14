@@ -20,7 +20,10 @@ namespace CarCheck.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        bool isProduction = false)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -47,7 +50,7 @@ public static class DependencyInjection
         services.AddScoped<ISecurityEventLogger, SecurityEventLogger>();
         services.AddScoped<AuthService>();
 
-        // Caching
+        // Caching (also used by AuthService for email rate limiting)
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, InMemoryCacheService>();
 
@@ -62,8 +65,14 @@ public static class DependencyInjection
         services.AddScoped<SearchHistoryService>();
         services.AddScoped<FavoriteService>();
 
-        // Rate limiting & CAPTCHA
+        // Rate limiting
         services.AddSingleton<IRateLimitService, InMemoryRateLimitService>();
+        services.AddSingleton<IEmailRateLimitService, InMemoryEmailRateLimitService>();
+
+        // CAPTCHA — MockCaptchaService must never be used in production (VULN-003)
+        if (isProduction)
+            throw new InvalidOperationException(
+                "MockCaptchaService is not allowed in production. Register a real ICaptchaService implementation.");
         services.AddScoped<ICaptchaService, MockCaptchaService>();
 
         // Billing & Subscriptions
@@ -78,14 +87,13 @@ public static class DependencyInjection
         // GDPR
         services.AddScoped<GdprService>();
 
-        // Email (Resend)
-        var resendApiKey = configuration["Resend:ApiKey"]
-            ?? throw new InvalidOperationException("Resend:ApiKey is not configured.");
+        // Email (Resend) — auth header injected via DelegatingHandler (VULN-015)
+        services.AddTransient<ResendAuthHandler>();
         services.AddHttpClient<IEmailService, ResendEmailService>(client =>
         {
             client.BaseAddress = new Uri("https://api.resend.com/");
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {resendApiKey}");
-        });
+        })
+        .AddHttpMessageHandler<ResendAuthHandler>();
 
         return services;
     }

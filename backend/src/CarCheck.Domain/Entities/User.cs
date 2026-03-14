@@ -4,6 +4,9 @@ namespace CarCheck.Domain.Entities;
 
 public class User
 {
+    private const int MaxFailedAttempts = 5;
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(30);
+
     public Guid Id { get; private set; }
     public Email Email { get; private set; } = null!;
     public string PasswordHash { get; private set; } = string.Empty;
@@ -11,6 +14,8 @@ public class User
     public bool TwoFactorEnabled { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public int Credits { get; private set; }
+    public int FailedLoginAttempts { get; private set; }
+    public DateTime? LockoutUntil { get; private set; }
 
     private User() { }
 
@@ -26,8 +31,25 @@ public class User
             PasswordHash = passwordHash,
             EmailVerified = false,
             TwoFactorEnabled = false,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            FailedLoginAttempts = 0,
         };
+    }
+
+    public bool IsLockedOut() =>
+        LockoutUntil.HasValue && LockoutUntil.Value > DateTime.UtcNow;
+
+    public void RecordFailedLogin()
+    {
+        FailedLoginAttempts++;
+        if (FailedLoginAttempts >= MaxFailedAttempts)
+            LockoutUntil = DateTime.UtcNow.Add(LockoutDuration);
+    }
+
+    public void RecordSuccessfulLogin()
+    {
+        FailedLoginAttempts = 0;
+        LockoutUntil = null;
     }
 
     public void VerifyEmail() => EmailVerified = true;

@@ -15,9 +15,8 @@ public class DeletionFeedbackRepository : IDeletionFeedbackRepository
 
     public async Task AddAsync(string reason, CancellationToken cancellationToken = default)
     {
-        await _context.Database.ExecuteSqlRawAsync(
-            "INSERT INTO deletion_feedback (reason) VALUES ({0})",
-            new object[] { reason },
+        await _context.Database.ExecuteSqlInterpolatedAsync(
+            $"INSERT INTO deletion_feedback (reason) VALUES ({reason})",
             cancellationToken);
     }
 }

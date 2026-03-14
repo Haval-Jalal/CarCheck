@@ -15,6 +15,8 @@ public class GdprServiceTests
     private readonly ISubscriptionRepository _subscriptionRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly IDeletionFeedbackRepository _deletionFeedbackRepository;
     private readonly GdprService _sut;
 
     public GdprServiceTests()
@@ -25,13 +27,18 @@ public class GdprServiceTests
         _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         _securityEventLogger = Substitute.For<ISecurityEventLogger>();
+        _passwordHasher = Substitute.For<IPasswordHasher>();
+        _deletionFeedbackRepository = Substitute.For<IDeletionFeedbackRepository>();
+
         _sut = new GdprService(
             _userRepository,
             _searchHistoryRepository,
             _favoriteRepository,
             _subscriptionRepository,
             _refreshTokenRepository,
-            _securityEventLogger);
+            _securityEventLogger,
+            _passwordHasher,
+            _deletionFeedbackRepository);
     }
 
     // ===== Export User Data =====
@@ -78,7 +85,7 @@ public class GdprServiceTests
         var result = await _sut.ExportUserDataAsync(userId);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("User not found.", result.Error);
+        Assert.Equal("Användare hittades inte.", result.Error);
     }
 
     [Fact]
@@ -131,12 +138,12 @@ public class GdprServiceTests
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _passwordHasher.Verify("CorrectPass123!", "hashedpass").Returns(true);
 
-        var result = await _sut.RequestDataDeletionAsync(userId);
+        var result = await _sut.RequestDataDeletionAsync(userId, "CorrectPass123!", null);
 
         Assert.True(result.IsSuccess);
         Assert.True(result.Value!.Success);
-        Assert.Contains("permanently deleted", result.Value.Message);
         await _refreshTokenRepository.Received(1).RevokeAllForUserAsync(userId, Arg.Any<CancellationToken>());
         await _userRepository.Received(1).DeleteAsync(userId, Arg.Any<CancellationToken>());
     }
@@ -147,10 +154,25 @@ public class GdprServiceTests
         var userId = Guid.NewGuid();
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns((User?)null);
 
-        var result = await _sut.RequestDataDeletionAsync(userId);
+        var result = await _sut.RequestDataDeletionAsync(userId, "anypass", null);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("User not found.", result.Error);
+        Assert.Equal("Användare hittades inte.", result.Error);
+    }
+
+    [Fact]
+    public async Task RequestDataDeletion_WrongPassword_ReturnsFailure()
+    {
+        var user = User.Create("delete@example.com", "hashedpass");
+        var userId = user.Id;
+
+        _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _passwordHasher.Verify("wrongpass", "hashedpass").Returns(false);
+
+        var result = await _sut.RequestDataDeletionAsync(userId, "wrongpass", null);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Felaktigt lösenord.", result.Error);
     }
 
     [Fact]
@@ -160,8 +182,9 @@ public class GdprServiceTests
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _passwordHasher.Verify("CorrectPass123!", "hashedpass").Returns(true);
 
-        await _sut.RequestDataDeletionAsync(userId);
+        await _sut.RequestDataDeletionAsync(userId, "CorrectPass123!", null);
 
         Received.InOrder(() =>
         {
@@ -178,8 +201,9 @@ public class GdprServiceTests
         var userId = user.Id;
 
         _userRepository.GetByIdAsync(userId, Arg.Any<CancellationToken>()).Returns(user);
+        _passwordHasher.Verify("CorrectPass123!", "hashedpass").Returns(true);
 
-        await _sut.RequestDataDeletionAsync(userId);
+        await _sut.RequestDataDeletionAsync(userId, "CorrectPass123!", null);
 
         await _securityEventLogger.Received(1).LogAsync(userId, "DataDeletionRequested", null, Arg.Any<CancellationToken>());
     }

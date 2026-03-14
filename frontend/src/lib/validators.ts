@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+const passwordSchema = z
+  .string()
+  .min(12, 'Lösenordet måste vara minst 12 tecken')
+  .regex(/[A-Z]/, 'Lösenordet måste innehålla minst en stor bokstav')
+  .regex(/[0-9]/, 'Lösenordet måste innehålla minst en siffra')
+
 export const loginSchema = z.object({
   email: z.string().email('Ange en giltig e-postadress'),
   password: z.string().min(1, 'Ange ditt lösenord'),
@@ -8,7 +14,7 @@ export const loginSchema = z.object({
 export const registerSchema = z
   .object({
     email: z.string().email('Ange en giltig e-postadress'),
-    password: z.string().min(8, 'Lösenordet måste vara minst 8 tecken'),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -19,7 +25,7 @@ export const registerSchema = z
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Ange ditt nuvarande lösenord'),
-    newPassword: z.string().min(8, 'Lösenordet måste vara minst 8 tecken'),
+    newPassword: passwordSchema,
     confirmNewPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
@@ -41,7 +47,7 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    newPassword: z.string().min(8, 'Lösenordet måste vara minst 8 tecken'),
+    newPassword: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

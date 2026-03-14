@@ -11,6 +11,7 @@ public class ResendEmailService : IEmailService
     private readonly ILogger<ResendEmailService> _logger;
     private readonly string _frontendBaseUrl;
 
+    // Authorization header is injected by ResendAuthHandler — no API key stored here.
     public ResendEmailService(HttpClient http, IConfiguration configuration, ILogger<ResendEmailService> logger)
     {
         _http = http;

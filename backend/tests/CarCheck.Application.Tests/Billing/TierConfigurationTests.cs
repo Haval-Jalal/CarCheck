@@ -10,11 +10,11 @@ public class TierConfigurationTests
     {
         var limits = TierConfiguration.GetLimits(SubscriptionTier.Free);
 
-        Assert.Equal(5, limits.DailySearches);
-        Assert.Equal(50, limits.MonthlySearches);
-        Assert.False(limits.AnalysisIncluded);
+        Assert.Equal(3, limits.DailySearches);
+        Assert.Equal(90, limits.MonthlySearches);
+        Assert.True(limits.AnalysisIncluded);
         Assert.Equal(0m, limits.PricePerMonthSek);
-        Assert.Equal("Free", limits.Name);
+        Assert.Equal("Gratis", limits.Name);
     }
 
     [Fact]
@@ -22,10 +22,10 @@ public class TierConfigurationTests
     {
         var limits = TierConfiguration.GetLimits(SubscriptionTier.Pro);
 
-        Assert.Equal(50, limits.DailySearches);
-        Assert.Equal(500, limits.MonthlySearches);
+        Assert.Equal(int.MaxValue, limits.DailySearches);
+        Assert.Equal(int.MaxValue, limits.MonthlySearches);
         Assert.True(limits.AnalysisIncluded);
-        Assert.Equal(99m, limits.PricePerMonthSek);
+        Assert.Equal(499m, limits.PricePerMonthSek);
     }
 
     [Fact]
@@ -36,6 +36,6 @@ public class TierConfigurationTests
         Assert.Equal(int.MaxValue, limits.DailySearches);
         Assert.Equal(int.MaxValue, limits.MonthlySearches);
         Assert.True(limits.AnalysisIncluded);
-        Assert.Equal(249m, limits.PricePerMonthSek);
+        Assert.Equal(499m, limits.PricePerMonthSek);
     }
 }

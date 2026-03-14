@@ -135,7 +135,7 @@ public class SearchHistoryServiceTests
         var result = await _sut.DeleteEntryAsync(userId, entryId);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Entry not found.", result.Error);
+        Assert.Equal("Historikposten hittades inte.", result.Error);
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class SearchHistoryServiceTests
         var result = await _sut.DeleteEntryAsync(userId, entry.Id);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Entry not found.", result.Error);
+        Assert.Equal("Historikposten hittades inte.", result.Error);
         await _searchHistoryRepository.DidNotReceive().DeleteByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 

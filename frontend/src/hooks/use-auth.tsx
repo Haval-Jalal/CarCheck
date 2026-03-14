@@ -8,7 +8,7 @@ import {
 } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api/auth.api'
-import { getTokens, setTokens, clearTokens } from '@/lib/token'
+import { setTokens, clearTokens } from '@/lib/token'
 import type { LoginRequest, RegisterRequest } from '@/types/auth.types'
 
 interface AuthState {
@@ -66,21 +66,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
   const queryClient = useQueryClient()
 
+  // Restore session from the HttpOnly refresh-token cookie via silent refresh
   useEffect(() => {
-    const tokens = getTokens()
-    if (tokens?.accessToken) {
-      const email = getEmailFromToken(tokens.accessToken)
-      dispatch({ type: 'LOGIN_SUCCESS', email: email || '' })
-    } else {
-      dispatch({ type: 'SET_LOADING', isLoading: false })
-    }
-  }, [])
+    authApi.refresh()
+      .then((response) => {
+        const { accessToken, expiresAt } = response.data
+        setTokens({ accessToken, expiresAt })
+        const email = getEmailFromToken(accessToken)
+        dispatch({ type: 'LOGIN_SUCCESS', email: email || '' })
+      })
+      .catch(() => {
+        // No valid session (no cookie or expired) — user is logged out
+        dispatch({ type: 'SET_LOADING', isLoading: false })
+      })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const login = useCallback(async (data: LoginRequest) => {
     const response = await authApi.login(data)
     setTokens({
       accessToken: response.data.accessToken,
-      refreshToken: response.data.refreshToken,
       expiresAt: response.data.expiresAt,
     })
     queryClient.clear()
@@ -94,10 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      const tokens = getTokens()
-      if (tokens?.refreshToken) {
-        await authApi.logout({ refreshToken: tokens.refreshToken })
-      }
+      await authApi.logout()
     } finally {
       clearTokens()
       queryClient.clear()

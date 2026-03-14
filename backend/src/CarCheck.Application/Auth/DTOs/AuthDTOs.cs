@@ -16,4 +16,7 @@ public record ResendVerificationRequest(string Email);
 
 public record AuthResponse(string AccessToken, string RefreshToken, DateTime ExpiresAt);
 
+// HTTP response — never includes the refresh token (sent as HttpOnly cookie instead)
+public record AuthTokenResponse(string AccessToken, DateTime ExpiresAt);
+
 public record UserResponse(Guid Id, string Email, bool EmailVerified, bool TwoFactorEnabled);

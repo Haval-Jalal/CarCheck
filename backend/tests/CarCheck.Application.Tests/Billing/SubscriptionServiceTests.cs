@@ -15,6 +15,7 @@ public class SubscriptionServiceTests
     private readonly IBillingProvider _billingProvider;
     private readonly ISecurityEventLogger _securityEventLogger;
     private readonly ICreditTransactionRepository _transactionRepository;
+    private readonly IEmailService _emailService;
     private readonly SubscriptionService _sut;
 
     public SubscriptionServiceTests()
@@ -24,13 +25,15 @@ public class SubscriptionServiceTests
         _billingProvider = Substitute.For<IBillingProvider>();
         _securityEventLogger = Substitute.For<ISecurityEventLogger>();
         _transactionRepository = Substitute.For<ICreditTransactionRepository>();
+        _emailService = Substitute.For<IEmailService>();
 
         _sut = new SubscriptionService(
             _subscriptionRepository,
             _userRepository,
             _billingProvider,
             _securityEventLogger,
-            _transactionRepository);
+            _transactionRepository,
+            _emailService);
     }
 
     // ===== Get Current Subscription =====
@@ -45,8 +48,8 @@ public class SubscriptionServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(SubscriptionTier.Free, result.Value!.Tier);
-        Assert.Equal("Free", result.Value.TierName);
-        Assert.Equal(5, result.Value.Limits.DailySearches);
+        Assert.Equal("Gratis", result.Value.TierName);
+        Assert.Equal(3, result.Value.Limits.DailySearches);
     }
 
     [Fact]
@@ -60,7 +63,7 @@ public class SubscriptionServiceTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(SubscriptionTier.Pro, result.Value!.Tier);
-        Assert.Equal(50, result.Value.Limits.DailySearches);
+        Assert.True(result.Value.Limits.DailySearches > 1000);
         Assert.True(result.Value.Limits.AnalysisIncluded);
     }
 
@@ -74,7 +77,7 @@ public class SubscriptionServiceTests
         var result = await _sut.CreateCheckoutAsync(userId, new SubscribeRequest(SubscriptionTier.Free));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Cannot purchase a free subscription.", result.Error);
+        Assert.Equal("Det går inte att köpa ett gratisabonnemang.", result.Error);
     }
 
     [Fact]
@@ -86,23 +89,25 @@ public class SubscriptionServiceTests
         var result = await _sut.CreateCheckoutAsync(userId, new SubscribeRequest(SubscriptionTier.Pro));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("User not found.", result.Error);
+        Assert.Equal("Användare hittades inte.", result.Error);
     }
 
     [Fact]
-    public async Task CreateCheckout_AlreadyHasHigherTier_ReturnsFailure()
+    public async Task CreateCheckout_WithExistingSubscription_StillCreatesCheckout()
     {
         var userId = Guid.NewGuid();
         var user = User.Create("user@test.com", "hashed");
-        var existingSub = Subscription.Create(userId, SubscriptionTier.Premium);
+        var existingSub = Subscription.Create(userId, SubscriptionTier.Pro);
 
         _userRepository.GetByIdAsync(userId).Returns(user);
         _subscriptionRepository.GetActiveByUserIdAsync(userId).Returns(existingSub);
+        _billingProvider.CreateCheckoutSessionAsync(userId, SubscriptionTier.Pro, Arg.Any<CancellationToken>())
+            .Returns(new CreateCheckoutResult("sess_999", "https://checkout.example.com/sess_999"));
 
         var result = await _sut.CreateCheckoutAsync(userId, new SubscribeRequest(SubscriptionTier.Pro));
 
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Premium", result.Error);
+        Assert.True(result.IsSuccess);
+        await _billingProvider.Received(1).CreateCheckoutSessionAsync(userId, SubscriptionTier.Pro, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -153,7 +158,7 @@ public class SubscriptionServiceTests
         var result = await _sut.CancelSubscriptionAsync(userId);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("No active subscription found.", result.Error);
+        Assert.Equal("Inget aktivt abonnemang hittades.", result.Error);
     }
 
     [Fact]
@@ -174,13 +179,12 @@ public class SubscriptionServiceTests
     // ===== Get Available Tiers =====
 
     [Fact]
-    public void GetAvailableTiers_ReturnsAllThreeTiers()
+    public void GetAvailableTiers_ReturnsTwoTiers()
     {
         var tiers = _sut.GetAvailableTiers();
 
-        Assert.Equal(3, tiers.Count);
+        Assert.Equal(2, tiers.Count);
         Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Free && t.PricePerMonthSek == 0);
-        Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Pro && t.PricePerMonthSek == 99);
-        Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Premium && t.PricePerMonthSek == 249);
+        Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Pro && t.PricePerMonthSek == 499);
     }
 }

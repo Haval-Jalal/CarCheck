@@ -115,7 +115,7 @@ public class CarSearchServiceTests
         var result = await _sut.SearchByRegistrationAsync(userId, new CarSearchRequest("UNKNOWN"));
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("No vehicle found with this registration number.", result.Error);
+        Assert.Equal("Inget fordon hittades med det registreringsnumret.", result.Error);
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class CarSearchServiceTests
         var result = await _sut.AnalyzeCarAsync(carId);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Car not found.", result.Error);
+        Assert.Equal("Bilen hittades inte.", result.Error);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class CarSearchServiceTests
         var result = await _sut.AnalyzeCarAsync(carId);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Unable to fetch vehicle data for analysis.", result.Error);
+        Assert.Equal("Kunde inte hämta fordonsdata för analys.", result.Error);
     }
 
     [Fact]
