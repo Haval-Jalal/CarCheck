@@ -9,9 +9,10 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { Settings, Shield, Download, Trash2 } from 'lucide-react'
+import { Settings, Shield, Download, Trash2, BookOpen } from 'lucide-react'
 import { authApi } from '@/api/auth.api'
 import { gdprApi } from '@/api/gdpr.api'
+import { useTourStore } from '@/stores/tour.store'
 import { useSubscription } from '@/hooks/use-billing'
 import { changePasswordSchema, type ChangePasswordFormData } from '@/lib/validators'
 import { clearTokens } from '@/lib/token'
@@ -22,6 +23,7 @@ import type { ApiError } from '@/types/api.types'
 export function SettingsPage() {
   const navigate = useNavigate()
   const { data: sub } = useSubscription()
+  const startTour = useTourStore(s => s.startTour)
 
   // Change password
   const [pwError, setPwError] = useState<string | null>(null)
@@ -128,6 +130,31 @@ export function SettingsPage() {
         <h1 className="text-2xl font-bold">Inställningar</h1>
         <p className="text-muted-foreground">Hantera ditt konto</p>
       </div>
+
+      {/* Guide & hjälp */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <BookOpen className="h-4 w-4" />
+            Guide & hjälp
+          </CardTitle>
+          <CardDescription>Lär dig använda CarCheck</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Visa guide igen</p>
+              <p className="text-sm text-muted-foreground">
+                Gå igenom introduktionen steg för steg
+              </p>
+            </div>
+            <Button variant="outline" onClick={startTour}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              Starta guide
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Change password */}
       <Card>

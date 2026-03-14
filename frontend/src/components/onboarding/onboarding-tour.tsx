@@ -1,0 +1,185 @@
+import { useEffect, useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import { X, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useTourStore } from '@/stores/tour.store'
+import { TOUR_STEPS } from './tour-steps'
+
+const PADDING = 12
+
+interface Rect { x: number; y: number; width: number; height: number }
+
+function getTargetRect(target: string): Rect | null {
+  const el = document.querySelector(`[data-tour="${target}"]`)
+  if (!el) return null
+  const r = el.getBoundingClientRect()
+  return { x: r.x, y: r.y, width: r.width, height: r.height }
+}
+
+function getTooltipPosition(rect: Rect | null, position?: string): React.CSSProperties {
+  const CARD_W = 340
+  if (!rect) {
+    return { position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: CARD_W }
+  }
+
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const p = PADDING + 8
+
+  let top: number
+  let left: number
+
+  const spaceBelow = vh - (rect.y + rect.height)
+  const spaceAbove = rect.y
+
+  if (position !== 'top' && spaceBelow > 220) {
+    top = rect.y + rect.height + p
+  } else if (spaceAbove > 220) {
+    top = rect.y - p - 180
+  } else {
+    top = rect.y
+  }
+
+  left = Math.max(16, Math.min(rect.x, vw - CARD_W - 16))
+  top = Math.max(16, Math.min(top, vh - 220))
+
+  return { position: 'fixed', top, left, width: CARD_W }
+}
+
+export function OnboardingTour() {
+  const { isActive, completeTour } = useTourStore()
+  const [stepIndex, setStepIndex] = useState(0)
+  const [targetRect, setTargetRect] = useState<Rect | null>(null)
+  const [visible, setVisible] = useState(false)
+
+  const step = TOUR_STEPS[stepIndex]
+  const isLast = stepIndex === TOUR_STEPS.length - 1
+
+  const updateRect = useCallback(() => {
+    setTargetRect(step.target ? getTargetRect(step.target) : null)
+  }, [step.target])
+
+  // Fade in on mount / step change
+  useEffect(() => {
+    if (!isActive) return
+    setVisible(false)
+    const t = setTimeout(() => { updateRect(); setVisible(true) }, 80)
+    return () => clearTimeout(t)
+  }, [isActive, stepIndex, updateRect])
+
+  useEffect(() => {
+    if (!isActive) return
+    window.addEventListener('resize', updateRect)
+    return () => window.removeEventListener('resize', updateRect)
+  }, [isActive, updateRect])
+
+  const handleNext = () => {
+    if (isLast) { completeTour(); return }
+    setStepIndex(i => i + 1)
+  }
+
+  const handleSkip = () => completeTour()
+
+  if (!isActive) return null
+
+  const spotlight = targetRect
+    ? { x: targetRect.x - PADDING, y: targetRect.y - PADDING, width: targetRect.width + PADDING * 2, height: targetRect.height + PADDING * 2 }
+    : null
+
+  const tooltipStyle = getTooltipPosition(targetRect, step.position)
+  const isCentered = !step.target || !targetRect
+
+  return createPortal(
+    <div className={`fixed inset-0 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`} style={{ zIndex: 9999 }}>
+      {/* Overlay */}
+      <svg className="fixed inset-0 h-full w-full" style={{ zIndex: 9999 }}>
+        <defs>
+          <mask id="tour-mask">
+            <rect width="100%" height="100%" fill="white" />
+            {spotlight && (
+              <rect
+                x={spotlight.x} y={spotlight.y}
+                width={spotlight.width} height={spotlight.height}
+                rx="10" fill="black"
+              />
+            )}
+          </mask>
+        </defs>
+        <rect
+          width="100%" height="100%"
+          fill={isCentered ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.8)'}
+          mask={spotlight ? 'url(#tour-mask)' : undefined}
+        />
+      </svg>
+
+      {/* Spotlight ring pulse */}
+      {spotlight && (
+        <div
+          className="fixed rounded-xl ring-2 ring-blue-400 ring-offset-0 animate-pulse pointer-events-none"
+          style={{
+            zIndex: 10000,
+            top: spotlight.y, left: spotlight.x,
+            width: spotlight.width, height: spotlight.height,
+          }}
+        />
+      )}
+
+      {/* Click-to-skip backdrop */}
+      <div className="fixed inset-0" style={{ zIndex: 10000 }} onClick={handleSkip} />
+
+      {/* Card */}
+      <div
+        style={{ ...tooltipStyle, zIndex: 10001 }}
+        className="rounded-2xl border border-white/10 bg-slate-900 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Top bar */}
+        <div className="flex items-center gap-1.5 border-b border-white/5 px-5 py-4">
+          {TOUR_STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full transition-all duration-300 ${
+                i === stepIndex ? 'w-8 bg-blue-500'
+                : i < stepIndex ? 'w-2 bg-blue-500/40'
+                : 'w-2 bg-slate-700'
+              }`}
+            />
+          ))}
+          <button
+            onClick={handleSkip}
+            className="ml-auto rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-800 hover:text-white"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-5 py-5">
+          <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-blue-400">
+            {stepIndex + 1} / {TOUR_STEPS.length}
+          </p>
+          <h3 className="mb-2 text-lg font-bold text-white">{step.title}</h3>
+          <p className="text-sm leading-relaxed text-slate-400">{step.description}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center justify-between border-t border-white/5 px-5 py-4">
+          <button
+            onClick={handleSkip}
+            className="text-xs text-slate-500 transition-colors hover:text-slate-300"
+          >
+            Hoppa över
+          </button>
+          <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
+            {isLast ? (
+              <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
+            ) : (
+              <>Nästa <ArrowRight className="h-4 w-4" /></>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}

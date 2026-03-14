@@ -57,7 +57,7 @@ function HeaderSearch() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="hidden md:flex">
+    <form onSubmit={handleSubmit} className="hidden md:flex" data-tour="header-search">
       <div className="flex items-center rounded-lg border border-slate-600 bg-slate-800 transition-colors focus-within:border-blue-500">
         <Search className="ml-3 h-4 w-4 shrink-0 text-slate-400" />
         <input
@@ -91,6 +91,7 @@ function CreditsChip() {
   return (
     <Link
       to="/billing"
+      data-tour="credits-chip"
       className="flex items-center gap-1 rounded-full border border-blue-500/40 bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-400 hover:bg-blue-500/20 transition-colors"
     >
       <Zap className="h-3 w-3" />
@@ -125,7 +126,7 @@ export function Header() {
         <HeaderSearch />
 
         {/* Desktop nav */}
-        <nav className="ml-auto hidden items-center gap-1 md:flex">
+        <nav className="ml-auto hidden items-center gap-1 md:flex" data-tour="nav-links">
           {NAV_LINKS.map(({ to, label, icon: Icon }) => (
             <Button
               key={to}

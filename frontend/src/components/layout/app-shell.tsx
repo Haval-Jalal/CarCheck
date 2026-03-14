@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { authApi } from '@/api/auth.api'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { OnboardingTour } from '@/components/onboarding/onboarding-tour'
 
 function EmailVerificationBanner() {
   const { userEmail } = useAuth()
@@ -58,6 +59,7 @@ export function AppShell() {
       <main className="mx-auto max-w-5xl px-4 py-6 md:px-6">
         <Outlet />
       </main>
+      <OnboardingTour />
     </div>
   )
 }
