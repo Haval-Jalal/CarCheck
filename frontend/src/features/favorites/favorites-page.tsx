@@ -27,7 +27,7 @@ export function FavoritesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div data-tour="favorites-header">
         <h1 className="text-2xl font-bold">Favoriter</h1>
         <p className="text-muted-foreground">Sparade bilar du vill följa</p>
       </div>

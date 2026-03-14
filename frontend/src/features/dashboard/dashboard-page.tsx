@@ -102,7 +102,7 @@ export function DashboardPage() {
         <p className="mt-1 text-blue-200">Ange registreringsnummer för att starta analysen</p>
       </div>
 
-      <Card>
+      <Card data-tour="search-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5 text-blue-500" />

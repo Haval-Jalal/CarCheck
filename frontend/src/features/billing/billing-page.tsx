@@ -142,7 +142,7 @@ export function BillingPage() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div data-tour="billing-plans">
         <h1 className="text-2xl font-bold">Abonnemang</h1>
         <p className="text-muted-foreground">Köp sökningar eller teckna en månadsplan</p>
       </div>

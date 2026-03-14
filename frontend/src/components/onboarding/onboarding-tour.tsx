@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate, useLocation } from 'react-router'
 import { X, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTourStore } from '@/stores/tour.store'
@@ -35,13 +36,13 @@ function getTooltipPosition(rect: Rect | null, position?: string): React.CSSProp
   if (position !== 'top' && spaceBelow > 220) {
     top = rect.y + rect.height + p
   } else if (spaceAbove > 220) {
-    top = rect.y - p - 180
+    top = rect.y - p - 200
   } else {
     top = rect.y
   }
 
   left = Math.max(16, Math.min(rect.x, vw - CARD_W - 16))
-  top = Math.max(16, Math.min(top, vh - 220))
+  top = Math.max(16, Math.min(top, vh - 240))
 
   return { position: 'fixed', top, left, width: CARD_W }
 }
@@ -51,6 +52,9 @@ export function OnboardingTour() {
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<Rect | null>(null)
   const [visible, setVisible] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const navigatedRef = useRef(false)
 
   const step = TOUR_STEPS[stepIndex]
   const isLast = stepIndex === TOUR_STEPS.length - 1
@@ -59,13 +63,28 @@ export function OnboardingTour() {
     setTargetRect(step.target ? getTargetRect(step.target) : null)
   }, [step.target])
 
-  // Fade in on mount / step change
   useEffect(() => {
     if (!isActive) return
+
     setVisible(false)
-    const t = setTimeout(() => { updateRect(); setVisible(true) }, 80)
+    navigatedRef.current = false
+
+    // Navigate to the step's route if not already there
+    const needsNav = step.route && location.pathname !== step.route
+    if (needsNav) {
+      navigate(step.route, { replace: true })
+      navigatedRef.current = true
+    }
+
+    // Wait longer after navigation for page to render
+    const delay = needsNav ? 400 : 80
+    const t = setTimeout(() => {
+      updateRect()
+      setVisible(true)
+    }, delay)
+
     return () => clearTimeout(t)
-  }, [isActive, stepIndex, updateRect])
+  }, [isActive, stepIndex]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!isActive) return
@@ -112,10 +131,10 @@ export function OnboardingTour() {
         />
       </svg>
 
-      {/* Spotlight ring pulse */}
+      {/* Spotlight ring */}
       {spotlight && (
         <div
-          className="fixed rounded-xl ring-2 ring-blue-400 ring-offset-0 animate-pulse pointer-events-none"
+          className="fixed rounded-xl ring-2 ring-blue-400 animate-pulse pointer-events-none"
           style={{
             zIndex: 10000,
             top: spotlight.y, left: spotlight.x,
@@ -133,7 +152,7 @@ export function OnboardingTour() {
         className="rounded-2xl border border-white/10 bg-slate-900 shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        {/* Top bar */}
+        {/* Progress bar */}
         <div className="flex items-center gap-1.5 border-b border-white/5 px-5 py-4">
           {TOUR_STEPS.map((_, i) => (
             <div
