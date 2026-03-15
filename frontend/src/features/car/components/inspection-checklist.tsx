@@ -393,10 +393,8 @@ export function InspectionChecklist({ breakdown, details }: {
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500 inline-block" /> Viktigt</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-slate-400 inline-block" /> Normal</span>
         </div>
-        <p className="text-xs text-muted-foreground leading-relaxed border-t border-border pt-2 mt-2">
-          <strong>OBS:</strong> Checklistan genereras automatiskt utifrån tillgänglig analysdata och ersätter
-          inte en professionell besiktning av auktoriserad besiktningsman. CarCheck ansvarar inte för
-          beslut fattade utifrån denna lista.
+        <p className="text-xs text-muted-foreground/60 border-t border-border pt-2 mt-2">
+          Genereras utifrån tillgänglig analysdata. Ersätter inte en professionell besiktning.
         </p>
       </CardContent>}
     </Card>

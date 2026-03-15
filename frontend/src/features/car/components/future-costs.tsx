@@ -171,11 +171,8 @@ export function FutureCosts({ breakdown, details, year, mileage }: Props) {
           </div>
         </div>
 
-        <p className="pt-2 text-xs text-muted-foreground leading-relaxed border-t border-border">
-          <strong>OBS:</strong> Kostnadsestimat genereras automatiskt utifrån tillgänglig
-          registrerad data, årsmodell och miltal och utgör inte finansiell rådgivning.
-          Faktiska kostnader kan avvika väsentligt. Kontakta alltid en auktoriserad verkstad
-          för en exakt offert. CarCheck ansvarar inte för beslut fattade utifrån dessa uppgifter.
+        <p className="pt-1 text-xs text-muted-foreground/60">
+          Estimat — faktiska kostnader varierar beroende på verkstad, bilens skick och extrautrustning.
         </p>
       </CardContent>
     </Card>

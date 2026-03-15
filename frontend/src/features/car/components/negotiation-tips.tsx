@@ -170,11 +170,8 @@ export function NegotiationTips({ breakdown, details }: Props) {
             <p className="leading-relaxed text-foreground">{tip.text}</p>
           </div>
         ))}
-        <p className="pt-2 text-xs text-muted-foreground leading-relaxed border-t border-border">
-          <strong>OBS:</strong> Punkterna ovan genereras automatiskt utifrån tillgänglig registrerad data
-          och utgör inte juridisk eller finansiell rådgivning. Informationen kan vara ofullständig eller
-          inaktuell. Anlita alltid en auktoriserad besiktningsman och vid behov en jurist
-          innan ett köp genomförs. CarCheck ansvarar inte för beslut fattade utifrån dessa uppgifter.
+        <p className="pt-2 text-xs text-muted-foreground/60 border-t border-border">
+          Genereras automatiskt utifrån tillgänglig registrerad data. Kan vara ofullständig eller inaktuell.
         </p>
       </CardContent>
     </Card>

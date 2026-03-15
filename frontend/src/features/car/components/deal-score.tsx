@@ -120,11 +120,9 @@ export function DealScore({ qualityScore, details }: Props) {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground/80 border-t border-border pt-3 mt-1 leading-relaxed">
-              Deal Score är ett <strong>databaserat estimat</strong> — inte finansiell rådgivning.
-              Marknadsvärdet är ett genomsnitt från tillgängliga annonser och kan avvika.
-              Priset väger 60&nbsp;%, bilkvalitet 40&nbsp;%. CarCheck ansvarar inte för
-              beslut fattade utifrån poängen.
+            <p className="text-xs text-muted-foreground/60 border-t border-border pt-3 mt-1">
+              Kombinerar prisläge mot marknadsgenomsnitt (60&nbsp;%) och bilkvalitet (40&nbsp;%).
+              Marknadsvärdet baseras på tillgängliga annonsdata och kan avvika.
             </p>
           </div>
         )}

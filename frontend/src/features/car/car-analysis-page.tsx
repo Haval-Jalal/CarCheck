@@ -35,6 +35,7 @@ import { ErrorDisplay } from '@/components/common/error-display'
 import { getScoreColor, getScoreBgColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { FactorDetailSheet } from './components/factor-detail-sheet'
+import { AnalysisDisclaimer } from './components/analysis-disclaimer'
 import { NegotiationTips } from './components/negotiation-tips'
 import { FutureCosts } from './components/future-costs'
 import { DealScore } from './components/deal-score'
@@ -204,12 +205,6 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
         </div>
       </div>
 
-      {/* Friskrivning — alltid synlig direkt under poängen */}
-      <p className="text-xs text-muted-foreground border-t border-border pt-3 leading-relaxed">
-        <span className="font-semibold">OBS:</span> Poängen baseras enbart på tillgänglig registrerad data och är
-        inte ett köpråd. Uppgifterna kan vara ofullständiga eller inaktuella.
-        Låt alltid en auktoriserad besiktningsman inspektera fordonet innan köp.
-      </p>
     </div>
   )
 }
@@ -356,9 +351,6 @@ export function CarAnalysisPage() {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground/60 italic">
-              Detaljanalysen baseras på tillgänglig registrerad data. CarCheck ansvarar inte för beslut fattade utifrån analysen.
-            </p>
           </div>
         )
 
@@ -604,7 +596,15 @@ export function CarAnalysisPage() {
             {renderSection(s)}
           </div>
         ))}
+
+        {/* Friskrivning i PDF */}
+        <div className="break-inside-avoid">
+          <AnalysisDisclaimer />
+        </div>
       </div>
+
+      {/* Global friskrivning — visas en gång längst ner */}
+      <AnalysisDisclaimer />
 
       {/* Faktordetalj-sheet */}
       <FactorDetailSheet
