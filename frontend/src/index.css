@@ -67,9 +67,19 @@ body {
   body {
     background: white !important;
     color: black !important;
+    font-size: 12px;
   }
   .rounded-xl,
   .rounded-lg {
     border: 1px solid #ccc !important;
+  }
+  /* Prevent cards from splitting across pages */
+  .break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Add some top margin so sections breathe between pages */
+  .space-y-8 > * + * {
+    margin-top: 2rem;
   }
 }

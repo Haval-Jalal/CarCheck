@@ -189,8 +189,7 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
             <div className="flex justify-between text-xs text-muted-foreground select-none">
               <span>Undvik</span>
               <span>50</span>
-              <span className="hidden xs:inline">Rekommenderas</span>
-              <span className="xs:hidden">Topp</span>
+              <span>Rekommenderas</span>
             </div>
           </div>
         </div>
@@ -270,8 +269,8 @@ export function CarAnalysisPage() {
 
   // ── Section content ─────────────────────────────────────────────────────────
 
-  function renderSection() {
-    switch (activeSection) {
+  function renderSection(forceSection?: SectionId) {
+    switch (forceSection ?? activeSection) {
 
       case 'oversikt':
         return (
@@ -495,10 +494,12 @@ export function CarAnalysisPage() {
       )}
 
       {/* Score gauge — alltid synlig oavsett aktiv sektion */}
-      <ScoreGauge score={scoreRounded} recommendation={analysis.recommendation} />
+      <div data-no-print>
+        <ScoreGauge score={scoreRounded} recommendation={analysis.recommendation} />
+      </div>
 
       {/* Mobile: horisontell scrollmeny */}
-      <div role="tablist" aria-label="Analysavsnitt" className="flex md:hidden gap-1 overflow-x-auto pb-1">
+      <div data-no-print role="tablist" aria-label="Analysavsnitt" className="flex md:hidden gap-1 overflow-x-auto pb-1">
         {visibleSections.map((s) => (
           <button
             key={s.id}
@@ -545,14 +546,48 @@ export function CarAnalysisPage() {
         </aside>
 
         {/* Sektionsinnehåll */}
-        <main className="flex-1 min-w-0">
+        <main data-no-print className="flex-1 min-w-0">
           {renderSection()}
         </main>
       </div>
 
       {/* Mobile: sektionsinnehåll */}
-      <div className="md:hidden">
+      <div data-no-print className="md:hidden">
         {renderSection()}
+      </div>
+
+      {/* ── Print-only: alla sektioner staplade ───────────────────────────────── */}
+      <div className="hidden print:block space-y-8">
+        {/* Rapport-rubrik */}
+        <div className="border-b border-gray-300 pb-4">
+          <h1 className="text-2xl font-bold">
+            {analysis.brand} {analysis.model} {analysis.year}
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {analysis.registrationNumber} · Rapport genererad {new Date().toLocaleDateString('sv-SE')}
+          </p>
+        </div>
+
+        {/* Poäng */}
+        <ScoreGauge score={scoreRounded} recommendation={analysis.recommendation} />
+
+        {/* Alla sektioner i ordning */}
+        {(
+          [
+            'oversikt',
+            'garantier',
+            'kamrem',
+            'kanda-problem',
+            ...(analysis.year >= 2020 ? ['nypris'] : []),
+            'forhandlingstips',
+            'kostnadsprognos',
+            'besiktningschecklista',
+          ] as SectionId[]
+        ).map((s) => (
+          <div key={s} className="break-inside-avoid">
+            {renderSection(s)}
+          </div>
+        ))}
       </div>
 
       {/* Faktordetalj-sheet */}
