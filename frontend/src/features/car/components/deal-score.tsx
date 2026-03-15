@@ -20,7 +20,7 @@ function calcPriceScore(askingPrice: number, marketPrice: number): number {
 }
 
 function calcDealScore(qualityScore: number, priceScore: number): number {
-  return Math.round(qualityScore * 0.6 + priceScore * 0.4)
+  return Math.round(qualityScore * 0.4 + priceScore * 0.6)
 }
 
 function getDealLabel(score: number): { label: string; color: string; icon: React.ReactNode } {
@@ -107,8 +107,8 @@ export function DealScore({ qualityScore, details }: Props) {
                   <span className={cn('text-lg font-bold', dealInfo.color)}>{dealInfo.label}</span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Bilkvalitet: <strong>{Math.round(qualityScore)}/100</strong> (60%) +{' '}
-                  Pris: <strong>{priceScore}/100</strong> (40%)
+                  Bilkvalitet: <strong>{Math.round(qualityScore)}/100</strong> (40%) +{' '}
+                  Pris: <strong>{priceScore}/100</strong> (60%)
                 </p>
                 {priceDiff !== null && (
                   <p className={cn('mt-1 text-sm font-medium', priceDiff > 0 ? 'text-red-600' : 'text-green-600')}>
@@ -121,8 +121,8 @@ export function DealScore({ qualityScore, details }: Props) {
             </div>
 
             <p className="text-xs text-muted-foreground/70 italic">
-              Deal Score kombinerar bilens kvalitetspoäng (60%) med hur priset förhåller sig till
-              marknadsvärdet (40%). Poängen 100 = perfekt deal, 0 = dålig deal.
+              Deal Score kombinerar hur priset förhåller sig till marknadsvärdet (60%) med bilens
+              kvalitetspoäng (40%). Poängen 100 = perfekt deal, 0 = dålig deal.
             </p>
           </div>
         )}
