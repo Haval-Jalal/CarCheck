@@ -14,6 +14,7 @@ public class User
     public bool TwoFactorEnabled { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public int Credits { get; private set; }
+    public bool TourCompleted { get; private set; }
     public int FailedLoginAttempts { get; private set; }
     public DateTime? LockoutUntil { get; private set; }
 
@@ -53,6 +54,8 @@ public class User
     }
 
     public void VerifyEmail() => EmailVerified = true;
+
+    public void CompleteTour() => TourCompleted = true;
 
     public void EnableTwoFactor() => TwoFactorEnabled = true;
 

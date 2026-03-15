@@ -124,6 +124,7 @@ app.MapHistoryEndpoints();
 app.MapFavoriteEndpoints();
 app.MapBillingEndpoints();
 app.MapGdprEndpoints();
+app.MapUserEndpoints();
 app.MapPublicEndpoints();
 
 app.Run();

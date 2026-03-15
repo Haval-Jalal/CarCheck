@@ -29,7 +29,8 @@ public class JwtTokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Email, user.Email.Value),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("email_verified", user.EmailVerified.ToString().ToLower()),
-            new Claim("two_factor_enabled", user.TwoFactorEnabled.ToString().ToLower())
+            new Claim("two_factor_enabled", user.TwoFactorEnabled.ToString().ToLower()),
+            new Claim("tour_completed", user.TourCompleted.ToString().ToLower())
         };
 
         var token = new JwtSecurityToken(
