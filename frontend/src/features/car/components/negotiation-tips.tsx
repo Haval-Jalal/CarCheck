@@ -19,7 +19,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   // ── Köpspärr ──
   if (details.hasPurchaseBlock) {
     tips.push({
-      text: 'Bilen har en aktiv köpspärr hos Kronofogden — köp inte innan skulden är reglerad och spärren hävd.',
+      text: 'Bilen har en aktiv köpspärr hos Kronofogden. Kontrollera att skulden är reglerad och spärren hävd innan affären genomförs.',
       priority: 'high',
     })
   }
@@ -28,7 +28,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   if (details.debts.length > 0) {
     const total = details.debts.reduce((s, d) => s + d.amountSek, 0)
     tips.push({
-      text: `Fordonet har registrerade skulder på totalt ${total.toLocaleString('sv-SE')} kr — kräv att dessa är lösta innan köp eller dra av beloppet från priset.`,
+      text: `Fordonet har registrerade skulder på totalt ${total.toLocaleString('sv-SE')} kr. Kontrollera att dessa är reglerade innan köp, alternativt beakta dem i prisförhandlingen.`,
       priority: 'high',
     })
   }
@@ -39,7 +39,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
     const latest = failedInspections[failedInspections.length - 1]
     const year = new Date(latest.date).getFullYear()
     tips.push({
-      text: `Bilen underkändes i besiktning ${year}${latest.remarks ? ` (${latest.remarks})` : ''} — kräv att felet är åtgärdat och att godkänd besiktning kan visas upp.`,
+      text: `Bilen underkändes i besiktning ${year}${latest.remarks ? ` (${latest.remarks})` : ''}. Be säljaren visa upp ett godkänt besiktningsprotokoll som bekräftar att felet är åtgärdat.`,
       priority: 'high',
     })
   }
@@ -48,7 +48,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   const unresolvedRecalls = details.recalls.filter(r => !r.resolved)
   if (unresolvedRecalls.length > 0) {
     tips.push({
-      text: `${unresolvedRecalls.length} återkallelse${unresolvedRecalls.length > 1 ? 'r' : ''} från tillverkaren är ej åtgärdad${unresolvedRecalls.length > 1 ? 'e' : ''} — kontakta en auktoriserad verkstad och kräv att arbetet utförs innan köp.`,
+      text: `${unresolvedRecalls.length} återkallelse${unresolvedRecalls.length > 1 ? 'r' : ''} från tillverkaren är ej åtgärdad${unresolvedRecalls.length > 1 ? 'e' : ''}. Kontrollera med en auktoriserad verkstad att arbetet utförts innan köp.`,
       priority: 'high',
     })
   }
@@ -60,7 +60,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   const hasMileageDrop = sorted.some((r, i) => i > 0 && r.mileage < sorted[i - 1].mileage)
   if (hasMileageDrop) {
     tips.push({
-      text: 'Miltalet har minskat mellan två avläsningar — detta kan tyda på kilometertamper. Be om förklaring och kontrollera med en oberoende verkstad.',
+      text: 'Miltalet har minskat mellan två avläsningar i registrerad data. Be säljaren om en förklaring och låt en oberoende verkstad kontrollera uppgifterna.',
       priority: 'high',
     })
   }
@@ -69,7 +69,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   const seriousIncidents = details.insuranceIncidents.filter(i => i.severity === 'Allvarlig')
   if (seriousIncidents.length > 0) {
     tips.push({
-      text: `${seriousIncidents.length} allvarlig${seriousIncidents.length > 1 ? 'a' : ''} försäkringsskada${seriousIncidents.length > 1 ? 'r' : ''} är registrerad${seriousIncidents.length > 1 ? 'e' : ''} — fråga om reparationerna är utförda av auktoriserad verkstad och begär kvitton.`,
+      text: `${seriousIncidents.length} allvarlig${seriousIncidents.length > 1 ? 'a' : ''} försäkringsskada${seriousIncidents.length > 1 ? 'r' : ''} är registrerad${seriousIncidents.length > 1 ? 'e' : ''}. Fråga om reparationerna är utförda av auktoriserad verkstad och be om dokumentation.`,
       priority: 'high',
     })
   }
@@ -77,7 +77,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   // ── Många ägare ──
   if (details.owners.length >= 3) {
     tips.push({
-      text: `Bilen har haft ${details.owners.length} ägare — fråga varför den bytt händer så ofta och be om förklaring för varje ägarskifte.`,
+      text: `Bilen har haft ${details.owners.length} ägare. Det kan vara värt att fråga om bakgrunden till ägarskiftena.`,
       priority: 'medium',
     })
   }
@@ -85,12 +85,12 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   // ── Saknar servicehistorik ──
   if (breakdown.serviceHistoryScore < 50 && details.services.length === 0) {
     tips.push({
-      text: 'Ingen servicehistorik är registrerad — be säljaren om servicebok eller kvitton från verkstad som bevis på underhåll.',
+      text: 'Ingen servicehistorik är registrerad i tillgänglig data. Be säljaren om servicebok eller kvitton som bevis på underhåll.',
       priority: 'medium',
     })
   } else if (breakdown.serviceHistoryScore < 50) {
     tips.push({
-      text: 'Servicehistoriken är ofullständig — fråga om bilen servats enligt tillverkarens schema och be om kvitton.',
+      text: 'Servicehistoriken verkar ofullständig enligt tillgänglig data. Fråga om bilen servats enligt tillverkarens schema och be om underlag.',
       priority: 'medium',
     })
   }
@@ -103,7 +103,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   ) {
     const diff = Math.round(details.marketValueSek - details.averageMarketPriceSek)
     tips.push({
-      text: `Priset ligger ${diff.toLocaleString('sv-SE')} kr över snittet för liknande bilar på marknaden — använd det som förhandlingsargument.`,
+      text: `Priset ligger ${diff.toLocaleString('sv-SE')} kr över snittet för liknande bilar i tillgänglig marknadsdata — detta kan vara ett argument i en prisförhandling.`,
       priority: 'medium',
     })
   }
@@ -111,7 +111,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   // ── Kända problem med drivlina ──
   if (details.knownIssues.length > 0) {
     tips.push({
-      text: `Denna bilmodell har kända problem: ${details.knownIssues.slice(0, 2).join(', ')}. Kontrollera specifikt dessa punkter vid en oberoende besiktning.`,
+      text: `Denna bilmodell har registrerade kända problem: ${details.knownIssues.slice(0, 2).join(', ')}. Kontrollera dessa punkter vid en oberoende besiktning.`,
       priority: 'medium',
     })
   }
@@ -119,7 +119,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   // ── Hög stöldrisk ──
   if (details.theftRiskCategory === 'Hög') {
     tips.push({
-      text: 'Modellen är klassad med hög stöldrisk — kontrollera att bilen har fungerande larm och att försäkringen täcker stöld utan tilläggsavgift.',
+      text: 'Modellen är klassad med hög stöldrisk i statistiken. Kontrollera att bilen har fungerande larm och att din försäkring täcker stöld.',
       priority: 'low',
     })
   }
@@ -127,7 +127,7 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
   // ── Hög CO2 / bonus-malus ──
   if (details.bonusMalusApplies && details.annualTaxSek != null && details.annualTaxSek > 5000) {
     tips.push({
-      text: `Bilen har bonus-malus och en årsskatt på ${details.annualTaxSek.toLocaleString('sv-SE')} kr — räkna in detta i den totala ägandekostnaden vid prisförhandlingen.`,
+      text: `Bilen har bonus-malus med en årsskatt på ${details.annualTaxSek.toLocaleString('sv-SE')} kr. Räkna in den totala ägandekostnaden i din bedömning.`,
       priority: 'low',
     })
   }
@@ -136,15 +136,15 @@ function buildTips(breakdown: AnalysisBreakdown, details: AnalysisDetails | null
 }
 
 const PRIORITY_STYLES: Record<Tip['priority'], string> = {
-  high: 'border-l-red-500 bg-red-50 dark:bg-red-950/30',
+  high:   'border-l-red-500 bg-red-50 dark:bg-red-950/30',
   medium: 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/30',
-  low: 'border-l-blue-500 bg-blue-50 dark:bg-blue-950/30',
+  low:    'border-l-blue-500 bg-blue-50 dark:bg-blue-950/30',
 }
 
 const PRIORITY_DOT: Record<Tip['priority'], string> = {
-  high: 'bg-red-500',
+  high:   'bg-red-500',
   medium: 'bg-yellow-500',
-  low: 'bg-blue-500',
+  low:    'bg-blue-500',
 }
 
 export function NegotiationTips({ breakdown, details }: Props) {
@@ -157,7 +157,7 @@ export function NegotiationTips({ breakdown, details }: Props) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Lightbulb className="h-4 w-4 text-yellow-500" />
-          Förhandlingstips
+          Punkter att beakta
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -170,8 +170,11 @@ export function NegotiationTips({ breakdown, details }: Props) {
             <p className="leading-relaxed text-foreground">{tip.text}</p>
           </div>
         ))}
-        <p className="pt-1 text-xs text-muted-foreground/70 italic">
-          Tips genereras automatiskt baserat på analysdata och ersätter inte råd från en auktoriserad besiktare.
+        <p className="pt-2 text-xs text-muted-foreground leading-relaxed border-t border-border">
+          <strong>OBS:</strong> Punkterna ovan genereras automatiskt utifrån tillgänglig registrerad data
+          och utgör inte juridisk eller finansiell rådgivning. Informationen kan vara ofullständig eller
+          inaktuell. Anlita alltid en auktoriserad besiktningsman och vid behov en jurist
+          innan ett köp genomförs. CarCheck ansvarar inte för beslut fattade utifrån dessa uppgifter.
         </p>
       </CardContent>
     </Card>

@@ -137,6 +137,13 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
 
 // ── Score gauge (alltid synlig) ───────────────────────────────────────────────
 
+// Maps backend recommendation strings to neutral, legally safe display labels
+const REC_LABEL: Record<string, string> = {
+  'Rekommenderas':       'Stark dataprofil',
+  'Köp med försiktighet': 'Blandad dataprofil',
+  'Undvik':              'Svag dataprofil',
+}
+
 function ScoreGauge({ score, recommendation }: { score: number; recommendation: string }) {
   const ringColor =
     score >= 70 ? 'border-green-500' :
@@ -147,6 +154,8 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
     score >= 70 ? '#22c55e' :
     score >= 40 ? '#eab308' :
     '#ef4444'
+
+  const displayLabel = REC_LABEL[recommendation] ?? recommendation
 
   return (
     <div data-tour="analysis-score" className="rounded-xl border border-border bg-card px-4 py-4 space-y-3 sm:px-5 sm:space-y-4">
@@ -165,9 +174,9 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
         <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={cn('text-xs sm:text-sm px-2 py-0.5 sm:px-3 sm:py-1', getScoreBgColor(score))}>
-              {recommendation}
+              {displayLabel}
             </Badge>
-            <span className="text-xs text-muted-foreground">av 100</span>
+            <span className="text-xs text-muted-foreground">av 100 · datapoäng</span>
           </div>
 
           {/* Gradient bar */}
@@ -187,13 +196,20 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
               />
             </div>
             <div className="flex justify-between text-xs text-muted-foreground select-none">
-              <span>Undvik</span>
+              <span>Svagare data</span>
               <span>50</span>
-              <span>Rekommenderas</span>
+              <span>Starkare data</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Friskrivning — alltid synlig direkt under poängen */}
+      <p className="text-xs text-muted-foreground border-t border-border pt-3 leading-relaxed">
+        <span className="font-semibold">OBS:</span> Poängen baseras enbart på tillgänglig registrerad data och är
+        inte ett köpråd. Uppgifterna kan vara ofullständiga eller inaktuella.
+        Låt alltid en auktoriserad besiktningsman inspektera fordonet innan köp.
+      </p>
     </div>
   )
 }
@@ -340,8 +356,8 @@ export function CarAnalysisPage() {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground/50 italic">
-              Analysen baseras på tillgänglig fordonsdata och ersätter inte en professionell besiktning.
+            <p className="text-xs text-muted-foreground/60 italic">
+              Detaljanalysen baseras på tillgänglig registrerad data. CarCheck ansvarar inte för beslut fattade utifrån analysen.
             </p>
           </div>
         )

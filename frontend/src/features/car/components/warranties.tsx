@@ -92,9 +92,10 @@ export function Warranties({ brand, firstRegistrationDate, mileageKm }: Warranti
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground/60 italic">
-        Garantitider baserade på tillverkarens standardvillkor för svenska marknaden.
-        Kontrollera alltid aktuell status hos auktoriserad verkstad.
+      <p className="text-xs text-muted-foreground leading-relaxed border-t border-border pt-2 mt-2">
+        <strong>OBS:</strong> Garantistatus beräknas automatiskt utifrån tillverkarens standardvillkor
+        och kan avvika från faktisk status. Kontrollera alltid aktuell status hos auktoriserad verkstad.
+        CarCheck ansvarar inte för beslut fattade utifrån dessa uppgifter.
       </p>
     </div>
   )

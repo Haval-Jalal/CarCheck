@@ -24,9 +24,9 @@ function calcDealScore(qualityScore: number, priceScore: number): number {
 }
 
 function getDealLabel(score: number): { label: string; color: string; icon: React.ReactNode } {
-  if (score >= 75) return { label: 'Bra deal', color: 'text-green-600', icon: <TrendingDown className="h-5 w-5 text-green-600" /> }
-  if (score >= 55) return { label: 'Okej deal', color: 'text-yellow-600', icon: <Minus className="h-5 w-5 text-yellow-600" /> }
-  return { label: 'Dåligt deal', color: 'text-red-600', icon: <TrendingUp className="h-5 w-5 text-red-600" /> }
+  if (score >= 75) return { label: 'Gynnsam prisnivå', color: 'text-green-600', icon: <TrendingDown className="h-5 w-5 text-green-600" /> }
+  if (score >= 55) return { label: 'Neutral prisnivå', color: 'text-yellow-600', icon: <Minus className="h-5 w-5 text-yellow-600" /> }
+  return { label: 'Ogynnsam prisnivå', color: 'text-red-600', icon: <TrendingUp className="h-5 w-5 text-red-600" /> }
 }
 
 function formatSek(amount: number) {
@@ -120,9 +120,11 @@ export function DealScore({ qualityScore, details }: Props) {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground/70 italic">
-              Deal Score kombinerar hur priset förhåller sig till marknadsvärdet (60%) med bilens
-              kvalitetspoäng (40%). Poängen 100 = perfekt deal, 0 = dålig deal.
+            <p className="text-xs text-muted-foreground/80 border-t border-border pt-3 mt-1 leading-relaxed">
+              Deal Score är ett <strong>databaserat estimat</strong> — inte finansiell rådgivning.
+              Marknadsvärdet är ett genomsnitt från tillgängliga annonser och kan avvika.
+              Priset väger 60&nbsp;%, bilkvalitet 40&nbsp;%. CarCheck ansvarar inte för
+              beslut fattade utifrån poängen.
             </p>
           </div>
         )}

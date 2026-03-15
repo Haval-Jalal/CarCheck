@@ -61,9 +61,10 @@ export function NewPriceSpec({ brand, model, year, currentMarketValue }: NewPric
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground/60 italic">
-        Nypriset är ett ungefärligt ursprungligt listpris för {brand} {model} {year} på svenska marknaden.
-        Faktiskt pris vid köp varierade beroende på extrautrustning och förhandling.
+      <p className="text-xs text-muted-foreground leading-relaxed border-t border-border pt-2 mt-2">
+        <strong>OBS:</strong> Nypriset är ett ungefärligt ursprungligt listpris för {brand} {model} {year}
+        på svenska marknaden. Faktiskt pris vid köp varierade beroende på extrautrustning och förhandling.
+        Informationen kan vara ofullständig eller inaktuell.
       </p>
     </div>
   )
