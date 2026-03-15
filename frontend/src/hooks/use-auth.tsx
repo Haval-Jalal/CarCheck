@@ -9,6 +9,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/api/auth.api'
 import { setTokens, clearTokens } from '@/lib/token'
+import { useTourStore } from '@/stores/tour.store'
 import type { LoginRequest, RegisterRequest } from '@/types/auth.types'
 
 interface AuthState {
@@ -69,6 +70,12 @@ function getEmailVerifiedFromToken(token: string): boolean {
   return payload['email_verified'] === 'true' || payload['email_verified'] === true
 }
 
+function getTourCompletedFromToken(token: string): boolean {
+  const payload = parseJwtPayload(token)
+  if (!payload) return false
+  return payload['tour_completed'] === 'true' || payload['tour_completed'] === true
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, {
     isAuthenticated: false,
@@ -86,6 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTokens({ accessToken, expiresAt })
         const email = getEmailFromToken(accessToken)
         const emailVerified = getEmailVerifiedFromToken(accessToken)
+        const tourCompleted = getTourCompletedFromToken(accessToken)
+        useTourStore.getState().initTour(tourCompleted)
         dispatch({ type: 'LOGIN_SUCCESS', email: email || '', emailVerified })
       })
       .catch(() => {
@@ -103,6 +112,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear()
     const email = getEmailFromToken(response.data.accessToken)
     const emailVerified = getEmailVerifiedFromToken(response.data.accessToken)
+    const tourCompleted = getTourCompletedFromToken(response.data.accessToken)
+    useTourStore.getState().initTour(tourCompleted)
     dispatch({ type: 'LOGIN_SUCCESS', email: email || data.email, emailVerified })
   }, [queryClient])
 
