@@ -8,8 +8,7 @@ import { TOUR_STEPS } from './tour-steps'
 import { TourMiniDemo } from './tour-mini-demo'
 
 const PADDING = 12
-const CARD_W_NORMAL = 340
-const CARD_W_DEMO   = 780
+const DEMO_STEPS = new Set(['analysis-score', 'analysis-factors'])
 
 interface Rect { x: number; y: number; width: number; height: number }
 
@@ -20,14 +19,32 @@ function getTargetRect(target: string): Rect | null {
   return { x: r.x, y: r.y, width: r.width, height: r.height }
 }
 
-function getTooltipPosition(
+function isMobileWidth() {
+  return window.innerWidth < 640
+}
+
+function getCardWidth(hasDemo: boolean) {
+  if (isMobileWidth()) return Math.min(window.innerWidth - 24, 420)
+  return hasDemo ? Math.min(window.innerWidth - 32, 780) : 340
+}
+
+// On mobile always center; on desktop use anchor-to-target logic
+function getTooltipStyle(
   rect: Rect | null,
   position: string | undefined,
   cardW: number,
 ): React.CSSProperties {
-  if (!rect) {
-    return { position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: cardW }
+  const centered: React.CSSProperties = {
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: cardW,
+    maxHeight: 'calc(100dvh - 24px)',
+    overflowY: 'auto',
   }
+
+  if (isMobileWidth() || !rect) return centered
 
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -51,26 +68,63 @@ function getTooltipPosition(
   return { position: 'fixed', top, left, width: cardW }
 }
 
-const DEMO_STEPS = new Set(['analysis-score', 'analysis-factors'])
+// ── Footer buttons (shared) ────────────────────────────────────────────────────
+
+function TourFooter({
+  stepIndex, isLast, onBack, onNext, onSkip,
+}: {
+  stepIndex: number
+  isLast: boolean
+  onBack: () => void
+  onNext: () => void
+  onSkip: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between border-t border-white/5 px-5 py-4 shrink-0">
+      <button onClick={onSkip} className="text-xs text-slate-500 transition-colors hover:text-slate-300">
+        Hoppa över
+      </button>
+      <div className="flex items-center gap-2">
+        {stepIndex > 0 && (
+          <Button onClick={onBack} size="sm" variant="ghost" className="text-slate-400 hover:text-white px-2">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        )}
+        <Button onClick={onNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
+          {isLast
+            ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
+            : <>Nästa <ArrowRight className="h-4 w-4" /></>}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
 
 export function OnboardingTour() {
   const { isActive, stepIndex, setStep, completeTour } = useTourStore()
   const [targetRect, setTargetRect] = useState<Rect | null>(null)
   const [visible, setVisible]       = useState(false)
-  const navigate   = useNavigate()
-  const location   = useLocation()
+  const [mobile, setMobile]         = useState(isMobileWidth)
+  const navigate    = useNavigate()
+  const location    = useLocation()
   const navigatedRef = useRef(false)
 
-  const step      = TOUR_STEPS[stepIndex]
-  const isLast    = stepIndex === TOUR_STEPS.length - 1
-  const hasDemo   = DEMO_STEPS.has(step.id)
-  const cardW     = hasDemo
-    ? Math.min(window.innerWidth - 32, CARD_W_DEMO)
-    : CARD_W_NORMAL
+  const step    = TOUR_STEPS[stepIndex]
+  const isLast  = stepIndex === TOUR_STEPS.length - 1
+  const hasDemo = DEMO_STEPS.has(step.id)
 
   const updateRect = useCallback(() => {
     setTargetRect(step.target ? getTargetRect(step.target) : null)
   }, [step.target])
+
+  // Track mobile breakpoint
+  useEffect(() => {
+    const onResize = () => setMobile(isMobileWidth())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     if (!isActive) return
@@ -100,12 +154,16 @@ export function OnboardingTour() {
 
   if (!isActive) return null
 
-  const spotlight = targetRect
+  const cardW = getCardWidth(hasDemo)
+
+  const spotlight = (!mobile && targetRect)
     ? { x: targetRect.x - PADDING, y: targetRect.y - PADDING, width: targetRect.width + PADDING * 2, height: targetRect.height + PADDING * 2 }
     : null
 
-  const tooltipStyle = getTooltipPosition(targetRect, step.position, cardW)
-  const isCentered   = !step.target || !targetRect
+  const tooltipStyle = getTooltipStyle(targetRect, step.position, cardW)
+  const isCentered   = !step.target || !targetRect || mobile
+
+  const footerProps = { stepIndex, isLast, onBack: handleBack, onNext: handleNext, onSkip: handleSkip }
 
   return createPortal(
     <div
@@ -124,7 +182,7 @@ export function OnboardingTour() {
         </defs>
         <rect
           width="100%" height="100%"
-          fill={isCentered ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.8)'}
+          fill={isCentered ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.8)'}
           mask={spotlight ? 'url(#tour-mask)' : undefined}
         />
       </svg>
@@ -143,11 +201,11 @@ export function OnboardingTour() {
       {/* Card */}
       <div
         style={{ ...tooltipStyle, zIndex: 10001 }}
-        className="rounded-2xl border border-white/10 bg-slate-900 shadow-2xl overflow-hidden"
+        className="rounded-2xl border border-white/10 bg-slate-900 shadow-2xl overflow-hidden flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        {/* ── Progress header (always full-width) ── */}
-        <div className="flex items-center gap-1.5 border-b border-white/5 px-5 py-3.5">
+        {/* Progress header */}
+        <div className="flex items-center gap-1.5 border-b border-white/5 px-5 py-3.5 shrink-0">
           {TOUR_STEPS.map((_, i) => (
             <div
               key={i}
@@ -166,45 +224,40 @@ export function OnboardingTour() {
           </button>
         </div>
 
-        {hasDemo ? (
-          /* ── Two-column layout for analysis steps ── */
-          <div className="flex" style={{ height: 460 }}>
-            {/* Left: text + nav */}
+        {hasDemo && !mobile ? (
+          /* ── Desktop: two-column ── */
+          <div className="flex flex-1 min-h-0" style={{ height: 460 }}>
             <div className="flex w-60 shrink-0 flex-col border-r border-white/5">
-              <div className="flex-1 px-5 py-5">
+              <div className="flex-1 overflow-y-auto px-5 py-5">
                 <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-blue-400">
                   {stepIndex + 1} / {TOUR_STEPS.length}
                 </p>
                 <h3 className="mb-2 text-base font-bold text-white leading-snug">{step.title}</h3>
                 <p className="text-xs leading-relaxed text-slate-400">{step.description}</p>
               </div>
-              <div className="flex items-center justify-between border-t border-white/5 px-5 py-4">
-                <button onClick={handleSkip} className="text-xs text-slate-500 transition-colors hover:text-slate-300">
-                  Hoppa över
-                </button>
-                <div className="flex items-center gap-2">
-                  {stepIndex > 0 && (
-                    <Button onClick={handleBack} size="sm" variant="ghost" className="gap-1.5 text-slate-400 hover:text-white">
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
-                    {isLast
-                      ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
-                      : <>Nästa <ArrowRight className="h-4 w-4" /></>
-                    }
-                  </Button>
-                </div>
-              </div>
+              <TourFooter {...footerProps} />
             </div>
-
-            {/* Right: demo panel */}
             <div className="flex-1 overflow-hidden bg-slate-950/40">
-              <TourMiniDemo key={step.id} stepId={step.id} />
+              <TourMiniDemo key={step.id} stepId={step.id} mobile={false} />
             </div>
           </div>
+        ) : hasDemo && mobile ? (
+          /* ── Mobile: stacked ── */
+          <>
+            <div className="px-5 py-4 shrink-0">
+              <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-blue-400">
+                {stepIndex + 1} / {TOUR_STEPS.length}
+              </p>
+              <h3 className="mb-1.5 text-sm font-bold text-white leading-snug">{step.title}</h3>
+              <p className="text-xs leading-relaxed text-slate-400">{step.description}</p>
+            </div>
+            <div className="border-t border-white/5 bg-slate-950/40" style={{ height: 260 }}>
+              <TourMiniDemo key={step.id} stepId={step.id} mobile={true} />
+            </div>
+            <TourFooter {...footerProps} />
+          </>
         ) : (
-          /* ── Normal single-column layout ── */
+          /* ── Normal (no demo) ── */
           <>
             <div className="px-5 py-5">
               <p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-blue-400">
@@ -213,24 +266,7 @@ export function OnboardingTour() {
               <h3 className="mb-2 text-lg font-bold text-white">{step.title}</h3>
               <p className="text-sm leading-relaxed text-slate-400">{step.description}</p>
             </div>
-            <div className="flex items-center justify-between border-t border-white/5 px-5 py-4">
-              <button onClick={handleSkip} className="text-xs text-slate-500 transition-colors hover:text-slate-300">
-                Hoppa över
-              </button>
-              <div className="flex items-center gap-2">
-                {stepIndex > 0 && (
-                  <Button onClick={handleBack} size="sm" variant="ghost" className="gap-1.5 text-slate-400 hover:text-white">
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
-                  {isLast
-                    ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
-                    : <>Nästa <ArrowRight className="h-4 w-4" /></>
-                  }
-                </Button>
-              </div>
-            </div>
+            <TourFooter {...footerProps} />
           </>
         )}
       </div>

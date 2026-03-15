@@ -94,7 +94,7 @@ const NEXT_PHASE: Record<Phase, Phase> = {
 
 // ── Score preview (step: analysis-score) ──────────────────────────────────────
 
-export function ScorePreview() {
+export function ScorePreview({ mobile = false }: { mobile?: boolean }) {
   const [score, setScore] = useState(0)
 
   useEffect(() => {
@@ -112,9 +112,9 @@ export function ScorePreview() {
   const markerColor = color
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
+    <div className={`flex h-full flex-col overflow-y-auto p-3 ${mobile ? 'gap-2' : 'gap-3'}`}>
       {/* Car header */}
-      <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+      <div className={`flex items-center gap-2 border-b border-white/5 ${mobile ? 'pb-2' : 'pb-3'}`}>
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600/20">
           <Car className="h-4 w-4 text-blue-400" />
         </div>
@@ -167,8 +167,8 @@ export function ScorePreview() {
         </div>
       </div>
 
-      {/* Quick facts grid */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Quick facts grid — hide on mobile to save space */}
+      {!mobile && <div className="grid grid-cols-2 gap-2">
         {[
           { label: 'Märke & Modell', value: 'Volvo XC60' },
           { label: 'Årsmodell', value: '2020' },
@@ -182,14 +182,14 @@ export function ScorePreview() {
             <p className="text-xs font-semibold text-slate-200 mt-0.5">{value}</p>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   )
 }
 
 // ── Factors preview (step: analysis-factors) ──────────────────────────────────
 
-export function FactorsPreview() {
+export function FactorsPreview({ mobile = false }: { mobile?: boolean }) {
   const [factorIdx, setFactorIdx] = useState(0)
   const [phase, setPhase] = useState<Phase>('moving')
   const [showDetail, setShowDetail] = useState(false)
@@ -239,14 +239,15 @@ export function FactorsPreview() {
 
   const activeFactor = ALL_FACTORS[factorIdx]
   const clicking = phase === 'clicking' || phase === 'closing'
+  const visibleGroups = mobile ? DEMO_GROUPS.slice(0, 2) : DEMO_GROUPS
   let flatIdx = 0
 
   return (
     <div ref={containerRef} className="relative h-full overflow-y-auto p-3">
       {/* Factor groups */}
       <p className="mb-2 text-[11px] font-semibold text-slate-400">Detaljanalys — 12 faktorer</p>
-      <div className="grid grid-cols-2 gap-2.5">
-        {DEMO_GROUPS.map((group) => (
+      <div className={`grid gap-2.5 ${mobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        {visibleGroups.map((group) => (
           <div
             key={group.title}
             className="rounded-xl border border-white/10 bg-slate-800/70 p-3 space-y-0.5"
@@ -357,8 +358,8 @@ export function FactorsPreview() {
 
 // ── Public export ──────────────────────────────────────────────────────────────
 
-export function TourMiniDemo({ stepId }: { stepId: string }) {
-  if (stepId === 'analysis-score')   return <ScorePreview />
-  if (stepId === 'analysis-factors') return <FactorsPreview />
+export function TourMiniDemo({ stepId, mobile = false }: { stepId: string; mobile?: boolean }) {
+  if (stepId === 'analysis-score')   return <ScorePreview mobile={mobile} />
+  if (stepId === 'analysis-factors') return <FactorsPreview mobile={mobile} />
   return null
 }
