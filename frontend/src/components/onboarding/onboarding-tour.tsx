@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router'
-import { X, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { X, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTourStore } from '@/stores/tour.store'
 import { TOUR_STEPS } from './tour-steps'
@@ -95,6 +95,7 @@ export function OnboardingTour() {
   }, [isActive, updateRect])
 
   const handleNext = () => { if (isLast) { completeTour() } else { setStep(stepIndex + 1) } }
+  const handleBack = () => { if (stepIndex > 0) setStep(stepIndex - 1) }
   const handleSkip = () => completeTour()
 
   if (!isActive) return null
@@ -181,12 +182,19 @@ export function OnboardingTour() {
                 <button onClick={handleSkip} className="text-xs text-slate-500 transition-colors hover:text-slate-300">
                   Hoppa över
                 </button>
-                <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
-                  {isLast
-                    ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
-                    : <>Nästa <ArrowRight className="h-4 w-4" /></>
-                  }
-                </Button>
+                <div className="flex items-center gap-2">
+                  {stepIndex > 0 && (
+                    <Button onClick={handleBack} size="sm" variant="ghost" className="gap-1.5 text-slate-400 hover:text-white">
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
+                    {isLast
+                      ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
+                      : <>Nästa <ArrowRight className="h-4 w-4" /></>
+                    }
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -209,12 +217,19 @@ export function OnboardingTour() {
               <button onClick={handleSkip} className="text-xs text-slate-500 transition-colors hover:text-slate-300">
                 Hoppa över
               </button>
-              <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
-                {isLast
-                  ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
-                  : <>Nästa <ArrowRight className="h-4 w-4" /></>
-                }
-              </Button>
+              <div className="flex items-center gap-2">
+                {stepIndex > 0 && (
+                  <Button onClick={handleBack} size="sm" variant="ghost" className="gap-1.5 text-slate-400 hover:text-white">
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button onClick={handleNext} size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500">
+                  {isLast
+                    ? <><CheckCircle2 className="h-4 w-4" /> Kom igång!</>
+                    : <>Nästa <ArrowRight className="h-4 w-4" /></>
+                  }
+                </Button>
+              </div>
             </div>
           </>
         )}

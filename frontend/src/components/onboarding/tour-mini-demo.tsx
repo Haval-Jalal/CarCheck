@@ -100,11 +100,11 @@ export function ScorePreview() {
   useEffect(() => {
     let cur = 0
     function tick() {
-      cur = Math.min(cur + 2, DEMO_SCORE_TARGET)
+      cur = Math.min(cur + 1, DEMO_SCORE_TARGET)
       setScore(cur)
-      if (cur < DEMO_SCORE_TARGET) setTimeout(tick, 20)
+      if (cur < DEMO_SCORE_TARGET) setTimeout(tick, 35)
     }
-    const t = setTimeout(tick, 300)
+    const t = setTimeout(tick, 400)
     return () => clearTimeout(t)
   }, [])
 
