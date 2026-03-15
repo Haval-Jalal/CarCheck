@@ -138,14 +138,13 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
 
 // ── Score gauge (alltid synlig) ───────────────────────────────────────────────
 
-// Maps backend recommendation strings to neutral, legally safe display labels
-const REC_LABEL: Record<string, string> = {
-  'Rekommenderas':       'Stark dataprofil',
-  'Köp med försiktighet': 'Blandad dataprofil',
-  'Undvik':              'Svag dataprofil',
+function getScoreTier(score: number): { label: string; sub: string } {
+  if (score >= 70) return { label: 'Välgranskat', sub: 'Dataprofilen är stark och väldokumenterad' }
+  if (score >= 40) return { label: 'Godkänt',     sub: 'Dataprofilen är tillräcklig men har luckor' }
+  return              { label: 'Bristfälligt',    sub: 'Dataprofilen är svag eller ofullständig' }
 }
 
-function ScoreGauge({ score, recommendation }: { score: number; recommendation: string }) {
+function ScoreGauge({ score }: { score: number }) {
   const ringColor =
     score >= 70 ? 'border-green-500' :
     score >= 40 ? 'border-yellow-500' :
@@ -156,7 +155,7 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
     score >= 40 ? '#eab308' :
     '#ef4444'
 
-  const displayLabel = REC_LABEL[recommendation] ?? recommendation
+  const { label, sub } = getScoreTier(score)
 
   return (
     <div data-tour="analysis-score" className="rounded-xl border border-border bg-card px-4 py-4 space-y-3 sm:px-5 sm:space-y-4">
@@ -173,11 +172,14 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
 
         {/* Label + gradient bar */}
         <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge className={cn('text-xs sm:text-sm px-2 py-0.5 sm:px-3 sm:py-1', getScoreBgColor(score))}>
-              {displayLabel}
-            </Badge>
-            <span className="text-xs text-muted-foreground">av 100 · datapoäng</span>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className={cn('text-xs sm:text-sm px-2 py-0.5 sm:px-3 sm:py-1', getScoreBgColor(score))}>
+                {label}
+              </Badge>
+              <span className="text-xs text-muted-foreground">{score}/100</span>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground/70">{sub}</p>
           </div>
 
           {/* Gradient bar */}
@@ -196,10 +198,10 @@ function ScoreGauge({ score, recommendation }: { score: number; recommendation: 
                 }}
               />
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground select-none">
-              <span>Svagare data</span>
-              <span>50</span>
-              <span>Starkare data</span>
+            <div className="flex justify-between text-xs text-muted-foreground/50 select-none">
+              <span>Bristfälligt</span>
+              <span>Godkänt</span>
+              <span>Välgranskat</span>
             </div>
           </div>
         </div>
@@ -503,7 +505,7 @@ export function CarAnalysisPage() {
 
       {/* Score gauge — alltid synlig oavsett aktiv sektion */}
       <div data-no-print>
-        <ScoreGauge score={scoreRounded} recommendation={analysis.recommendation} />
+        <ScoreGauge score={scoreRounded} />
       </div>
 
       {/* Mobile: horisontell scrollmeny */}
@@ -577,7 +579,7 @@ export function CarAnalysisPage() {
         </div>
 
         {/* Poäng */}
-        <ScoreGauge score={scoreRounded} recommendation={analysis.recommendation} />
+        <ScoreGauge score={scoreRounded} />
 
         {/* Alla sektioner i ordning */}
         {(

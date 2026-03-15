@@ -157,21 +157,66 @@ function ServiceDetail({ services }: { services: AnalysisDetails['services'] }) 
 
 // ─── Ägarhistorik ───
 
+function fmtMonths(months: number): string {
+  if (months >= 24) return `${Math.round(months / 12)} år`
+  if (months === 1) return '1 mån'
+  return `${months} mån`
+}
+
 function OwnerDetail({ owners }: { owners: AnalysisDetails['owners'] }) {
+  const today = new Date()
+
+  const withDuration = useMemo(() =>
+    owners.map(o => {
+      const from = new Date(o.from)
+      const to = o.to ? new Date(o.to) : today
+      const months = Math.max(1, Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24 * 30.44)))
+      return { ...o, months }
+    }),
+    [owners] // eslint-disable-line react-hooks/exhaustive-deps
+  )
+
   if (owners.length === 0) {
     return <EmptyState text="Ingen ägarhistorik tillgänglig." />
   }
+
+  const avgMonths = Math.round(withDuration.reduce((s, o) => s + o.months, 0) / withDuration.length)
+  const privateCount = owners.filter(o => !o.isCompany).length
+  const companyCount = owners.length - privateCount
+
   return (
-    <div className="space-y-3">
-      {owners.map((o, idx) => (
+    <div className="space-y-4">
+      {/* Summary stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg bg-muted/40 px-3 py-2.5 text-center">
+          <p className="text-lg font-bold">{owners.length}</p>
+          <p className="text-xs text-muted-foreground">Ägare totalt</p>
+        </div>
+        <div className="rounded-lg bg-muted/40 px-3 py-2.5 text-center">
+          <p className="text-lg font-bold">{fmtMonths(avgMonths)}</p>
+          <p className="text-xs text-muted-foreground">Snittägartid</p>
+        </div>
+        <div className="rounded-lg bg-muted/40 px-3 py-2.5 text-center">
+          <p className="text-lg font-bold">{privateCount}/{companyCount}</p>
+          <p className="text-xs text-muted-foreground">Privat / Företag</p>
+        </div>
+      </div>
+
+      {/* Per-owner timeline */}
+      {withDuration.map((o, idx) => (
         <div key={idx} className="flex items-start gap-3 rounded-lg border p-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
             {idx + 1}
           </div>
           <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">{o.isCompany ? 'Företag' : 'Privat'}</Badge>
-              {o.region && <span className="text-sm text-muted-foreground">{o.region}</span>}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{o.isCompany ? 'Företag' : 'Privat'}</Badge>
+                {o.region && <span className="text-sm text-muted-foreground">{o.region}</span>}
+              </div>
+              <span className="shrink-0 text-xs font-medium text-muted-foreground">
+                {fmtMonths(o.months)}
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
               {formatDate(o.from)} — {o.to ? formatDate(o.to) : 'Nuvarande'}
