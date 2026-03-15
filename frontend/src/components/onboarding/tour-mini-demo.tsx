@@ -54,7 +54,7 @@ function scoreColor(v: number) {
 }
 
 function recLabel(s: number) {
-  return s >= 70 ? 'Rekommenderas' : s >= 40 ? 'Köp med försiktighet' : 'Undvik'
+  return s >= 70 ? 'Välgranskat' : s >= 40 ? 'Godkänt' : 'Bristfälligt'
 }
 
 function recBadgeBg(s: number) {
@@ -160,7 +160,7 @@ export function ScorePreview({ mobile = false }: { mobile?: boolean }) {
                 />
               </div>
               <div className="flex justify-between text-[10px] text-slate-500 mt-1 select-none">
-                <span>Undvik</span><span>50</span><span>Rekommenderas</span>
+                <span>Bristfälligt</span><span>50</span><span>Välgranskat</span>
               </div>
             </div>
           </div>
