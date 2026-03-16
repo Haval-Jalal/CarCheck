@@ -215,7 +215,7 @@ export function SettingsPage() {
             <div>
               <p className="font-medium">Exportera mina data</p>
               <p className="text-sm text-muted-foreground">
-                Ladda ner all data kopplad till ditt konto som JSON
+                Ladda ner en fil med all data kopplad till ditt konto
               </p>
             </div>
             <Button variant="outline" onClick={handleExport} disabled={exporting}>
