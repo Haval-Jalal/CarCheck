@@ -1,9 +1,18 @@
 export interface UserDataExport {
   profile: UserProfileData
+  creditTransactions: CreditTransactionExport[]
+  subscriptions: SubscriptionExport[]
   searchHistory: SearchHistoryExport[]
   favorites: FavoriteExport[]
-  subscriptions: SubscriptionExport[]
   exportedAt: string
+}
+
+export interface CreditTransactionExport {
+  date: string
+  description: string
+  credits: number | null
+  amountSek: number
+  type: string
 }
 
 export interface UserProfileData {

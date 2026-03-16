@@ -66,11 +66,90 @@ export function SettingsPage() {
     setExporting(true)
     try {
       const { data } = await gdprApi.exportData()
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `carcheck-data-export-${new Date().toISOString().split('T')[0]}.json`
+
+      const sep  = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+      const fmt  = (d: string) => new Date(d).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' })
+      const fmtD = (d: string) => new Date(d).toLocaleDateString('sv-SE')
+      const sek  = (n: number) => n.toLocaleString('sv-SE') + ' kr'
+
+      const lines: string[] = [
+        'CARCHECK — PERSONUPPGIFTSEXPORT',
+        'Enligt EU:s dataskyddsförordning (GDPR), artikel 20 — Dataportabilitet',
+        `Exportdatum: ${fmt(data.exportedAt)}`,
+        '',
+        sep,
+        'KONTOINFORMATION',
+        sep,
+        `E-postadress:          ${data.profile.email}`,
+        `Konto skapat:          ${fmtD(data.profile.createdAt)}`,
+        `E-post verifierad:     ${data.profile.emailVerified ? 'Ja' : 'Nej'}`,
+        `Tvåfaktorsinloggning:  ${data.profile.twoFactorEnabled ? 'Aktiverad' : 'Ej aktiverad'}`,
+        '',
+      ]
+
+      // Köptransaktioner
+      lines.push(sep, `KÖPTRANSAKTIONER (${data.creditTransactions.length} st)`, sep)
+      if (data.creditTransactions.length === 0) {
+        lines.push('Inga transaktioner registrerade.')
+      } else {
+        lines.push('Datum                Beskrivning                              Belopp')
+        lines.push('─────────────────────────────────────────────────────────────────')
+        for (const t of data.creditTransactions) {
+          const date = fmt(t.date).padEnd(21)
+          const desc = t.description.padEnd(41)
+          const amount = t.amountSek > 0 ? sek(t.amountSek) : 'Kostnadsfri'
+          lines.push(`${date}${desc}${amount}`)
+        }
+      }
+      lines.push('')
+
+      // Prenumerationer
+      lines.push(sep, `PRENUMERATIONER (${data.subscriptions.length} st)`, sep)
+      if (data.subscriptions.length === 0) {
+        lines.push('Inga prenumerationer registrerade.')
+      } else {
+        for (const s of data.subscriptions) {
+          lines.push(`Plan:    ${s.tier === 'Pro' ? 'Månadsplan (obegränsade sökningar)' : s.tier}`)
+          lines.push(`Status:  ${s.isActive ? 'Aktiv' : 'Avslutad'}`)
+          lines.push(`Start:   ${fmtD(s.startDate)}`)
+          if (s.endDate) lines.push(`Slut:    ${fmtD(s.endDate)}`)
+          lines.push('')
+        }
+      }
+
+      // Sökhistorik
+      lines.push(sep, `SÖKHISTORIK (${data.searchHistory.length} sökningar)`, sep)
+      if (data.searchHistory.length === 0) {
+        lines.push('Ingen sökhistorik registrerad.')
+      } else {
+        for (const s of data.searchHistory) {
+          lines.push(`${fmt(s.searchedAt)}    Analys-ID: ${s.carId}`)
+        }
+      }
+      lines.push('')
+
+      // Favoriter
+      lines.push(sep, `SPARADE FAVORITER (${data.favorites.length} st)`, sep)
+      if (data.favorites.length === 0) {
+        lines.push('Inga sparade favoriter.')
+      } else {
+        for (const f of data.favorites) {
+          lines.push(`${fmt(f.createdAt)}    Analys-ID: ${f.carId}`)
+        }
+      }
+      lines.push('')
+
+      // Footer
+      lines.push(sep)
+      lines.push('Frågor om denna export? Kontakta support@carcheck.se')
+      lines.push(sep)
+
+      const text = lines.join('\n')
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `carcheck-export-${new Date().toISOString().split('T')[0]}.txt`
       a.click()
       URL.revokeObjectURL(url)
       toast.success('Data exporterad')
