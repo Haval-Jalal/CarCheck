@@ -2,6 +2,7 @@ using CarCheck.Application.Auth;
 using CarCheck.Application.Gdpr.DTOs;
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Interfaces;
+using CarCheck.Domain.Entities;
 
 namespace CarCheck.Application.Gdpr;
 
@@ -11,6 +12,7 @@ public class GdprService
     private readonly ISearchHistoryRepository _searchHistoryRepository;
     private readonly IFavoriteRepository _favoriteRepository;
     private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly ICreditTransactionRepository _creditTransactionRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
     private readonly IPasswordHasher _passwordHasher;
@@ -21,6 +23,7 @@ public class GdprService
         ISearchHistoryRepository searchHistoryRepository,
         IFavoriteRepository favoriteRepository,
         ISubscriptionRepository subscriptionRepository,
+        ICreditTransactionRepository creditTransactionRepository,
         IRefreshTokenRepository refreshTokenRepository,
         ISecurityEventLogger securityEventLogger,
         IPasswordHasher passwordHasher,
@@ -30,6 +33,7 @@ public class GdprService
         _searchHistoryRepository = searchHistoryRepository;
         _favoriteRepository = favoriteRepository;
         _subscriptionRepository = subscriptionRepository;
+        _creditTransactionRepository = creditTransactionRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _securityEventLogger = securityEventLogger;
         _passwordHasher = passwordHasher;
@@ -46,12 +50,22 @@ public class GdprService
         var searchHistory = await _searchHistoryRepository.GetByUserIdAsync(userId, 1, 10000, cancellationToken);
         var favorites = await _favoriteRepository.GetByUserIdAsync(userId, 1, 10000, cancellationToken);
         var subscriptions = await _subscriptionRepository.GetByUserIdAsync(userId, cancellationToken);
+        var creditTransactions = await _creditTransactionRepository.GetByUserIdAsync(userId, cancellationToken);
 
         var export = new UserDataExport(
             new UserProfileData(user.Id, user.Email.Value, user.EmailVerified, user.TwoFactorEnabled, user.CreatedAt),
+            creditTransactions
+                .OrderByDescending(t => t.CreatedAt)
+                .Select(t => new CreditTransactionExport(
+                    t.CreatedAt,
+                    t.Description,
+                    t.Credits,
+                    t.AmountOre / 100m,
+                    t.Type))
+                .ToList(),
+            subscriptions.Select(s => new SubscriptionExport(s.Tier.ToString(), s.IsActive, s.StartDate, s.EndDate)).ToList(),
             searchHistory.Select(s => new SearchHistoryExport(s.CarId, s.SearchedAt)).ToList(),
             favorites.Select(f => new FavoriteExport(f.CarId, f.CreatedAt)).ToList(),
-            subscriptions.Select(s => new SubscriptionExport(s.Tier.ToString(), s.IsActive, s.StartDate, s.EndDate)).ToList(),
             DateTime.UtcNow);
 
         await _securityEventLogger.LogAsync(userId, "DataExported", cancellationToken: cancellationToken);

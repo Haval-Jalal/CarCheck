@@ -2,9 +2,10 @@ namespace CarCheck.Application.Gdpr.DTOs;
 
 public record UserDataExport(
     UserProfileData Profile,
+    IReadOnlyList<CreditTransactionExport> CreditTransactions,
+    IReadOnlyList<SubscriptionExport> Subscriptions,
     IReadOnlyList<SearchHistoryExport> SearchHistory,
     IReadOnlyList<FavoriteExport> Favorites,
-    IReadOnlyList<SubscriptionExport> Subscriptions,
     DateTime ExportedAt);
 
 public record UserProfileData(
@@ -13,6 +14,13 @@ public record UserProfileData(
     bool EmailVerified,
     bool TwoFactorEnabled,
     DateTime CreatedAt);
+
+public record CreditTransactionExport(
+    DateTime Date,
+    string Description,
+    int? Credits,
+    decimal AmountSek,
+    string Type);
 
 public record SearchHistoryExport(
     Guid CarId,
