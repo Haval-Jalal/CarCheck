@@ -114,7 +114,11 @@ public class CarSearchService
         var analysisCacheKey = $"{AnalysisCacheKeyPrefix}{carId}";
         var cached = await _cacheService.GetAsync<CarAnalysisResponse>(analysisCacheKey, cancellationToken);
         if (cached is not null)
-            return Result<CarAnalysisResponse>.Success(cached);
+        {
+            // searchCount is always fetched live — never served from cache
+            var freshCount = await _searchHistoryRepository.GetSearchCountByCarIdAsync(carId, cancellationToken);
+            return Result<CarAnalysisResponse>.Success(cached with { SearchCount = freshCount });
+        }
 
         // Fetch car from DB
         var car2 = await _carRepository.GetByIdAsync(carId, cancellationToken);

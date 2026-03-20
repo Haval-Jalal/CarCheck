@@ -40,7 +40,10 @@ public class SearchHistoryRepository : ISearchHistoryRepository
     public async Task<int> GetSearchCountByCarIdAsync(Guid carId, CancellationToken cancellationToken = default)
     {
         return await _context.SearchHistories
-            .CountAsync(s => s.CarId == carId, cancellationToken);
+            .Where(s => s.CarId == carId)
+            .Select(s => s.UserId)
+            .Distinct()
+            .CountAsync(cancellationToken);
     }
 
     public async Task AddAsync(SearchHistory entry, CancellationToken cancellationToken = default)
