@@ -6,7 +6,11 @@ import { translateColor, formatMil, getColorSwatch } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 // Converts a hex color to a CSS filter string that tints the white car image.
-// Uses sepia→hue-rotate→saturate pipeline. Returns null for achromatic colors.
+// The Imagin Studios demo key always returns a white car, so this filter is the
+// primary colorization mechanism. Uses different strategies per color type:
+//   • Dark/black: brightness+contrast to darken the image
+//   • Chromatic: sepia→hue-rotate→saturate pipeline
+//   • White/silver: no filter (white car looks correct as-is)
 function getColorFilter(hex: string | null): string | null {
   if (!hex) return null
   const h = hex.replace('#', '')
@@ -17,7 +21,18 @@ function getColorFilter(hex: string | null): string | null {
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
   const d = max - min
-  if (d < 0.12) return null // achromatic (white, black, silver, gray) — no tint needed
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b
+
+  if (d < 0.12) {
+    // Black / near-black
+    if (lum < 0.15) return 'brightness(0.12) contrast(1.2)'
+    // Dark gray / charcoal
+    if (lum < 0.45) return `brightness(${Math.round(lum * 0.55 * 100) / 100})`
+    // White / silver / light gray — no filter needed (white car is already correct)
+    return null
+  }
+
+  // Chromatic: tint via sepia→hue-rotate pipeline
   let hue: number
   switch (max) {
     case r: hue = ((g - b) / d + (g < b ? 6 : 0)) * 60; break
