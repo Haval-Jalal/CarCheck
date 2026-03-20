@@ -95,7 +95,7 @@ public class AuthService
         }
 
         user.VerifyEmail();
-        user.AddCredits(1);
+        user.AddCredits(5);
         await _userRepository.UpdateAsync(user, cancellationToken);
 
         await _transactionRepository.AddAsync(CreditTransaction.CreateTrial(user.Id), cancellationToken);
