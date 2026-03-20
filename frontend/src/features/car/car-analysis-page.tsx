@@ -22,7 +22,6 @@ import {
   Lightbulb,
   Calculator,
   DollarSign,
-  FileText,
   Printer,
   Heart,
   Fuel,
@@ -63,7 +62,6 @@ type SectionId =
   | 'kostnadsprognos'
   | 'deal-score'
   | 'besiktningschecklista'
-  | 'pdf'
 
 interface SectionDef {
   id: SectionId
@@ -81,7 +79,6 @@ const SECTIONS: SectionDef[] = [
   { id: 'kostnadsprognos', label: 'Kostnadsprognos', icon: <DollarSign className="h-4 w-4" /> },
   { id: 'deal-score', label: 'Deal Score', icon: <Calculator className="h-4 w-4" /> },
   { id: 'besiktningschecklista', label: 'Checklista', icon: <ClipboardCheck className="h-4 w-4" /> },
-  { id: 'pdf', label: 'Skriv ut / PDF', icon: <FileText className="h-4 w-4" /> },
 ]
 
 // ── 12-faktor grupper ─────────────────────────────────────────────────────────
@@ -427,26 +424,6 @@ export function CarAnalysisPage() {
             breakdown={analysis!.breakdown}
             details={analysis!.details}
           />
-        )
-
-      case 'pdf':
-        return (
-          <div className="rounded-xl border border-border bg-card p-6 space-y-5">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-400" />
-              <h2 className="text-base font-semibold">Skriv ut / Spara som PDF</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Skriv ut hela rapporten eller spara som PDF via din webbläsares utskriftsfunktion.
-            </p>
-            <Button onClick={() => window.print()} className="flex items-center gap-2">
-              <Printer className="h-4 w-4" />
-              Skriv ut rapport
-            </Button>
-            <p className="text-xs text-muted-foreground/60 italic">
-              Tips: Välj "Spara som PDF" i utskriftsdialogen för att spara en digital kopia.
-            </p>
-          </div>
         )
 
       default:
