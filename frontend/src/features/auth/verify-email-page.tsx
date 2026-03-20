@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { Car, CheckCircle, XCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { authApi } from '@/api/auth.api'
 import { useAuth } from '@/hooks/use-auth'
 
 export function VerifyEmailPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -19,7 +21,7 @@ export function VerifyEmailPage() {
 
     if (!token) {
       setStatus('error')
-      setErrorMessage('Ingen verifieringslänk hittades.')
+      setErrorMessage(t('auth.verifyEmail.noToken'))
       return
     }
 
@@ -29,11 +31,11 @@ export function VerifyEmailPage() {
         setStatus('success')
       })
       .catch((err) => {
-        const msg = err?.response?.data?.error ?? 'Ogiltig eller utgången verifieringslänk.'
+        const msg = err?.response?.data?.error ?? t('auth.verifyEmail.failed')
         setErrorMessage(msg)
         setStatus('error')
       })
-  }, [token])
+  }, [token, t])
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
@@ -47,7 +49,7 @@ export function VerifyEmailPage() {
         {status === 'loading' && (
           <div className="flex flex-col items-center gap-4 py-8">
             <Loader2 className="h-10 w-10 animate-spin text-blue-400" />
-            <p className="text-sm text-muted-foreground">Verifierar din e-postadress…</p>
+            <p className="text-sm text-muted-foreground">{t('auth.verifyEmail.verifying')}</p>
           </div>
         )}
 
@@ -57,13 +59,11 @@ export function VerifyEmailPage() {
               <CheckCircle className="h-6 w-6 text-green-400" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">E-posten verifierad!</h1>
-              <p className="text-sm text-muted-foreground">
-                Ditt konto är aktiverat och du har fått <strong>1 gratis sökning</strong>. Logga in för att komma igång.
-              </p>
+              <h1 className="text-2xl font-bold">{t('auth.verifyEmail.successTitle')}</h1>
+              <p className="text-sm text-muted-foreground">{t('auth.verifyEmail.successBody')}</p>
             </div>
             <Button asChild className="w-full bg-blue-600 hover:bg-blue-500">
-              <Link to="/login">Logga in</Link>
+              <Link to="/login">{t('auth.verifyEmail.loginButton')}</Link>
             </Button>
           </div>
         )}
@@ -74,11 +74,11 @@ export function VerifyEmailPage() {
               <XCircle className="h-6 w-6 text-red-400" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">Verifiering misslyckades</h1>
+              <h1 className="text-2xl font-bold">{t('auth.verifyEmail.errorTitle')}</h1>
               <p className="text-sm text-muted-foreground">{errorMessage}</p>
             </div>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/login">Gå till inloggning</Link>
+              <Link to="/login">{t('auth.verifyEmail.goToLogin')}</Link>
             </Button>
           </div>
         )}

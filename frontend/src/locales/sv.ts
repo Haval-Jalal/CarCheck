@@ -1,0 +1,322 @@
+const sv = {
+  // ── Landing ──────────────────────────────────────────────────────────────
+  landing: {
+    eyebrow: 'Bilanalys för privatpersoner',
+    headline: 'Din guide till ett',
+    headlineBlue: 'tryggt bilköp.',
+    subtitle:
+      'Ange registreringsnumret på vilken begagnad bil som helst och få en datadriven rekommendation — baserad på besiktning, miltal, försäkring och 9 andra faktorer.',
+    searchPlaceholder: 'ABC 123',
+    searchButton: 'Sök',
+    trust1: '10 000+ analyser genomförda',
+    trust2: '12 kontrollfaktorer',
+    trust3: 'Kostnadsfritt att prova',
+    pill1: 'Köp · Avvakta · Undvik',
+    pill2: 'Poäng 0–100 per bil',
+    pill3: 'Sparas i din historik',
+    disclaimer:
+      'CarCheck tillhandahåller information baserad på officiellt registrerade uppgifter. Vi friskriver oss från ansvar för fordonets faktiska skick vid köptillfället.',
+    login: 'Logga in',
+    register: 'Skapa konto',
+    privacy: 'Integritetspolicy',
+    terms: 'Användarvillkor',
+    regError: 'Ange ett giltigt regnummer (t.ex. ABC 123).',
+  },
+
+  // ── Header ────────────────────────────────────────────────────────────────
+  nav: {
+    history: 'Historik',
+    favorites: 'Favoriter',
+    compare: 'Jämför',
+    billing: 'Abonnemang',
+    settings: 'Inställningar',
+    logout: 'Logga ut',
+    search: 'Sök bil',
+    toggleTheme: 'Växla tema',
+    openMenu: 'Öppna meny',
+    closeMenu: 'Stäng meny',
+  },
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  dashboard: {
+    title: 'Kontrollera en bil',
+    subtitle: 'Ange registreringsnummer för att starta analysen',
+    searchCard: 'Bilsökning',
+    recentSearches: 'Senaste sökningar',
+    viewAll: 'Visa alla',
+    unknownCar: 'Okänd bil',
+    searchFailed: 'Sökningen misslyckades. Försök igen.',
+  },
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  auth: {
+    login: {
+      title: 'Logga in',
+      subtitle: 'Ange din e-post och ditt lösenord',
+      subtitleReg: 'för att se analysen av',
+      email: 'E-post',
+      emailPlaceholder: 'namn@exempel.se',
+      password: 'Lösenord',
+      forgotPassword: 'Glömt lösenord?',
+      submit: 'Logga in',
+      submitting: 'Loggar in...',
+      noAccount: 'Har du inget konto?',
+      createAccount: 'Skapa konto — det är gratis',
+      createAccountSub: 'Kom igång på under en minut',
+      searching: 'Du söker på',
+      features: [
+        'Se vad säljaren inte berättar — skulder, köpspärr och återkallelser',
+        'Ta reda på om priset är rimligt innan du ens frågar',
+        'Gå till visningen förberedd — med rätt frågor och förhandlingsargument',
+      ],
+      tagline: 'Säljarens hemligheter',
+      taglineBlue: 'avslöjas på sekunder.',
+      taglineSub:
+        'Tiotusentals kronor kan stå på spel. CarCheck ger dig svaret innan du bestämmer dig.',
+      failed: 'Inloggningen misslyckades. Försök igen.',
+      whatYouGet: 'Vad du får tillgång till',
+    },
+    register: {
+      title: 'Skapa konto',
+      subtitle: 'Kostnadsfritt, klart på en minut',
+      emailSent: 'Vi har skickat en verifieringslänk till {{email}}. Klicka på länken för att aktivera ditt konto.',
+      minLength: 'Minst 8 tecken',
+      minDigit: 'Minst en siffra',
+      email: 'E-post',
+      emailPlaceholder: 'namn@exempel.se',
+      password: 'Lösenord',
+      confirmPassword: 'Bekräfta lösenord',
+      submit: 'Skapa konto',
+      submitting: 'Skapar konto...',
+      hasAccount: 'Har du redan ett konto?',
+      loginLink: 'Logga in',
+      tagline: 'Gör ett',
+      taglineBlue: 'smartare bilköp.',
+      taglineSub:
+        'Gå aldrig till en bilvisning utan att ha gjort din hemläxa. CarCheck gör det åt dig.',
+      features: [
+        'Fullständig besiktningshistorik och riskprofil',
+        'Prisanalys — se om bilen är värderad korrekt',
+        'Förhandlingstips anpassade till just den här bilen',
+      ],
+    },
+    forgotPassword: {
+      title: 'Glömt lösenord?',
+      subtitle: 'Ange din e-postadress så skickar vi en återställningslänk',
+      email: 'E-post',
+      emailPlaceholder: 'namn@exempel.se',
+      submit: 'Skicka länk',
+      submitting: 'Skickar...',
+      success: 'Om e-postadressen finns registrerad skickar vi en länk om en liten stund.',
+      backToLogin: 'Tillbaka till inloggning',
+    },
+    resetPassword: {
+      title: 'Nytt lösenord',
+      subtitle: 'Välj ett nytt säkert lösenord för ditt konto',
+      password: 'Nytt lösenord',
+      confirmPassword: 'Bekräfta lösenord',
+      submit: 'Spara lösenord',
+      submitting: 'Sparar...',
+      success: 'Lösenordet har ändrats! Omdirigerar till inloggning...',
+      successTitle: 'Lösenordet återställt',
+      successSubtitle: 'Du kan nu logga in med ditt nya lösenord.',
+      invalidToken: 'Ogiltig återställningslänk. Begär en ny.',
+      requestNew: 'Begär ny länk',
+      failed: 'Något gick fel. Försök igen eller begär en ny länk.',
+    },
+    verifyEmail: {
+      verifying: 'Verifierar e-post...',
+      success: 'E-postadressen har verifierats! Du kan nu logga in.',
+      successTitle: 'E-posten verifierad!',
+      successBody: 'Ditt konto är aktiverat och du har fått 1 gratis sökning. Logga in för att komma igång.',
+      failed: 'Verifieringen misslyckades. Länken kan ha gått ut.',
+      errorTitle: 'Verifiering misslyckades',
+      noToken: 'Ingen verifieringslänk hittades.',
+      loginButton: 'Logga in',
+      goToLogin: 'Gå till inloggning',
+    },
+  },
+
+  // ── Billing ───────────────────────────────────────────────────────────────
+  billing: {
+    title: 'Abonnemang',
+    subtitle: 'Köp sökningar eller teckna en månadsplan',
+    creditsLeft: 'Sökningar kvar',
+    monthlyPlan: 'Månadsplan',
+    active: 'Aktiv',
+    inactive: 'Inaktiv',
+    since: 'Sedan',
+    cancelPlan: 'Avbryt plan',
+    buySearches: 'Köp sökningar',
+    buySearchesSub: 'Varje sökning ger fullständig analys av bilen',
+    buyNow: 'Köp nu',
+    perSearch: '/sökning',
+    bestValue: 'Bäst värde',
+    monthlyTitle: 'Månadsplan — Obegränsat',
+    monthlySub: 'Sök hur mycket du vill, betala en fast månadsavgift',
+    perMonth: '/månad',
+    subscribe: 'Teckna månadsplan',
+    activePlan: 'Aktiv plan',
+    features: [
+      'Obegränsade bilsökningar',
+      'Fullständig analys på varje bil',
+      'Besiktningshistorik och riskfaktorer',
+      'Prisanalys mot marknaden',
+    ],
+    purchaseHistory: 'Köphistorik',
+    free: 'Gratis',
+    transaction: {
+      subscription: 'Månadsplan',
+      trial: 'Provsökning',
+      credits: 'Krediter',
+    },
+    cancel: {
+      title: 'Avbryt månadsplan?',
+      description: 'Din plan avslutas omedelbart. Dina köpta sökningar (krediter) påverkas inte.',
+      keep: 'Behåll planen',
+      confirm: 'Ja, avbryt planen',
+      confirming: 'Avslutar...',
+      error: 'Något gick fel. Försök igen eller kontakta support.',
+    },
+    toast: {
+      creditsAdded: 'tillagda på ditt konto!',
+      credit: 'sökning',
+      credits: 'sökningar',
+      monthlyActive: 'Månadsplanen är nu aktiv — obegränsade sökningar!',
+      canceled: 'Betalningen avbröts.',
+      cancelSuccess: 'Månadsplanen avbruten',
+      paymentError: 'Kunde inte starta betalning',
+    },
+  },
+
+  // ── History ───────────────────────────────────────────────────────────────
+  history: {
+    title: 'Sökhistorik',
+    subtitle: 'Alla bilar du har sökt på',
+    empty: 'Inga sökningar än',
+    emptySub: 'Sök på ett registreringsnummer för att komma igång.',
+    unknownCar: 'Okänd bil',
+    clearAll: 'Rensa historik',
+    clearConfirm: 'Är du säker på att du vill rensa hela historiken?',
+    deleteError: 'Kunde inte ta bort sökning',
+    clearError: 'Kunde inte rensa historik',
+  },
+
+  // ── Favorites ─────────────────────────────────────────────────────────────
+  favorites: {
+    title: 'Favoriter',
+    subtitle: 'Bilar du har sparat',
+    empty: 'Inga favoriter än',
+    emptySub: 'Spara en bil från analysresultatet för att hitta den här.',
+    unknownCar: 'Okänd bil',
+    removeError: 'Kunde inte ta bort favorit',
+    viewAnalysis: 'Visa analys',
+  },
+
+  // ── Compare ───────────────────────────────────────────────────────────────
+  compare: {
+    title: 'Jämför bilar',
+    subtitle: 'Jämför upp till 3 bilar sida vid sida',
+    addCar: 'Lägg till bil',
+    addPlaceholder: 'ABC 123',
+    remove: 'Ta bort',
+    score: 'Poäng',
+    empty: 'Inga bilar att jämföra',
+    emptySub: 'Ange ett registreringsnummer ovan för att börja jämföra.',
+  },
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  settings: {
+    title: 'Inställningar',
+    subtitle: 'Hantera ditt konto',
+    guide: {
+      title: 'Guide & hjälp',
+      description: 'Lär dig använda CarCheck',
+      label: 'Visa guide igen',
+      sublabel: 'Gå igenom introduktionen steg för steg',
+      button: 'Starta guide',
+    },
+    password: {
+      title: 'Ändra lösenord',
+      current: 'Nuvarande lösenord',
+      new: 'Nytt lösenord',
+      confirm: 'Bekräfta nytt lösenord',
+      submit: 'Ändra lösenord',
+      submitting: 'Sparar...',
+      success: 'Lösenordet ändrat. Du loggas ut om ett ögonblick...',
+      error: 'Kunde inte ändra lösenord.',
+    },
+    gdpr: {
+      title: 'GDPR & Integritet',
+      description: 'Hantera dina personuppgifter',
+      exportLabel: 'Exportera mina data',
+      exportSub: 'Ladda ner en fil med all data kopplad till ditt konto',
+      exportButton: 'Exportera',
+      exporting: 'Exporterar...',
+      exportSuccess: 'Data exporterad',
+      exportError: 'Kunde inte exportera data',
+      deleteLabel: 'Radera mitt konto',
+      deleteSub: 'Permanent radering av konto och all kopplad data',
+      deleteButton: 'Radera konto',
+    },
+    delete: {
+      step1Title: 'Radera konto',
+      step1Description:
+        'Ditt konto, all historik, favoriter och kvarvarande krediter raderas permanent.',
+      passwordLabel: 'Bekräfta med ditt lösenord',
+      passwordPlaceholder: 'Ditt lösenord',
+      reasonLabel: 'Anledning (valfritt)',
+      reasons: {
+        no_value: 'Hittade inte vad jag sökte',
+        too_expensive: 'För dyrt',
+        not_using: 'Använder inte tjänsten längre',
+        other: 'Annan anledning',
+      },
+      otherPlaceholder: 'Berätta gärna mer...',
+      cancel: 'Avbryt',
+      continue: 'Fortsätt',
+      step2Title: 'Är du helt säker?',
+      step2Description:
+        'Den här åtgärden kan inte ångras. Ditt konto och all data raderas omedelbart och permanent. Det finns ingen väg tillbaka.',
+      warning: 'Allt raderas: historik, favoriter och eventuella kvarvarande sökningar.',
+      creditsWarning_one: 'Du har {{count}} sökning kvar som försvinner permanent vid radering.',
+      creditsWarning_other:
+        'Du har {{count}} sökningar kvar som försvinner permanent vid radering.',
+      back: 'Tillbaka',
+      confirm: 'Ja, radera mitt konto',
+      confirming: 'Raderar...',
+      success: 'Ditt konto har raderats',
+      error: 'Kunde inte radera konto',
+    },
+  },
+
+  // ── Car hero score badges ─────────────────────────────────────────────────
+  carHero: {
+    score: {
+      excellent: 'Välgranskat',
+      good: 'Godkänt',
+      poor: 'Bristfälligt',
+    },
+  },
+
+  // ── Language switcher ─────────────────────────────────────────────────────
+  language: {
+    sv: 'Svenska',
+    en: 'English',
+  },
+
+  // ── Common ────────────────────────────────────────────────────────────────
+  common: {
+    loading: 'Laddar...',
+    error: 'Något gick fel',
+    retry: 'Försök igen',
+    back: 'Tillbaka',
+    save: 'Spara',
+    cancel: 'Avbryt',
+    confirm: 'Bekräfta',
+    yes: 'Ja',
+    no: 'Nej',
+  },
+} as const
+
+export default sv

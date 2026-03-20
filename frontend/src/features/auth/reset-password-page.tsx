@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { Car, ArrowLeft, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +14,7 @@ import type { AxiosError } from 'axios'
 import type { ApiError } from '@/types/api.types'
 
 export function ResetPasswordPage() {
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const token = searchParams.get('token') ?? ''
@@ -33,14 +35,14 @@ export function ResetPasswordPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm space-y-4">
           <Alert variant="destructive">
-            <AlertDescription>Ogiltig återställningslänk. Begär en ny.</AlertDescription>
+            <AlertDescription>{t('auth.resetPassword.invalidToken')}</AlertDescription>
           </Alert>
           <Link
             to="/forgot-password"
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Begär ny länk
+            {t('auth.resetPassword.requestNew')}
           </Link>
         </div>
       </div>
@@ -55,7 +57,7 @@ export function ResetPasswordPage() {
       setDone(true)
     } catch (err) {
       const axiosError = err as AxiosError<ApiError>
-      setError(axiosError.response?.data?.error || 'Något gick fel. Försök igen eller begär en ny länk.')
+      setError(axiosError.response?.data?.error || t('auth.resetPassword.failed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -77,24 +79,24 @@ export function ResetPasswordPage() {
               <CheckCircle className="h-6 w-6 text-green-400" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">Lösenordet återställt</h1>
+              <h1 className="text-2xl font-bold">{t('auth.resetPassword.successTitle')}</h1>
               <p className="text-sm text-muted-foreground">
-                Du kan nu logga in med ditt nya lösenord.
+                {t('auth.resetPassword.successSubtitle')}
               </p>
             </div>
             <Button
               className="w-full bg-blue-600 hover:bg-blue-500"
               onClick={() => navigate('/login')}
             >
-              Logga in
+              {t('auth.login.submit')}
             </Button>
           </div>
         ) : (
           <>
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">Skapa nytt lösenord</h1>
+              <h1 className="text-2xl font-bold">{t('auth.resetPassword.title')}</h1>
               <p className="text-sm text-muted-foreground">
-                Välj ett nytt lösenord på minst 8 tecken.
+                {t('auth.resetPassword.subtitle')}
               </p>
             </div>
 
@@ -106,7 +108,7 @@ export function ResetPasswordPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="newPassword">Nytt lösenord</Label>
+                <Label htmlFor="newPassword">{t('auth.resetPassword.password')}</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -120,7 +122,7 @@ export function ResetPasswordPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Bekräfta lösenord</Label>
+                <Label htmlFor="confirmPassword">{t('auth.resetPassword.confirmPassword')}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -137,7 +139,7 @@ export function ResetPasswordPage() {
                 className="w-full bg-blue-600 hover:bg-blue-500"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Sparar...' : 'Spara nytt lösenord'}
+                {isSubmitting ? t('auth.resetPassword.submitting') : t('auth.resetPassword.submit')}
               </Button>
             </form>
 
@@ -146,7 +148,7 @@ export function ResetPasswordPage() {
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              Tillbaka till inloggning
+              {t('auth.forgotPassword.backToLogin')}
             </Link>
           </>
         )}
