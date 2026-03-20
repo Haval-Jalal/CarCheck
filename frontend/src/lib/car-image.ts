@@ -57,7 +57,7 @@ function mapColor(colorSv: string | null | undefined): string {
     .replace(/\s+/g, '_')
     .replace(/-/g, '_')
   const mapped = COLOR_MAP[key]
-  if (!mapped) {
+  if (!mapped && import.meta.env.DEV) {
     console.debug(`[car-image] unmapped color: "${colorSv}" (key: "${key}") → fallback grey`)
   }
   return mapped ?? 'color-grey'
@@ -149,6 +149,6 @@ export function getCarImageUrl({ brand, model, year, color }: CarImageParams): s
   if (year) params.set('modelYear', String(year))
 
   const url = `${BASE_URL}?${params.toString()}`
-  console.debug(`[car-image] ${brand} ${model} ${year} "${color}" → ${url}`)
+  if (import.meta.env.DEV) console.debug(`[car-image] ${brand} ${model} ${year} "${color}" → ${url}`)
   return url
 }

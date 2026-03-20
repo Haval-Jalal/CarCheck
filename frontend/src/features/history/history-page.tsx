@@ -24,7 +24,7 @@ export function HistoryPage() {
     e.preventDefault()
     e.stopPropagation()
     deleteEntry.mutate(id, {
-      onSuccess: () => toast.success(t('history.deleteError')),
+      onSuccess: () => toast.success(t('history.deleteSuccess')),
       onError: () => toast.error(t('history.deleteError')),
     })
   }

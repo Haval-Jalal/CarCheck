@@ -20,7 +20,7 @@ export function FavoritesPage() {
 
   const handleRemove = (carId: string) => {
     removeMutation.mutate(carId, {
-      onSuccess: () => toast.success(t('favorites.removeError')),
+      onSuccess: () => toast.success(t('favorites.removeSuccess')),
       onError: () => toast.error(t('favorites.removeError')),
     })
   }
@@ -79,7 +79,7 @@ export function FavoritesPage() {
           {data && (
             <PaginationControls
               page={page}
-              hasMore={data.items.length === 20}
+              hasMore={data.items.length === data.pageSize}
               onPageChange={setPage}
             />
           )}

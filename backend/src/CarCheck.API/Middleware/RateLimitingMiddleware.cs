@@ -72,7 +72,8 @@ public class RateLimitingMiddleware
              path.StartsWith("/api/auth/register") ||
              path.StartsWith("/api/public/")))
         {
-            return $"rl:ip:{path.Split('/')[3]}:{ip}";
+            var segment = path.Split('/').ElementAtOrDefault(3) ?? "unknown";
+            return $"rl:ip:{segment}:{ip}";
         }
 
         if (userId is not null)
