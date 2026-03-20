@@ -5,6 +5,24 @@ import { getCarImageUrl } from '@/lib/car-image'
 import { translateColor, formatMil, getColorSwatch } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
+// CSS filter fallback for opaque JPEG images (when zeroBackground is not supported).
+// Only applied for dark/achromatic colors where the image needs visible darkening.
+// Chromatic colors are skipped — a tinted JPEG background looks worse than no tint.
+function getCssFallbackFilter(hex: string | null): string | null {
+  if (!hex) return null
+  const h = hex.replace('#', '')
+  if (h.length !== 6) return null
+  const r = parseInt(h.slice(0, 2), 16) / 255
+  const g = parseInt(h.slice(2, 4), 16) / 255
+  const b = parseInt(h.slice(4, 6), 16) / 255
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b
+  const sat = Math.max(r, g, b) - Math.min(r, g, b)
+  if (sat > 0.15) return null             // chromatic — skip
+  if (lum < 0.15) return 'brightness(0.15) contrast(1.1)'  // black
+  if (lum < 0.45) return `brightness(${Math.round(lum * 0.6 * 100) / 100})`  // dark gray
+  return null                             // silver/white — no filter
+}
+
 // ── Background gradient based on car color ────────────────────────────────────
 // The Imagin Studios demo key returns a white car regardless of paintId.
 // By placing a radial gradient in the car's color behind the image and applying
@@ -64,6 +82,23 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
+// Detects if an image element has a transparent background by sampling a corner pixel.
+// Returns true if the image is a PNG with actual transparency (alpha < 255).
+function hasTransparentBg(img: HTMLImageElement): boolean {
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = 4
+    canvas.height = 4
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return false
+    ctx.drawImage(img, 0, 0, 4, 4)
+    const pixel = ctx.getImageData(0, 0, 1, 1).data
+    return pixel[3] < 255 // alpha < 255 → transparent
+  } catch {
+    return false // cross-origin or canvas error
+  }
+}
+
 export function CarHero({
   brand,
   model,
@@ -77,11 +112,14 @@ export function CarHero({
 }: CarHeroProps) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
+  const [isTransparent, setIsTransparent] = useState(false)
 
   const imageUrl = getCarImageUrl({ brand, model, year, color })
 
   const colorSwatch = getColorSwatch(color)
-  const heroBg = getHeroBg(colorSwatch)
+  // Only use radial gradient + multiply if the image has a transparent background.
+  // Falls back to CSS filter (for dark colors) when the image has a white JPEG background.
+  const heroBg = isTransparent ? getHeroBg(colorSwatch) : null
 
   const specs = [
     color && {
@@ -121,18 +159,31 @@ export function CarHero({
           </div>
         )}
 
-        {/* Car image — mix-blend-mode: multiply tints the white car to the bg color */}
+        {/* Car image
+            • If the API returns a transparent PNG: mix-blend-mode:multiply tints only the car
+            • If the API returns an opaque JPEG: CSS brightness filter darkens the whole image
+              (acceptable for dark cars since the container is also dark) */}
         {!imgError && (
           <img
             src={imageUrl}
             alt={`${brand} ${model} ${year}`}
-            onLoad={() => setImgLoaded(true)}
+            onLoad={(e) => {
+              const transparent = hasTransparentBg(e.currentTarget)
+              setIsTransparent(transparent)
+              setImgLoaded(true)
+            }}
             onError={() => setImgError(true)}
             className={cn(
               'absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-500 p-4',
               imgLoaded ? 'opacity-100' : 'opacity-0',
             )}
-            style={heroBg ? { mixBlendMode: 'multiply' } : undefined}
+            style={
+              heroBg
+                ? { mixBlendMode: 'multiply' }
+                : getCssFallbackFilter(colorSwatch)
+                  ? { filter: getCssFallbackFilter(colorSwatch)! }
+                  : undefined
+            }
           />
         )}
 

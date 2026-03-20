@@ -138,12 +138,15 @@ export function getCarImageUrl({ brand, model, year, color }: CarImageParams): s
   const paintId     = mapColor(color)
 
   // Angle 23 = front 3/4 view — standard Imagin Studios numeric angle
+  // zeroBackground=true → returns PNG with transparent background so that
+  // mix-blend-mode: multiply in CarHero only tints the car, not the surroundings.
   const params = new URLSearchParams({
-    customer:    CUSTOMER,
+    customer:        CUSTOMER,
     make,
     modelFamily,
     paintId,
-    angle:       '23',
+    angle:           '23',
+    zeroBackground:  'true',
   })
 
   if (year) params.set('modelYear', String(year))
