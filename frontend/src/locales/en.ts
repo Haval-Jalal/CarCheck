@@ -1,7 +1,7 @@
 const en = {
   // ── Landing ──────────────────────────────────────────────────────────────
   landing: {
-    eyebrow: 'Car analysis for private buyers',
+    eyebrow: 'Professional car analysis',
     headline: 'Your guide to a',
     headlineBlue: 'safe car purchase.',
     subtitle:

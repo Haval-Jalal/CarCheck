@@ -1,7 +1,7 @@
 const sv = {
   // ── Landing ──────────────────────────────────────────────────────────────
   landing: {
-    eyebrow: 'Bilanalys för privatpersoner',
+    eyebrow: 'Professionell bilanalys',
     headline: 'Din guide till ett',
     headlineBlue: 'tryggt bilköp.',
     subtitle:
