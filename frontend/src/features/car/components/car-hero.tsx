@@ -5,70 +5,6 @@ import { getCarImageUrl } from '@/lib/car-image'
 import { translateColor, formatMil, getColorSwatch } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-// ── Canvas-based colorization ─────────────────────────────────────────────────
-// Imagin Studios demo key always returns a white car on a white background (JPEG).
-// Strategy:
-//   1. Remove near-white pixels (>235 on all channels) → transparent
-//   2. The colored container background shows through the transparent car body
-//   3. Dark pixels (tires, windows, shadows) are multiplied with the target color
-//      so they become a dark version of the target color
-// Result: the car body appears in the target color (via background), dark details tinted.
-//
-// Requires crossOrigin="anonymous" on the img element and CORS headers from the CDN.
-// Falls back gracefully (no-op) if canvas access is blocked.
-function colorizeCarImage(img: HTMLImageElement, hex: string): string | null {
-  try {
-    const { naturalWidth: w, naturalHeight: h } = img
-    if (!w || !h) return null
-    const canvas = document.createElement('canvas')
-    canvas.width = w
-    canvas.height = h
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return null
-    ctx.drawImage(img, 0, 0)
-    const imageData = ctx.getImageData(0, 0, w, h)
-    const data = imageData.data
-    const th = hex.replace('#', '')
-    const tr = parseInt(th.slice(0, 2), 16)
-    const tg = parseInt(th.slice(2, 4), 16)
-    const tb = parseInt(th.slice(4, 6), 16)
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2]
-      // Near-white → transparent so the colored container background shows through
-      if (r > 235 && g > 235 && b > 235) {
-        data[i + 3] = 0
-        continue
-      }
-      // Remaining pixels (tires, windows, shadows): multiply with target color
-      data[i]     = Math.round(r * tr / 255)
-      data[i + 1] = Math.round(g * tg / 255)
-      data[i + 2] = Math.round(b * tb / 255)
-    }
-    ctx.putImageData(imageData, 0, 0)
-    return canvas.toDataURL('image/png')
-  } catch {
-    return null // cross-origin blocked or canvas error — fall back to original image
-  }
-}
-
-// Skip colorization for white/silver — the white car on a dark bg looks correct.
-function shouldColorize(hex: string): boolean {
-  const h = hex.replace('#', '')
-  if (h.length !== 6) return false
-  const r = parseInt(h.slice(0, 2), 16) / 255
-  const g = parseInt(h.slice(2, 4), 16) / 255
-  const b = parseInt(h.slice(4, 6), 16) / 255
-  const lum = 0.299 * r + 0.587 * g + 0.114 * b
-  return !(lum > 0.6 && Math.max(r, g, b) - Math.min(r, g, b) < 0.12)
-}
-
-// Radial gradient in the car's color sits behind the image so that the
-// transparent car body (after canvas processing) takes on the correct color.
-function getHeroBg(hex: string | null): string {
-  if (!hex) return 'linear-gradient(135deg, #1e293b, #0f172a)'
-  return `radial-gradient(ellipse at 62% 48%, ${hex}cc 0%, #0f172a 65%)`
-}
-
 interface CarHeroProps {
   brand: string
   model: string
@@ -105,23 +41,6 @@ function ScoreBadge({ score }: { score: number }) {
   )
 }
 
-// Detects if an image element has a transparent background by sampling a corner pixel.
-// Returns true if the image is a PNG with actual transparency (alpha < 255).
-function hasTransparentBg(img: HTMLImageElement): boolean {
-  try {
-    const canvas = document.createElement('canvas')
-    canvas.width = 4
-    canvas.height = 4
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return false
-    ctx.drawImage(img, 0, 0, 4, 4)
-    const pixel = ctx.getImageData(0, 0, 1, 1).data
-    return pixel[3] < 255 // alpha < 255 → transparent
-  } catch {
-    return false // cross-origin or canvas error
-  }
-}
-
 export function CarHero({
   brand,
   model,
@@ -135,11 +54,9 @@ export function CarHero({
 }: CarHeroProps) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
-  const [displaySrc, setDisplaySrc] = useState<string | null>(null)
 
   const imageUrl = getCarImageUrl({ brand, model, year, color })
   const colorSwatch = getColorSwatch(color)
-  const heroBg = getHeroBg(colorSwatch)
 
   const specs = [
     color && {
@@ -156,16 +73,11 @@ export function CarHero({
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
       {/* ── Image area ── */}
-      <div
-        className="relative h-64 sm:h-80 md:h-96 overflow-hidden"
-        style={{ background: heroBg }}
-      >
-        {/* Subtle glow in the car's color */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-25">
-          <div
-            className="h-48 w-96 rounded-full blur-3xl"
-            style={{ backgroundColor: colorSwatch ?? '#3b82f6' }}
-          />
+      <div className="relative h-64 sm:h-80 md:h-96 bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+
+        {/* Subtle glow */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-30">
+          <div className="h-48 w-96 rounded-full bg-blue-500 blur-3xl" />
         </div>
 
         {/* Fallback car icon shown while loading or on error */}
@@ -176,23 +88,12 @@ export function CarHero({
           </div>
         )}
 
-        {/* Car image
-            On load: canvas removes near-white background pixels (→ transparent),
-            dark pixels (tires, windows) are multiplied with the target color,
-            and the colored container background shows through the transparent car body.
-            Falls back to original src if canvas/CORS is unavailable. */}
+        {/* Car image */}
         {!imgError && (
           <img
-            src={displaySrc ?? imageUrl}
+            src={imageUrl}
             alt={`${brand} ${model} ${year}`}
-            crossOrigin="anonymous"
-            onLoad={(e) => {
-              if (colorSwatch && shouldColorize(colorSwatch) && !displaySrc) {
-                const processed = colorizeCarImage(e.currentTarget, colorSwatch)
-                if (processed) setDisplaySrc(processed)
-              }
-              setImgLoaded(true)
-            }}
+            onLoad={() => setImgLoaded(true)}
             onError={() => setImgError(true)}
             className={cn(
               'absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-500 p-4',
@@ -223,15 +124,11 @@ export function CarHero({
 
       {/* ── Info bar below image ── */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-border">
-        {/* Brand / model / year */}
         <div>
-          <p className="text-base font-bold leading-tight">
-            {brand} {model}
-          </p>
+          <p className="text-base font-bold leading-tight">{brand} {model}</p>
           <p className="text-xs text-muted-foreground">{year}</p>
         </div>
 
-        {/* Specs chips */}
         <div className="flex flex-wrap items-center gap-2">
           {specs.map(({ icon, value }) => (
             <span
