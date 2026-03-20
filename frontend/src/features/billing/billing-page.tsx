@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -33,12 +34,14 @@ function formatSek(amount: number) {
 }
 
 function TransactionBadge({ type }: { type: TransactionResponse['type'] }) {
-  if (type === 'subscription') return <Badge className="bg-green-600 hover:bg-green-600">Månadsplan</Badge>
-  if (type === 'trial') return <Badge variant="secondary">Provssökning</Badge>
-  return <Badge className="bg-blue-600 hover:bg-blue-600">Krediter</Badge>
+  const { t } = useTranslation()
+  if (type === 'subscription') return <Badge className="bg-green-600 hover:bg-green-600">{t('billing.transaction.subscription')}</Badge>
+  if (type === 'trial') return <Badge variant="secondary">{t('billing.transaction.trial')}</Badge>
+  return <Badge className="bg-blue-600 hover:bg-blue-600">{t('billing.transaction.credits')}</Badge>
 }
 
 function PurchaseHistory() {
+  const { t } = useTranslation()
   const { data: transactions, isLoading } = useTransactions()
 
   if (isLoading) return null
@@ -48,20 +51,20 @@ function PurchaseHistory() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Receipt className="h-5 w-5 text-muted-foreground" />
-        <h2 className="text-lg font-semibold">Köphistorik</h2>
+        <h2 className="text-lg font-semibold">{t('billing.purchaseHistory')}</h2>
       </div>
       <Card>
         <CardContent className="pt-4 divide-y divide-border">
-          {transactions.map((t) => (
-            <div key={t.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+          {transactions.map((t_) => (
+            <div key={t_.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
               <div className="space-y-0.5">
-                <p className="text-sm font-medium">{t.description}</p>
-                <p className="text-xs text-muted-foreground">{formatDate(t.createdAt)}</p>
+                <p className="text-sm font-medium">{t_.description}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(t_.createdAt)}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <TransactionBadge type={t.type} />
+                <TransactionBadge type={t_.type} />
                 <span className="text-sm font-semibold text-right min-w-[60px]">
-                  {t.amountSek > 0 ? formatSek(t.amountSek) : 'Gratis'}
+                  {t_.amountSek > 0 ? formatSek(t_.amountSek) : t('billing.free')}
                 </span>
               </div>
             </div>
@@ -73,6 +76,7 @@ function PurchaseHistory() {
 }
 
 export function BillingPage() {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { data: sub, isLoading: subLoading, error: subError } = useSubscription()
   const { data: packs, isLoading: packsLoading } = useCreditPackages()
@@ -86,13 +90,14 @@ export function BillingPage() {
     if (searchParams.get('success') === 'true') {
       const credits = searchParams.get('credits')
       if (credits) {
-        toast.success(`${credits} ${Number(credits) === 1 ? 'sökning' : 'sökningar'} tillagda på ditt konto!`)
+        const n = Number(credits)
+        toast.success(`${credits} ${n === 1 ? t('billing.toast.credit') : t('billing.toast.credits')} ${t('billing.toast.creditsAdded')}`)
       } else {
-        toast.success('Månadsplanen är nu aktiv — obegränsade sökningar!')
+        toast.success(t('billing.toast.monthlyActive'))
       }
       setSearchParams({}, { replace: true })
     } else if (searchParams.get('canceled') === 'true') {
-      toast.info('Betalningen avbröts.')
+      toast.info(t('billing.toast.canceled'))
       setSearchParams({}, { replace: true })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -110,7 +115,7 @@ export function BillingPage() {
       },
       onError: (err) => {
         const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error
-        toast.error(msg || 'Kunde inte starta betalning')
+        toast.error(msg || t('billing.toast.paymentError'))
       },
     })
   }
@@ -122,7 +127,7 @@ export function BillingPage() {
       },
       onError: (err) => {
         const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error
-        toast.error(msg || 'Kunde inte starta betalning')
+        toast.error(msg || t('billing.toast.paymentError'))
       },
     })
   }
@@ -132,10 +137,10 @@ export function BillingPage() {
     cancelMutation.mutate(undefined, {
       onSuccess: () => {
         setCancelOpen(false)
-        toast.success('Månadsplanen avbruten')
+        toast.success(t('billing.toast.cancelSuccess'))
       },
       onError: () => {
-        setCancelError('Något gick fel. Försök igen eller kontakta support.')
+        setCancelError(t('billing.cancel.error'))
       },
     })
   }
@@ -143,8 +148,10 @@ export function BillingPage() {
   return (
     <div className="space-y-8">
       <div data-tour="billing-plans">
-        <h1 className="text-2xl font-bold">Abonnemang</h1>
-        <p className="text-muted-foreground">Köp sökningar eller teckna en månadsplan</p>
+        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-blue-300 to-violet-400 bg-clip-text text-transparent">
+          {t('billing.title')}
+        </h1>
+        <p className="text-muted-foreground">{t('billing.subtitle')}</p>
       </div>
 
       {/* Current status */}
@@ -154,7 +161,7 @@ export function BillingPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Sökningar kvar</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('billing.creditsLeft')}</p>
                 <p className="text-4xl font-black text-foreground mt-1">
                   {hasMonthly ? <Infinity className="h-8 w-8 text-blue-500 inline" /> : credits}
                 </p>
@@ -171,21 +178,21 @@ export function BillingPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Månadsplan</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('billing.monthlyPlan')}</p>
                 <p className="text-lg font-bold mt-1">
-                  {hasMonthly ? 'Aktiv' : 'Inaktiv'}
+                  {hasMonthly ? t('billing.active') : t('billing.inactive')}
                 </p>
                 {hasMonthly && sub?.startDate && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Sedan {formatDate(sub.startDate)}
+                    {t('billing.since')} {formatDate(sub.startDate)}
                   </p>
                 )}
                 {hasMonthly && (
                   <button
                     onClick={() => setCancelOpen(true)}
-                    className="text-xs text-red-500 hover:underline mt-2"
+                    className="text-xs text-red-500 transition-colors duration-200 hover:underline mt-2"
                   >
-                    Avbryt plan
+                    {t('billing.cancelPlan')}
                   </button>
                 )}
               </div>
@@ -204,21 +211,21 @@ export function BillingPage() {
       {!hasMonthly && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold">Köp sökningar</h2>
-            <p className="text-sm text-muted-foreground">Varje sökning ger fullständig analys av bilen</p>
+            <h2 className="text-lg font-semibold">{t('billing.buySearches')}</h2>
+            <p className="text-sm text-muted-foreground">{t('billing.buySearchesSub')}</p>
           </div>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             {packs?.map((pack) => (
               <Card
                 key={pack.credits}
                 className={cn(
-                  'relative transition-all hover:shadow-md',
+                  'relative transition-all duration-200 hover:shadow-md',
                   pack.isBestValue && 'border-blue-500 shadow-sm'
                 )}
               >
                 {pack.isBestValue && (
                   <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-blue-600 hover:bg-blue-600">
-                    Bäst värde
+                    {t('billing.bestValue')}
                   </Badge>
                 )}
                 <CardContent className="pt-6 text-center space-y-4">
@@ -229,16 +236,16 @@ export function BillingPage() {
                   <div>
                     <p className="text-2xl font-bold">{formatSek(pack.priceSek)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatSek(Math.round(pack.priceSek / pack.credits))}/sökning
+                      {formatSek(Math.round(pack.priceSek / pack.credits))}{t('billing.perSearch')}
                     </p>
                   </div>
                   <Button
-                    className={cn('w-full', pack.isBestValue ? 'bg-blue-600 hover:bg-blue-500' : '')}
+                    className={cn('w-full transition-all duration-200', pack.isBestValue ? 'bg-blue-600 hover:bg-blue-500' : '')}
                     variant={pack.isBestValue ? 'default' : 'outline'}
                     onClick={() => handleBuyCredits(pack.credits)}
                     disabled={creditsCheckoutMutation.isPending}
                   >
-                    Köp nu
+                    {t('billing.buyNow')}
                   </Button>
                 </CardContent>
               </Card>
@@ -250,8 +257,8 @@ export function BillingPage() {
       {/* Monthly plan */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">Månadsplan — Obegränsat</h2>
-          <p className="text-sm text-muted-foreground">Sök hur mycket du vill, betala en fast månadsavgift</p>
+          <h2 className="text-lg font-semibold">{t('billing.monthlyTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{t('billing.monthlySub')}</p>
         </div>
         <Card className={cn(
           'border-2',
@@ -262,15 +269,10 @@ export function BillingPage() {
               <div className="space-y-3">
                 <div className="flex items-baseline gap-2">
                   <span className={cn('text-4xl font-black', hasMonthly ? '' : 'text-white')}>499 kr</span>
-                  <span className={cn('text-sm', hasMonthly ? 'text-muted-foreground' : 'text-slate-400')}>/månad</span>
+                  <span className={cn('text-sm', hasMonthly ? 'text-muted-foreground' : 'text-slate-400')}>{t('billing.perMonth')}</span>
                 </div>
                 <div className="space-y-1.5">
-                  {[
-                    'Obegränsade bilsökningar',
-                    'Fullständig analys på varje bil',
-                    'Besiktningshistorik och riskfaktorer',
-                    'Prisanalys mot marknaden',
-                  ].map((feature) => (
+                  {(t('billing.features', { returnObjects: true }) as string[]).map((feature) => (
                     <div key={feature} className="flex items-center gap-2">
                       <Check className={cn('h-4 w-4 shrink-0', hasMonthly ? 'text-green-500' : 'text-blue-400')} />
                       <span className={cn('text-sm', hasMonthly ? '' : 'text-slate-300')}>{feature}</span>
@@ -280,17 +282,17 @@ export function BillingPage() {
               </div>
               {hasMonthly ? (
                 <Badge variant="outline" className="border-green-500 text-green-600 px-4 py-2 text-base self-start md:self-center">
-                  Aktiv plan
+                  {t('billing.activePlan')}
                 </Badge>
               ) : (
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-500 md:shrink-0"
+                  className="bg-blue-600 transition-all duration-200 hover:bg-blue-500 md:shrink-0"
                   onClick={handleBuyMonthly}
                   disabled={checkoutMutation.isPending}
                 >
                   <CreditCard className="mr-2 h-4 w-4" />
-                  Teckna månadsplan
+                  {t('billing.subscribe')}
                 </Button>
               )}
             </div>
@@ -305,9 +307,9 @@ export function BillingPage() {
       <Dialog open={cancelOpen} onOpenChange={(open) => { setCancelOpen(open); if (!open) setCancelError(null) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Avbryt månadsplan?</DialogTitle>
+            <DialogTitle>{t('billing.cancel.title')}</DialogTitle>
             <DialogDescription>
-              Din plan avslutas omedelbart. Dina köpta sökningar (krediter) påverkas inte.
+              {t('billing.cancel.description')}
             </DialogDescription>
           </DialogHeader>
           {cancelError && (
@@ -317,14 +319,14 @@ export function BillingPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              Behåll planen
+              {t('billing.cancel.keep')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancel}
               disabled={cancelMutation.isPending}
             >
-              {cancelMutation.isPending ? 'Avslutar...' : 'Ja, avbryt planen'}
+              {cancelMutation.isPending ? t('billing.cancel.confirming') : t('billing.cancel.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

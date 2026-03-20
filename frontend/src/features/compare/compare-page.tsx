@@ -145,7 +145,9 @@ export function ComparePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Jämför bilar</h1>
+          <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-blue-300 to-violet-400 bg-clip-text text-transparent">
+            Jämför bilar
+          </h1>
           <p className="text-muted-foreground">Sök två bilar och se dem sida vid sida</p>
         </div>
       </div>
