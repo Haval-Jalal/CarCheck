@@ -5,42 +5,27 @@ import { getCarImageUrl } from '@/lib/car-image'
 import { translateColor, formatMil, getColorSwatch } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-// Converts a hex color to a CSS filter string that tints the white car image.
-// The Imagin Studios demo key always returns a white car, so this filter is the
-// primary colorization mechanism. Uses different strategies per color type:
-//   • Dark/black: brightness+contrast to darken the image
-//   • Chromatic: sepia→hue-rotate→saturate pipeline
-//   • White/silver: no filter (white car looks correct as-is)
-function getColorFilter(hex: string | null): string | null {
+// ── Background gradient based on car color ────────────────────────────────────
+// The Imagin Studios demo key returns a white car regardless of paintId.
+// By placing a radial gradient in the car's color behind the image and applying
+// mix-blend-mode: multiply to the image, white pixels in the image take on the
+// background color — making the car appear in the correct color.
+//   white × red   = red   ✓
+//   white × black = black ✓
+//   white × blue  = blue  ✓
+// For white/silver we skip the multiply (white car on dark bg looks correct).
+function getHeroBg(hex: string | null): string | null {
   if (!hex) return null
   const h = hex.replace('#', '')
   if (h.length !== 6) return null
   const r = parseInt(h.slice(0, 2), 16) / 255
   const g = parseInt(h.slice(2, 4), 16) / 255
   const b = parseInt(h.slice(4, 6), 16) / 255
-  const max = Math.max(r, g, b)
-  const min = Math.min(r, g, b)
-  const d = max - min
   const lum = 0.299 * r + 0.587 * g + 0.114 * b
-
-  if (d < 0.12) {
-    // Black / near-black
-    if (lum < 0.15) return 'brightness(0.12) contrast(1.2)'
-    // Dark gray / charcoal
-    if (lum < 0.45) return `brightness(${Math.round(lum * 0.55 * 100) / 100})`
-    // White / silver / light gray — no filter needed (white car is already correct)
-    return null
-  }
-
-  // Chromatic: tint via sepia→hue-rotate pipeline
-  let hue: number
-  switch (max) {
-    case r: hue = ((g - b) / d + (g < b ? 6 : 0)) * 60; break
-    case g: hue = ((b - r) / d + 2) * 60; break
-    default: hue = ((r - g) / d + 4) * 60
-  }
-  const rotate = Math.round(hue - 38) // sepia baseline is ~38°
-  return `sepia(0.75) hue-rotate(${rotate}deg) saturate(2.8) brightness(0.93)`
+  // Light achromatic (white, silver) — no multiply needed, white car looks correct
+  if (lum > 0.6 && Math.max(r, g, b) - Math.min(r, g, b) < 0.12) return null
+  // Radial gradient: car's color in the center (where the car sits), dark at edges
+  return `radial-gradient(ellipse at 62% 48%, ${hex}e0 0%, #0f172a 68%)`
 }
 
 interface CarHeroProps {
@@ -96,7 +81,7 @@ export function CarHero({
   const imageUrl = getCarImageUrl({ brand, model, year, color })
 
   const colorSwatch = getColorSwatch(color)
-  const colorFilter = getColorFilter(colorSwatch)
+  const heroBg = getHeroBg(colorSwatch)
 
   const specs = [
     color && {
@@ -113,11 +98,19 @@ export function CarHero({
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
       {/* ── Image area ── */}
-      <div className="relative h-64 sm:h-80 md:h-96 bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
-
-        {/* Subtle gradient glow behind car */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-30">
-          <div className="h-48 w-96 rounded-full bg-blue-500 blur-3xl" />
+      <div
+        className={cn(
+          'relative h-64 sm:h-80 md:h-96 overflow-hidden',
+          !heroBg && 'bg-gradient-to-br from-slate-900 to-slate-800',
+        )}
+        style={heroBg ? { background: heroBg } : undefined}
+      >
+        {/* Subtle glow — uses car's color when known, otherwise blue */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-25">
+          <div
+            className="h-48 w-96 rounded-full blur-3xl"
+            style={{ backgroundColor: colorSwatch ?? '#3b82f6' }}
+          />
         </div>
 
         {/* Fallback car icon shown while loading or on error */}
@@ -128,7 +121,7 @@ export function CarHero({
           </div>
         )}
 
-        {/* Car image */}
+        {/* Car image — mix-blend-mode: multiply tints the white car to the bg color */}
         {!imgError && (
           <img
             src={imageUrl}
@@ -139,7 +132,7 @@ export function CarHero({
               'absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-500 p-4',
               imgLoaded ? 'opacity-100' : 'opacity-0',
             )}
-            style={colorFilter ? { filter: colorFilter } : undefined}
+            style={heroBg ? { mixBlendMode: 'multiply' } : undefined}
           />
         )}
 
