@@ -5,45 +5,68 @@ import { getCarImageUrl } from '@/lib/car-image'
 import { translateColor, formatMil, getColorSwatch } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-// CSS filter fallback for opaque JPEG images (when zeroBackground is not supported).
-// Only applied for dark/achromatic colors where the image needs visible darkening.
-// Chromatic colors are skipped — a tinted JPEG background looks worse than no tint.
-function getCssFallbackFilter(hex: string | null): string | null {
-  if (!hex) return null
-  const h = hex.replace('#', '')
-  if (h.length !== 6) return null
-  const r = parseInt(h.slice(0, 2), 16) / 255
-  const g = parseInt(h.slice(2, 4), 16) / 255
-  const b = parseInt(h.slice(4, 6), 16) / 255
-  const lum = 0.299 * r + 0.587 * g + 0.114 * b
-  const sat = Math.max(r, g, b) - Math.min(r, g, b)
-  if (sat > 0.15) return null             // chromatic — skip
-  if (lum < 0.15) return 'brightness(0.15) contrast(1.1)'  // black
-  if (lum < 0.45) return `brightness(${Math.round(lum * 0.6 * 100) / 100})`  // dark gray
-  return null                             // silver/white — no filter
+// ── Canvas-based colorization ─────────────────────────────────────────────────
+// Imagin Studios demo key always returns a white car on a white background (JPEG).
+// Strategy:
+//   1. Remove near-white pixels (>235 on all channels) → transparent
+//   2. The colored container background shows through the transparent car body
+//   3. Dark pixels (tires, windows, shadows) are multiplied with the target color
+//      so they become a dark version of the target color
+// Result: the car body appears in the target color (via background), dark details tinted.
+//
+// Requires crossOrigin="anonymous" on the img element and CORS headers from the CDN.
+// Falls back gracefully (no-op) if canvas access is blocked.
+function colorizeCarImage(img: HTMLImageElement, hex: string): string | null {
+  try {
+    const { naturalWidth: w, naturalHeight: h } = img
+    if (!w || !h) return null
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+    ctx.drawImage(img, 0, 0)
+    const imageData = ctx.getImageData(0, 0, w, h)
+    const data = imageData.data
+    const th = hex.replace('#', '')
+    const tr = parseInt(th.slice(0, 2), 16)
+    const tg = parseInt(th.slice(2, 4), 16)
+    const tb = parseInt(th.slice(4, 6), 16)
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2]
+      // Near-white → transparent so the colored container background shows through
+      if (r > 235 && g > 235 && b > 235) {
+        data[i + 3] = 0
+        continue
+      }
+      // Remaining pixels (tires, windows, shadows): multiply with target color
+      data[i]     = Math.round(r * tr / 255)
+      data[i + 1] = Math.round(g * tg / 255)
+      data[i + 2] = Math.round(b * tb / 255)
+    }
+    ctx.putImageData(imageData, 0, 0)
+    return canvas.toDataURL('image/png')
+  } catch {
+    return null // cross-origin blocked or canvas error — fall back to original image
+  }
 }
 
-// ── Background gradient based on car color ────────────────────────────────────
-// The Imagin Studios demo key returns a white car regardless of paintId.
-// By placing a radial gradient in the car's color behind the image and applying
-// mix-blend-mode: multiply to the image, white pixels in the image take on the
-// background color — making the car appear in the correct color.
-//   white × red   = red   ✓
-//   white × black = black ✓
-//   white × blue  = blue  ✓
-// For white/silver we skip the multiply (white car on dark bg looks correct).
-function getHeroBg(hex: string | null): string | null {
-  if (!hex) return null
+// Skip colorization for white/silver — the white car on a dark bg looks correct.
+function shouldColorize(hex: string): boolean {
   const h = hex.replace('#', '')
-  if (h.length !== 6) return null
+  if (h.length !== 6) return false
   const r = parseInt(h.slice(0, 2), 16) / 255
   const g = parseInt(h.slice(2, 4), 16) / 255
   const b = parseInt(h.slice(4, 6), 16) / 255
   const lum = 0.299 * r + 0.587 * g + 0.114 * b
-  // Light achromatic (white, silver) — no multiply needed, white car looks correct
-  if (lum > 0.6 && Math.max(r, g, b) - Math.min(r, g, b) < 0.12) return null
-  // Radial gradient: car's color in the center (where the car sits), dark at edges
-  return `radial-gradient(ellipse at 62% 48%, ${hex}e0 0%, #0f172a 68%)`
+  return !(lum > 0.6 && Math.max(r, g, b) - Math.min(r, g, b) < 0.12)
+}
+
+// Radial gradient in the car's color sits behind the image so that the
+// transparent car body (after canvas processing) takes on the correct color.
+function getHeroBg(hex: string | null): string {
+  if (!hex) return 'linear-gradient(135deg, #1e293b, #0f172a)'
+  return `radial-gradient(ellipse at 62% 48%, ${hex}cc 0%, #0f172a 65%)`
 }
 
 interface CarHeroProps {
@@ -112,14 +135,11 @@ export function CarHero({
 }: CarHeroProps) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
-  const [isTransparent, setIsTransparent] = useState(false)
+  const [displaySrc, setDisplaySrc] = useState<string | null>(null)
 
   const imageUrl = getCarImageUrl({ brand, model, year, color })
-
   const colorSwatch = getColorSwatch(color)
-  // Only use radial gradient + multiply if the image has a transparent background.
-  // Falls back to CSS filter (for dark colors) when the image has a white JPEG background.
-  const heroBg = isTransparent ? getHeroBg(colorSwatch) : null
+  const heroBg = getHeroBg(colorSwatch)
 
   const specs = [
     color && {
@@ -137,13 +157,10 @@ export function CarHero({
     <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
       {/* ── Image area ── */}
       <div
-        className={cn(
-          'relative h-64 sm:h-80 md:h-96 overflow-hidden',
-          !heroBg && 'bg-gradient-to-br from-slate-900 to-slate-800',
-        )}
-        style={heroBg ? { background: heroBg } : undefined}
+        className="relative h-64 sm:h-80 md:h-96 overflow-hidden"
+        style={{ background: heroBg }}
       >
-        {/* Subtle glow — uses car's color when known, otherwise blue */}
+        {/* Subtle glow in the car's color */}
         <div className="absolute inset-0 flex items-center justify-center opacity-25">
           <div
             className="h-48 w-96 rounded-full blur-3xl"
@@ -160,16 +177,20 @@ export function CarHero({
         )}
 
         {/* Car image
-            • If the API returns a transparent PNG: mix-blend-mode:multiply tints only the car
-            • If the API returns an opaque JPEG: CSS brightness filter darkens the whole image
-              (acceptable for dark cars since the container is also dark) */}
+            On load: canvas removes near-white background pixels (→ transparent),
+            dark pixels (tires, windows) are multiplied with the target color,
+            and the colored container background shows through the transparent car body.
+            Falls back to original src if canvas/CORS is unavailable. */}
         {!imgError && (
           <img
-            src={imageUrl}
+            src={displaySrc ?? imageUrl}
             alt={`${brand} ${model} ${year}`}
+            crossOrigin="anonymous"
             onLoad={(e) => {
-              const transparent = hasTransparentBg(e.currentTarget)
-              setIsTransparent(transparent)
+              if (colorSwatch && shouldColorize(colorSwatch) && !displaySrc) {
+                const processed = colorizeCarImage(e.currentTarget, colorSwatch)
+                if (processed) setDisplaySrc(processed)
+              }
               setImgLoaded(true)
             }}
             onError={() => setImgError(true)}
@@ -177,13 +198,6 @@ export function CarHero({
               'absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-500 p-4',
               imgLoaded ? 'opacity-100' : 'opacity-0',
             )}
-            style={
-              heroBg
-                ? { mixBlendMode: 'multiply' }
-                : getCssFallbackFilter(colorSwatch)
-                  ? { filter: getCssFallbackFilter(colorSwatch)! }
-                  : undefined
-            }
           />
         )}
 
