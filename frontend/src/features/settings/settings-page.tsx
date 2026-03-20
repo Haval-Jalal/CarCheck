@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,7 @@ import type { AxiosError } from 'axios'
 import type { ApiError } from '@/types/api.types'
 
 export function SettingsPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { data: sub } = useSubscription()
   const startTour = useTourStore(s => s.startTour)
@@ -47,14 +49,14 @@ export function SettingsPage() {
         newPassword: data.newPassword,
       })
       reset()
-      toast.success('Lösenordet ändrat. Du loggas ut om ett ögonblick...')
+      toast.success(t('settings.password.success'))
       setTimeout(() => {
         clearTokens()
         navigate('/login')
       }, 2000)
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
-      setPwError(axiosErr.response?.data?.error || 'Kunde inte ändra lösenord.')
+      setPwError(axiosErr.response?.data?.error || t('settings.password.error'))
     } finally {
       setPwSubmitting(false)
     }
@@ -152,9 +154,9 @@ export function SettingsPage() {
       a.download = `carcheck-export-${new Date().toISOString().split('T')[0]}.txt`
       a.click()
       URL.revokeObjectURL(url)
-      toast.success('Data exporterad')
+      toast.success(t('settings.gdpr.exportSuccess'))
     } catch {
-      toast.error('Kunde inte exportera data')
+      toast.error(t('settings.gdpr.exportError'))
     } finally {
       setExporting(false)
     }
@@ -182,10 +184,10 @@ export function SettingsPage() {
       await gdprApi.deleteAccount({ password: deletePassword, reason })
       clearTokens()
       navigate('/')
-      toast.success('Ditt konto har raderats')
+      toast.success(t('settings.delete.success'))
     } catch (err) {
       const axiosErr = err as AxiosError<ApiError>
-      setDeleteError(axiosErr.response?.data?.error || 'Kunde inte radera konto')
+      setDeleteError(axiosErr.response?.data?.error || t('settings.delete.error'))
     } finally {
       deletingRef.current = false
       setDeleting(false)
@@ -203,11 +205,20 @@ export function SettingsPage() {
     }
   }
 
+  const deleteReasons = [
+    { value: 'no_value',     label: t('settings.delete.reasons.no_value') },
+    { value: 'too_expensive', label: t('settings.delete.reasons.too_expensive') },
+    { value: 'not_using',    label: t('settings.delete.reasons.not_using') },
+    { value: 'other',        label: t('settings.delete.reasons.other') },
+  ]
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Inställningar</h1>
-        <p className="text-muted-foreground">Hantera ditt konto</p>
+        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-blue-300 to-violet-400 bg-clip-text text-transparent">
+          {t('settings.title')}
+        </h1>
+        <p className="text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       {/* Guide & hjälp */}
@@ -215,21 +226,21 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <BookOpen className="h-4 w-4" />
-            Guide & hjälp
+            {t('settings.guide.title')}
           </CardTitle>
-          <CardDescription>Lär dig använda CarCheck</CardDescription>
+          <CardDescription>{t('settings.guide.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Visa guide igen</p>
+              <p className="font-medium">{t('settings.guide.label')}</p>
               <p className="text-sm text-muted-foreground">
-                Gå igenom introduktionen steg för steg
+                {t('settings.guide.sublabel')}
               </p>
             </div>
-            <Button variant="outline" onClick={startTour}>
+            <Button variant="outline" onClick={startTour} className="transition-all duration-200">
               <BookOpen className="mr-2 h-4 w-4" />
-              Starta guide
+              {t('settings.guide.button')}
             </Button>
           </div>
         </CardContent>
@@ -240,7 +251,7 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Settings className="h-4 w-4" />
-            Ändra lösenord
+            {t('settings.password.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -251,28 +262,28 @@ export function SettingsPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Nuvarande lösenord</Label>
+              <Label htmlFor="currentPassword">{t('settings.password.current')}</Label>
               <Input id="currentPassword" type="password" {...register('currentPassword')} />
               {errors.currentPassword && (
                 <p className="text-sm text-destructive">{errors.currentPassword.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword">Nytt lösenord</Label>
+              <Label htmlFor="newPassword">{t('settings.password.new')}</Label>
               <Input id="newPassword" type="password" {...register('newPassword')} />
               {errors.newPassword && (
                 <p className="text-sm text-destructive">{errors.newPassword.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmNewPassword">Bekräfta nytt lösenord</Label>
+              <Label htmlFor="confirmNewPassword">{t('settings.password.confirm')}</Label>
               <Input id="confirmNewPassword" type="password" {...register('confirmNewPassword')} />
               {errors.confirmNewPassword && (
                 <p className="text-sm text-destructive">{errors.confirmNewPassword.message}</p>
               )}
             </div>
-            <Button type="submit" disabled={pwSubmitting}>
-              {pwSubmitting ? 'Sparar...' : 'Ändra lösenord'}
+            <Button type="submit" disabled={pwSubmitting} className="transition-all duration-200">
+              {pwSubmitting ? t('settings.password.submitting') : t('settings.password.submit')}
             </Button>
           </form>
         </CardContent>
@@ -285,21 +296,21 @@ export function SettingsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Shield className="h-4 w-4" />
-            GDPR & Integritet
+            {t('settings.gdpr.title')}
           </CardTitle>
-          <CardDescription>Hantera dina personuppgifter</CardDescription>
+          <CardDescription>{t('settings.gdpr.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Exportera mina data</p>
+              <p className="font-medium">{t('settings.gdpr.exportLabel')}</p>
               <p className="text-sm text-muted-foreground">
-                Ladda ner en fil med all data kopplad till ditt konto
+                {t('settings.gdpr.exportSub')}
               </p>
             </div>
-            <Button variant="outline" onClick={handleExport} disabled={exporting}>
+            <Button variant="outline" onClick={handleExport} disabled={exporting} className="transition-all duration-200">
               <Download className="mr-2 h-4 w-4" />
-              {exporting ? 'Exporterar...' : 'Exportera'}
+              {exporting ? t('settings.gdpr.exporting') : t('settings.gdpr.exportButton')}
             </Button>
           </div>
 
@@ -307,28 +318,28 @@ export function SettingsPage() {
 
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium text-destructive">Radera mitt konto</p>
+              <p className="font-medium text-destructive">{t('settings.gdpr.deleteLabel')}</p>
               <p className="text-sm text-muted-foreground">
-                Permanent radering av konto och all kopplad data
+                {t('settings.gdpr.deleteSub')}
               </p>
             </div>
-            <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+            <Button variant="destructive" onClick={() => setDeleteOpen(true)} className="transition-all duration-200">
               <Trash2 className="mr-2 h-4 w-4" />
-              Radera konto
+              {t('settings.gdpr.deleteButton')}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Delete confirmation dialog — step 1: password + reason */}
+      {/* Delete confirmation dialog */}
       <Dialog open={deleteOpen} onOpenChange={handleDeleteOpenChange}>
         <DialogContent>
           {deleteStep === 1 ? (
             <>
               <DialogHeader>
-                <DialogTitle>Radera konto</DialogTitle>
+                <DialogTitle>{t('settings.delete.step1Title')}</DialogTitle>
                 <DialogDescription>
-                  Ditt konto, all historik, favoriter och kvarvarande krediter raderas permanent.
+                  {t('settings.delete.step1Description')}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
@@ -338,25 +349,20 @@ export function SettingsPage() {
                   </Alert>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="deletePassword">Bekräfta med ditt lösenord</Label>
+                  <Label htmlFor="deletePassword">{t('settings.delete.passwordLabel')}</Label>
                   <Input
                     id="deletePassword"
                     type="password"
                     value={deletePassword}
                     onChange={(e) => setDeletePassword(e.target.value)}
-                    placeholder="Ditt lösenord"
+                    placeholder={t('settings.delete.passwordPlaceholder')}
                     autoFocus
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Anledning (valfritt)</Label>
+                  <Label className="text-muted-foreground">{t('settings.delete.reasonLabel')}</Label>
                   <div className="space-y-2 text-sm">
-                    {[
-                      { value: 'no_value', label: 'Hittade inte vad jag sökte' },
-                      { value: 'too_expensive', label: 'För dyrt' },
-                      { value: 'not_using', label: 'Använder inte tjänsten längre' },
-                      { value: 'other', label: 'Annan anledning' },
-                    ].map((option) => (
+                    {deleteReasons.map((option) => (
                       <div key={option.value}>
                         <label className="flex cursor-pointer items-center gap-2">
                           <input
@@ -373,7 +379,7 @@ export function SettingsPage() {
                           <textarea
                             className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                             rows={2}
-                            placeholder="Berätta gärna mer..."
+                            placeholder={t('settings.delete.otherPlaceholder')}
                             value={deleteReasonOther}
                             onChange={(e) => setDeleteReasonOther(e.target.value)}
                           />
@@ -385,32 +391,30 @@ export function SettingsPage() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => handleDeleteOpenChange(false)}>
-                  Avbryt
+                  {t('settings.delete.cancel')}
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={() => { setDeleteError(null); setDeleteStep(2) }}
                   disabled={!deletePassword}
                 >
-                  Fortsätt
+                  {t('settings.delete.continue')}
                 </Button>
               </DialogFooter>
             </>
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Är du helt säker?</DialogTitle>
+                <DialogTitle>{t('settings.delete.step2Title')}</DialogTitle>
                 <DialogDescription>
-                  Den här åtgärden kan inte ångras. Ditt konto och all data raderas omedelbart och
-                  permanent. Det finns ingen väg tillbaka.
+                  {t('settings.delete.step2Description')}
                 </DialogDescription>
               </DialogHeader>
               <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive space-y-1">
-                <p>Allt raderas: historik, favoriter och eventuella kvarvarande sökningar.</p>
+                <p>{t('settings.delete.warning')}</p>
                 {(sub?.credits ?? 0) > 0 && (
                   <p className="font-semibold">
-                    Du har {sub!.credits} {sub!.credits === 1 ? 'sökning' : 'sökningar'} kvar som
-                    försvinner permanent vid radering.
+                    {t('settings.delete.creditsWarning_other', { count: sub!.credits })}
                   </p>
                 )}
               </div>
@@ -421,14 +425,14 @@ export function SettingsPage() {
               )}
               <DialogFooter>
                 <Button variant="outline" onClick={() => setDeleteStep(1)}>
-                  Tillbaka
+                  {t('settings.delete.back')}
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={handleDelete}
                   disabled={deleting}
                 >
-                  {deleting ? 'Raderar...' : 'Ja, radera mitt konto'}
+                  {deleting ? t('settings.delete.confirming') : t('settings.delete.confirm')}
                 </Button>
               </DialogFooter>
             </>

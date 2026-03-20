@@ -36,6 +36,7 @@ import { getScoreColor, getScoreBgColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { FactorDetailSheet } from './components/factor-detail-sheet'
 import { AnalysisDisclaimer } from './components/analysis-disclaimer'
+import { CarHero } from './components/car-hero'
 import { NegotiationTips } from './components/negotiation-tips'
 import { FutureCosts } from './components/future-costs'
 import { DealScore } from './components/deal-score'
@@ -502,6 +503,21 @@ export function CarAnalysisPage() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Car hero — bilbild + registreringsskylt + poäng */}
+      <div data-no-print>
+        <CarHero
+          brand={analysis.brand}
+          model={analysis.model}
+          year={analysis.year}
+          color={analysis.color}
+          fuelType={analysis.fuelType}
+          horsePower={analysis.horsePower}
+          mileage={analysis.details?.mileageHistory?.at(-1)?.mileage ?? analysis.mileage}
+          registrationNumber={analysis.registrationNumber}
+          score={scoreRounded}
+        />
+      </div>
 
       {/* Score gauge — alltid synlig oavsett aktiv sektion */}
       <div data-no-print>

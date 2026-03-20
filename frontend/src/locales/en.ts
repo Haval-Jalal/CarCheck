@@ -1,0 +1,322 @@
+const en = {
+  // ── Landing ──────────────────────────────────────────────────────────────
+  landing: {
+    eyebrow: 'Car analysis for private buyers',
+    headline: 'Your guide to a',
+    headlineBlue: 'safe car purchase.',
+    subtitle:
+      'Enter the registration number of any used car and get a data-driven recommendation — based on inspections, mileage, insurance and 9 other factors.',
+    searchPlaceholder: 'ABC 123',
+    searchButton: 'Search',
+    trust1: '10,000+ analyses completed',
+    trust2: '12 control factors',
+    trust3: 'Free to try',
+    pill1: 'Buy · Wait · Avoid',
+    pill2: 'Score 0–100 per car',
+    pill3: 'Saved in your history',
+    disclaimer:
+      'CarCheck provides information based on officially registered data. We disclaim liability for the actual condition of the vehicle at the time of purchase.',
+    login: 'Log in',
+    register: 'Create account',
+    privacy: 'Privacy policy',
+    terms: 'Terms of service',
+    regError: 'Enter a valid registration number (e.g. ABC 123).',
+  },
+
+  // ── Header ────────────────────────────────────────────────────────────────
+  nav: {
+    history: 'History',
+    favorites: 'Favourites',
+    compare: 'Compare',
+    billing: 'Subscription',
+    settings: 'Settings',
+    logout: 'Log out',
+    search: 'Search car',
+    toggleTheme: 'Toggle theme',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
+  },
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  dashboard: {
+    title: 'Check a car',
+    subtitle: 'Enter a registration number to start the analysis',
+    searchCard: 'Car search',
+    recentSearches: 'Recent searches',
+    viewAll: 'View all',
+    unknownCar: 'Unknown car',
+    searchFailed: 'Search failed. Please try again.',
+  },
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  auth: {
+    login: {
+      title: 'Log in',
+      subtitle: 'Enter your email and password',
+      subtitleReg: 'to view the analysis of',
+      email: 'Email',
+      emailPlaceholder: 'name@example.com',
+      password: 'Password',
+      forgotPassword: 'Forgot password?',
+      submit: 'Log in',
+      submitting: 'Logging in...',
+      noAccount: "Don't have an account?",
+      createAccount: 'Create account — it\'s free',
+      createAccountSub: 'Get started in under a minute',
+      searching: 'You are searching for',
+      features: [
+        "See what the seller doesn't tell you — debts, purchase blocks and recalls",
+        'Find out if the price is reasonable before you even ask',
+        'Go to the viewing prepared — with the right questions and negotiation arguments',
+      ],
+      tagline: "The seller's secrets",
+      taglineBlue: 'revealed in seconds.',
+      taglineSub:
+        'Tens of thousands of kronor could be at stake. CarCheck gives you the answer before you decide.',
+      failed: 'Login failed. Please try again.',
+      whatYouGet: 'What you get access to',
+    },
+    register: {
+      title: 'Create account',
+      subtitle: 'Free, ready in a minute',
+      emailSent: "We've sent a verification link to {{email}}. Click the link to activate your account.",
+      minLength: 'At least 8 characters',
+      minDigit: 'At least one digit',
+      email: 'Email',
+      emailPlaceholder: 'name@example.com',
+      password: 'Password',
+      confirmPassword: 'Confirm password',
+      submit: 'Create account',
+      submitting: 'Creating account...',
+      hasAccount: 'Already have an account?',
+      loginLink: 'Log in',
+      tagline: 'Make a',
+      taglineBlue: 'smarter car purchase.',
+      taglineSub:
+        'Never go to a car viewing without doing your homework. CarCheck does it for you.',
+      features: [
+        'Full inspection history and risk profile',
+        'Price analysis — see if the car is valued correctly',
+        'Negotiation tips tailored to this specific car',
+      ],
+    },
+    forgotPassword: {
+      title: 'Forgot password?',
+      subtitle: "Enter your email address and we'll send you a reset link",
+      email: 'Email',
+      emailPlaceholder: 'name@example.com',
+      submit: 'Send link',
+      submitting: 'Sending...',
+      success: "If the email address is registered, we'll send a link shortly.",
+      backToLogin: 'Back to login',
+    },
+    resetPassword: {
+      title: 'New password',
+      subtitle: 'Choose a new secure password for your account',
+      password: 'New password',
+      confirmPassword: 'Confirm password',
+      submit: 'Save password',
+      submitting: 'Saving...',
+      success: 'Password changed! Redirecting to login...',
+      successTitle: 'Password reset',
+      successSubtitle: 'You can now log in with your new password.',
+      invalidToken: 'Invalid reset link. Please request a new one.',
+      requestNew: 'Request new link',
+      failed: 'Something went wrong. Please try again or request a new link.',
+    },
+    verifyEmail: {
+      verifying: 'Verifying email...',
+      success: 'Email address verified! You can now log in.',
+      successTitle: 'Email verified!',
+      successBody: 'Your account is activated and you have received 1 free search. Log in to get started.',
+      failed: 'Verification failed. The link may have expired.',
+      errorTitle: 'Verification failed',
+      noToken: 'No verification link found.',
+      loginButton: 'Log in',
+      goToLogin: 'Go to login',
+    },
+  },
+
+  // ── Billing ───────────────────────────────────────────────────────────────
+  billing: {
+    title: 'Subscription',
+    subtitle: 'Buy searches or subscribe to a monthly plan',
+    creditsLeft: 'Searches left',
+    monthlyPlan: 'Monthly plan',
+    active: 'Active',
+    inactive: 'Inactive',
+    since: 'Since',
+    cancelPlan: 'Cancel plan',
+    buySearches: 'Buy searches',
+    buySearchesSub: 'Each search gives a complete analysis of the car',
+    buyNow: 'Buy now',
+    perSearch: '/search',
+    bestValue: 'Best value',
+    monthlyTitle: 'Monthly plan — Unlimited',
+    monthlySub: 'Search as much as you want, pay a fixed monthly fee',
+    perMonth: '/month',
+    subscribe: 'Subscribe monthly',
+    activePlan: 'Active plan',
+    features: [
+      'Unlimited car searches',
+      'Full analysis for every car',
+      'Inspection history and risk factors',
+      'Price analysis vs. the market',
+    ],
+    purchaseHistory: 'Purchase history',
+    free: 'Free',
+    transaction: {
+      subscription: 'Monthly plan',
+      trial: 'Trial search',
+      credits: 'Credits',
+    },
+    cancel: {
+      title: 'Cancel monthly plan?',
+      description:
+        'Your plan ends immediately. Your purchased searches (credits) are not affected.',
+      keep: 'Keep plan',
+      confirm: 'Yes, cancel plan',
+      confirming: 'Cancelling...',
+      error: 'Something went wrong. Try again or contact support.',
+    },
+    toast: {
+      creditsAdded: 'added to your account!',
+      credit: 'search',
+      credits: 'searches',
+      monthlyActive: 'Monthly plan is now active — unlimited searches!',
+      canceled: 'Payment was cancelled.',
+      cancelSuccess: 'Monthly plan cancelled',
+      paymentError: 'Could not start payment',
+    },
+  },
+
+  // ── History ───────────────────────────────────────────────────────────────
+  history: {
+    title: 'Search history',
+    subtitle: 'All cars you have searched for',
+    empty: 'No searches yet',
+    emptySub: 'Search for a registration number to get started.',
+    unknownCar: 'Unknown car',
+    clearAll: 'Clear history',
+    clearConfirm: 'Are you sure you want to clear the entire history?',
+    deleteError: 'Could not delete search',
+    clearError: 'Could not clear history',
+  },
+
+  // ── Favorites ─────────────────────────────────────────────────────────────
+  favorites: {
+    title: 'Favourites',
+    subtitle: 'Cars you have saved',
+    empty: 'No favourites yet',
+    emptySub: 'Save a car from the analysis result to find it here.',
+    unknownCar: 'Unknown car',
+    removeError: 'Could not remove favourite',
+    viewAnalysis: 'View analysis',
+  },
+
+  // ── Compare ───────────────────────────────────────────────────────────────
+  compare: {
+    title: 'Compare cars',
+    subtitle: 'Compare up to 3 cars side by side',
+    addCar: 'Add car',
+    addPlaceholder: 'ABC 123',
+    remove: 'Remove',
+    score: 'Score',
+    empty: 'No cars to compare',
+    emptySub: 'Enter a registration number above to start comparing.',
+  },
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+  settings: {
+    title: 'Settings',
+    subtitle: 'Manage your account',
+    guide: {
+      title: 'Guide & help',
+      description: 'Learn how to use CarCheck',
+      label: 'Show guide again',
+      sublabel: 'Go through the introduction step by step',
+      button: 'Start guide',
+    },
+    password: {
+      title: 'Change password',
+      current: 'Current password',
+      new: 'New password',
+      confirm: 'Confirm new password',
+      submit: 'Change password',
+      submitting: 'Saving...',
+      success: 'Password changed. You will be logged out in a moment...',
+      error: 'Could not change password.',
+    },
+    gdpr: {
+      title: 'GDPR & Privacy',
+      description: 'Manage your personal data',
+      exportLabel: 'Export my data',
+      exportSub: 'Download a file with all data linked to your account',
+      exportButton: 'Export',
+      exporting: 'Exporting...',
+      exportSuccess: 'Data exported',
+      exportError: 'Could not export data',
+      deleteLabel: 'Delete my account',
+      deleteSub: 'Permanent deletion of account and all associated data',
+      deleteButton: 'Delete account',
+    },
+    delete: {
+      step1Title: 'Delete account',
+      step1Description:
+        'Your account, all history, favourites and remaining credits will be permanently deleted.',
+      passwordLabel: 'Confirm with your password',
+      passwordPlaceholder: 'Your password',
+      reasonLabel: 'Reason (optional)',
+      reasons: {
+        no_value: "Didn't find what I was looking for",
+        too_expensive: 'Too expensive',
+        not_using: 'No longer using the service',
+        other: 'Other reason',
+      },
+      otherPlaceholder: 'Feel free to tell us more...',
+      cancel: 'Cancel',
+      continue: 'Continue',
+      step2Title: 'Are you absolutely sure?',
+      step2Description:
+        'This action cannot be undone. Your account and all data will be deleted immediately and permanently. There is no going back.',
+      warning: 'Everything is deleted: history, favourites and any remaining searches.',
+      creditsWarning_one: 'You have {{count}} search left that will be permanently lost.',
+      creditsWarning_other: 'You have {{count}} searches left that will be permanently lost.',
+      back: 'Back',
+      confirm: 'Yes, delete my account',
+      confirming: 'Deleting...',
+      success: 'Your account has been deleted',
+      error: 'Could not delete account',
+    },
+  },
+
+  // ── Car hero score badges ─────────────────────────────────────────────────
+  carHero: {
+    score: {
+      excellent: 'Well-reviewed',
+      good: 'Approved',
+      poor: 'Insufficient',
+    },
+  },
+
+  // ── Language switcher ─────────────────────────────────────────────────────
+  language: {
+    sv: 'Svenska',
+    en: 'English',
+  },
+
+  // ── Common ────────────────────────────────────────────────────────────────
+  common: {
+    loading: 'Loading...',
+    error: 'Something went wrong',
+    retry: 'Try again',
+    back: 'Back',
+    save: 'Save',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    yes: 'Yes',
+    no: 'No',
+  },
+} as const
+
+export default en

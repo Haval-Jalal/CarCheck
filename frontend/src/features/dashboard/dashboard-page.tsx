@@ -1,5 +1,6 @@
 import { useNavigate, useLocation, Link } from 'react-router'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Search, Clock, ChevronRight, Car } from 'lucide-react'
@@ -12,6 +13,7 @@ import type { AxiosError } from 'axios'
 import type { ApiError } from '@/types/api.types'
 
 function RecentSearches() {
+  const { t } = useTranslation()
   const { data } = useHistory(1, 5)
   const items = data?.items ?? []
 
@@ -22,10 +24,10 @@ function RecentSearches() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Clock className="h-4 w-4" />
-          Senaste sökningar
+          {t('dashboard.recentSearches')}
         </div>
-        <Link to="/history" className="text-xs text-blue-500 hover:underline">
-          Visa alla
+        <Link to="/history" className="text-xs text-blue-500 transition-colors duration-200 hover:underline">
+          {t('dashboard.viewAll')}
         </Link>
       </div>
 
@@ -34,7 +36,7 @@ function RecentSearches() {
           <Link
             key={item.id}
             to={`/car/${item.carId}/analysis`}
-            className="group flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-3.5 transition-colors hover:border-blue-500/40 hover:bg-blue-500/5"
+            className="group flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-3.5 transition-all duration-200 hover:border-blue-500/40 hover:bg-blue-500/5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800">
               <Car className="h-5 w-5 text-blue-400" />
@@ -48,14 +50,14 @@ function RecentSearches() {
               <p className="truncate text-xs text-muted-foreground">
                 {item.brand && item.model
                   ? `${item.brand} ${item.model}${item.year ? ` · ${item.year}` : ''}`
-                  : 'Okänd bil'}
+                  : t('dashboard.unknownCar')}
               </p>
             </div>
             <div className="flex flex-col items-end gap-1 shrink-0">
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {formatRelativeTime(item.searchedAt)}
               </span>
-              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 group-hover:text-blue-400 transition-colors" />
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 transition-colors duration-200 group-hover:text-blue-400" />
             </div>
           </Link>
         ))}
@@ -65,6 +67,7 @@ function RecentSearches() {
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const searchMutation = useCarSearch()
@@ -91,22 +94,27 @@ export function DashboardPage() {
 
   const errorMessage = searchMutation.error
     ? (searchMutation.error as AxiosError<ApiError>).response?.data?.error ||
-      'Sökningen misslyckades. Försök igen.'
+      t('dashboard.searchFailed')
     : null
 
   return (
     <div className="space-y-6">
       {/* Hero section */}
-      <div className="-mx-4 -mt-6 bg-gradient-to-r from-slate-900 to-blue-900 px-4 py-8 md:-mx-6 md:px-6">
-        <h1 className="text-2xl font-bold text-white">Kontrollera en bil</h1>
-        <p className="mt-1 text-blue-200">Ange registreringsnummer för att starta analysen</p>
+      <div>
+        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-blue-300 to-violet-400 bg-clip-text text-transparent">
+          {t('dashboard.title')}
+        </h1>
+        <p className="mt-1 text-muted-foreground">{t('dashboard.subtitle')}</p>
       </div>
 
-      <Card data-tour="search-card">
+      <Card
+        data-tour="search-card"
+        className="border-white/10 bg-white/5 backdrop-blur-sm dark:bg-white/[0.03]"
+      >
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5 text-blue-500" />
-            Bilsökning
+            <Search className="h-5 w-5 text-blue-400" />
+            {t('dashboard.searchCard')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

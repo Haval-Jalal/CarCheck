@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Car, Search, Sun, Moon, Shield, BarChart3, History } from 'lucide-react'
+import { Car, Search, Sun, Moon, ArrowRight, ShieldCheck, BarChart3, Clock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/hooks/use-theme'
+import { LanguageSwitcher } from '@/components/common/language-switcher'
 
 export function LandingPage() {
   const { theme, toggleTheme } = useTheme()
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [regNumber, setRegNumber] = useState('')
-
   const [regError, setRegError] = useState(false)
 
   const handleSearch = (e: React.FormEvent) => {
@@ -21,140 +23,217 @@ export function LandingPage() {
     navigate('/login', { state: { regNumber: reg } })
   }
 
-  return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-950 text-white">
+  const isDark = theme === 'dark'
 
-      {/* Subtle background glow */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-[600px] w-[600px] rounded-full bg-blue-600/10 blur-[120px]" />
+  return (
+    <div className={`relative flex min-h-screen flex-col overflow-hidden transition-colors duration-500 ${isDark ? 'bg-[#080c18] text-white' : 'bg-[#f8f9fc] text-slate-900'}`}>
+
+      {/* ── Background atmosphere ── */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Primary glow — blue */}
+        <div className={`absolute -top-40 left-1/2 h-[700px] w-[700px] -translate-x-1/2 rounded-full blur-[160px] transition-opacity duration-500 ${isDark ? 'bg-blue-600/20 opacity-100' : 'bg-blue-400/15 opacity-100'}`} />
+        {/* Secondary glow — violet */}
+        <div className={`absolute top-20 -right-32 h-[500px] w-[500px] rounded-full blur-[130px] transition-opacity duration-500 ${isDark ? 'bg-violet-600/15 opacity-100' : 'bg-violet-400/10 opacity-100'}`} />
+        {/* Bottom glow — indigo */}
+        <div className={`absolute bottom-0 -left-20 h-[400px] w-[400px] rounded-full blur-[120px] transition-opacity duration-500 ${isDark ? 'bg-indigo-600/10 opacity-100' : 'bg-indigo-300/10 opacity-100'}`} />
+        {/* Subtle grid pattern */}
+        <div
+          className={`absolute inset-0 transition-opacity duration-500 ${isDark ? 'opacity-[0.03]' : 'opacity-[0.04]'}`}
+          style={{
+            backgroundImage: `linear-gradient(${isDark ? '#fff' : '#000'} 1px, transparent 1px), linear-gradient(to right, ${isDark ? '#fff' : '#000'} 1px, transparent 1px)`,
+            backgroundSize: '64px 64px',
+          }}
+        />
       </div>
 
       {/* ── Header ── */}
       <header className="relative z-10 flex h-16 items-center justify-between px-6 md:px-10">
-        <div className="flex items-center gap-2 text-base font-bold tracking-tight">
-          <Car className="h-5 w-5 text-blue-400" />
-          CarCheck
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${isDark ? 'bg-blue-500/20' : 'bg-blue-600/10'}`}>
+            <Car className="h-4 w-4 text-blue-500" />
+          </div>
+          <span className={`text-sm font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            CarCheck
+          </span>
         </div>
+
+        {/* Right nav */}
         <div className="flex items-center gap-1">
+          <LanguageSwitcher variant={isDark ? 'dark' : 'light'} />
+
           <button
             onClick={toggleTheme}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
-            aria-label="Växla tema"
+            className={`rounded-xl p-2 transition-all duration-200 ${isDark ? 'text-slate-400 hover:bg-white/8 hover:text-white' : 'text-slate-500 hover:bg-black/6 hover:text-slate-900'}`}
+            aria-label={t('nav.toggleTheme')}
           >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
+
           <Link
             to="/login"
-            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-white"
+            className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${isDark ? 'text-slate-400 hover:bg-white/8 hover:text-white' : 'text-slate-600 hover:bg-black/6 hover:text-slate-900'}`}
           >
-            Logga in
+            {t('landing.login')}
           </Link>
+
           <Link
             to="/register"
-            className="ml-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500"
+            className="ml-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-all duration-200 hover:scale-[1.04] hover:bg-blue-500 hover:shadow-blue-500/40 active:scale-95"
           >
-            Skapa konto
+            {t('landing.register')}
           </Link>
         </div>
       </header>
 
       {/* ── Main ── */}
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-8 md:px-10">
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 py-12 md:px-10">
         <div className="w-full max-w-2xl text-center">
 
-          {/* Eyebrow */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-4 py-1.5 text-xs font-medium text-slate-400 backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-            Bilanalys för privatpersoner
+          {/* Eyebrow badge */}
+          <div className={`mb-8 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-colors duration-300 ${
+            isDark
+              ? 'border border-white/10 bg-white/5 text-blue-300'
+              : 'border border-blue-200 bg-blue-50 text-blue-700'
+          }`}>
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />
+            {t('landing.eyebrow')}
           </div>
 
           {/* Headline */}
-          <h1 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-7xl">
-            Din guide till ett
-            <span className="block text-blue-400">tryggt bilköp.</span>
+          <h1 className="mb-5 text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+            <span className={isDark ? 'text-white' : 'text-slate-900'}>
+              {t('landing.headline')}{' '}
+            </span>
+            <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-violet-500 bg-clip-text text-transparent">
+              {t('landing.headlineBlue')}
+            </span>
           </h1>
 
           {/* Subtitle */}
-          <p className="mx-auto mb-10 max-w-lg text-base text-slate-400 sm:text-lg">
-            Ange registreringsnumret på vilken begagnad bil som helst och få en
-            datadriven rekommendation — baserad på besiktning, miltal, försäkring
-            och 9 andra faktorer.
+          <p className={`mx-auto mb-10 max-w-lg text-base leading-relaxed sm:text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            {t('landing.subtitle')}
           </p>
 
           {/* Search bar */}
-          <form onSubmit={handleSearch} className="mx-auto mb-2 max-w-lg">
-            <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 p-2 shadow-2xl shadow-black/40 transition focus-within:border-blue-500">
-              <div className="ml-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600/20">
-                <Car className="h-4 w-4 text-blue-400" />
+          <form onSubmit={handleSearch} className="mx-auto mb-3 max-w-lg">
+            <div className={`group flex items-center gap-2 rounded-2xl p-2 shadow-2xl transition-all duration-300 ${
+              isDark
+                ? 'border border-white/10 bg-white/5 backdrop-blur-xl hover:border-blue-500/50 focus-within:border-blue-500/70 focus-within:bg-white/8'
+                : 'border border-slate-200 bg-white shadow-slate-200/80 hover:border-blue-400/60 focus-within:border-blue-500/80'
+            }`}>
+              <div className="ml-2 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-md shadow-blue-600/30">
+                <Car className="h-4.5 w-4.5 text-white" />
               </div>
               <input
                 value={regNumber}
                 onChange={e => { setRegNumber(e.target.value.toUpperCase()); setRegError(false) }}
-                placeholder="ABC 123"
+                placeholder={t('landing.searchPlaceholder')}
                 maxLength={10}
                 autoFocus
-                className="flex-1 bg-transparent py-2 text-center text-xl font-black tracking-[0.2em] text-white outline-none placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-600 sm:text-2xl sm:tracking-[0.3em]"
+                className={`flex-1 bg-transparent py-2 text-center text-xl font-black tracking-[0.25em] outline-none sm:text-2xl sm:tracking-[0.3em] ${
+                  isDark
+                    ? 'text-white placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-600'
+                    : 'text-slate-900 placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400'
+                }`}
               />
               <button
                 type="submit"
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500 active:scale-95"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-600/30 transition-all duration-200 hover:scale-[1.04] hover:from-blue-500 hover:to-blue-600 hover:shadow-blue-500/40 active:scale-95"
               >
                 <Search className="h-4 w-4" />
-                <span className="hidden sm:inline">Sök</span>
+                <span className="hidden sm:inline">{t('landing.searchButton')}</span>
               </button>
             </div>
           </form>
 
           {regError && (
-            <p className="mx-auto mb-4 max-w-lg text-sm text-red-400">
-              Ange ett giltigt regnummer (t.ex. ABC 123).
+            <p className="mx-auto mb-4 max-w-lg text-sm font-medium text-red-500">
+              {t('landing.regError')}
             </p>
           )}
 
-          {/* Trust row */}
-          <div className="mb-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-slate-500 sm:gap-x-6">
-            <span>10 000+ analyser genomförda</span>
-            <span className="hidden sm:inline h-1 w-1 rounded-full bg-slate-700" />
-            <span>12 kontrollfaktorer</span>
-            <span className="hidden sm:inline h-1 w-1 rounded-full bg-slate-700" />
-            <span>Kostnadsfritt att prova</span>
+          {/* Trust stats */}
+          <div className={`mb-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className="flex items-center gap-1.5">
+              <span className={`h-1 w-1 rounded-full ${isDark ? 'bg-blue-500' : 'bg-blue-400'}`} />
+              {t('landing.trust1')}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className={`h-1 w-1 rounded-full ${isDark ? 'bg-violet-500' : 'bg-violet-400'}`} />
+              {t('landing.trust2')}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className={`h-1 w-1 rounded-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-400'}`} />
+              {t('landing.trust3')}
+            </span>
           </div>
 
-          {/* Feature pills */}
-          <div className="flex flex-wrap justify-center gap-3">
+          {/* Feature cards */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
-              { icon: <Shield className="h-3.5 w-3.5" />, label: 'Köp · Avvakta · Undvik' },
-              { icon: <BarChart3 className="h-3.5 w-3.5" />, label: 'Poäng 0–100 per bil' },
-              { icon: <History className="h-3.5 w-3.5" />, label: 'Sparas i din historik' },
-            ].map(({ icon, label }) => (
-              <span
+              {
+                icon: ShieldCheck,
+                color: 'text-green-400',
+                bg: isDark ? 'bg-green-500/10' : 'bg-green-50',
+                border: isDark ? 'border-green-500/20' : 'border-green-200',
+                label: t('landing.pill1'),
+              },
+              {
+                icon: BarChart3,
+                color: 'text-blue-400',
+                bg: isDark ? 'bg-blue-500/10' : 'bg-blue-50',
+                border: isDark ? 'border-blue-500/20' : 'border-blue-200',
+                label: t('landing.pill2'),
+              },
+              {
+                icon: Clock,
+                color: 'text-violet-400',
+                bg: isDark ? 'bg-violet-500/10' : 'bg-violet-50',
+                border: isDark ? 'border-violet-500/20' : 'border-violet-200',
+                label: t('landing.pill3'),
+              },
+            ].map(({ icon: Icon, color, bg, border, label }) => (
+              <div
                 key={label}
-                className="flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-400"
+                className={`group flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${bg} ${border} ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
               >
-                {icon}
-                {label}
-              </span>
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${isDark ? 'bg-white/5' : 'bg-white/80'}`}>
+                  <Icon className={`h-4 w-4 ${color}`} />
+                </div>
+                <span className="text-left">{label}</span>
+                <ArrowRight className={`ml-auto h-3.5 w-3.5 shrink-0 opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+              </div>
             ))}
           </div>
 
           {/* Disclaimer */}
-          <p className="mx-auto mt-8 max-w-md text-xs leading-relaxed text-slate-600">
-            CarCheck tillhandahåller information baserad på officiellt registrerade uppgifter.
-            Vi friskriver oss från ansvar för fordonets faktiska skick vid köptillfället.
+          <p className={`mx-auto mt-10 max-w-md text-xs leading-relaxed ${isDark ? 'text-slate-700' : 'text-slate-400'}`}>
+            {t('landing.disclaimer')}
           </p>
         </div>
       </main>
 
       {/* ── Footer ── */}
-      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-2 px-6 py-4 text-xs text-slate-700 md:px-10">
-        <div className="flex items-center gap-1.5 font-medium">
+      <footer className={`relative z-10 flex flex-wrap items-center justify-between gap-2 border-t px-6 py-4 text-xs md:px-10 transition-colors duration-300 ${isDark ? 'border-white/5 text-slate-700' : 'border-slate-200 text-slate-400'}`}>
+        <div className="flex items-center gap-1.5 font-semibold">
           <Car className="h-3.5 w-3.5" />
           CarCheck
         </div>
-        <div className="flex items-center gap-4">
-          <Link to="/privacy" className="hover:text-slate-400 transition-colors">Integritetspolicy</Link>
-          <Link to="/terms" className="hover:text-slate-400 transition-colors">Användarvillkor</Link>
-          <p>&copy; {new Date().getFullYear()} CarCheck</p>
+        <div className="flex items-center gap-5">
+          <Link
+            to="/privacy"
+            className={`transition-all duration-200 hover:underline ${isDark ? 'hover:text-slate-400' : 'hover:text-slate-700'}`}
+          >
+            {t('landing.privacy')}
+          </Link>
+          <Link
+            to="/terms"
+            className={`transition-all duration-200 hover:underline ${isDark ? 'hover:text-slate-400' : 'hover:text-slate-700'}`}
+          >
+            {t('landing.terms')}
+          </Link>
+          <span>&copy; {new Date().getFullYear()} CarCheck</span>
         </div>
       </footer>
     </div>
