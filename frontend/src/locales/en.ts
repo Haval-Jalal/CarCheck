@@ -5,7 +5,7 @@ const en = {
     headline: 'Your guide to a',
     headlineBlue: 'safe car purchase.',
     subtitle:
-      'Enter the registration number of any used car and get a data-driven recommendation — based on inspections, mileage, insurance and 9 other factors.',
+      'Enter the registration number of any used car and get a fact-based recommendation — based on inspections, mileage, insurance and 9 other factors.',
     searchPlaceholder: 'ABC 123',
     searchButton: 'Search',
     trust1: '5 free searches',
