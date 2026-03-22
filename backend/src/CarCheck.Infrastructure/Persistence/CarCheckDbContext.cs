@@ -1,12 +1,15 @@
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarCheck.Infrastructure.Persistence;
 
-public class CarCheckDbContext : DbContext
+public class CarCheckDbContext : DbContext, IDataProtectionKeyContext
 {
     public CarCheckDbContext(DbContextOptions<CarCheckDbContext> options) : base(options) { }
+
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Car> Cars => Set<Car>();

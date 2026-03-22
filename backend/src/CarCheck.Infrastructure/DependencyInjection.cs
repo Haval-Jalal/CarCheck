@@ -12,6 +12,7 @@ using CarCheck.Infrastructure.External;
 using CarCheck.Infrastructure.RateLimiting;
 using CarCheck.Infrastructure.Persistence;
 using CarCheck.Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,11 @@ public static class DependencyInjection
 
         services.AddDbContext<CarCheckDbContext>(options =>
             options.UseNpgsql(connectionString));
+
+        // Data Protection — persist keys to DB so sessions survive restarts/deploys
+        services.AddDataProtection()
+            .PersistKeysToDbContext<CarCheckDbContext>()
+            .SetApplicationName("CarCheck");
 
         // Repositories
         services.AddScoped<IUserRepository, UserRepository>();

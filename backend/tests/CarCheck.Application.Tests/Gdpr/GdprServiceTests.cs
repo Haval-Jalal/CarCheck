@@ -13,6 +13,7 @@ public class GdprServiceTests
     private readonly ISearchHistoryRepository _searchHistoryRepository;
     private readonly IFavoriteRepository _favoriteRepository;
     private readonly ISubscriptionRepository _subscriptionRepository;
+    private readonly ICreditTransactionRepository _creditTransactionRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly ISecurityEventLogger _securityEventLogger;
     private readonly IPasswordHasher _passwordHasher;
@@ -25,6 +26,7 @@ public class GdprServiceTests
         _searchHistoryRepository = Substitute.For<ISearchHistoryRepository>();
         _favoriteRepository = Substitute.For<IFavoriteRepository>();
         _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
+        _creditTransactionRepository = Substitute.For<ICreditTransactionRepository>();
         _refreshTokenRepository = Substitute.For<IRefreshTokenRepository>();
         _securityEventLogger = Substitute.For<ISecurityEventLogger>();
         _passwordHasher = Substitute.For<IPasswordHasher>();
@@ -35,6 +37,7 @@ public class GdprServiceTests
             _searchHistoryRepository,
             _favoriteRepository,
             _subscriptionRepository,
+            _creditTransactionRepository,
             _refreshTokenRepository,
             _securityEventLogger,
             _passwordHasher,
