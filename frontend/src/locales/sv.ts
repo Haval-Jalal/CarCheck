@@ -5,7 +5,7 @@ const sv = {
     headline: 'Din guide till ett',
     headlineBlue: 'tryggt bilköp.',
     subtitle:
-      'Ange registreringsnumret på vilken begagnad bil som helst och få en datadriven rekommendation — baserad på besiktning, miltal, försäkring och 9 andra faktorer.',
+      'Ange registreringsnumret på vilken begagnad bil som helst och få en faktabaserad rekommendation — baserad på besiktning, miltal, försäkring och 9 andra faktorer.',
     searchPlaceholder: 'ABC 123',
     searchButton: 'Sök',
     trust1: '5 gratis sökningar',

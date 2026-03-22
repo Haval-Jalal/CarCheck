@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Car, Search, Sun, Moon, ArrowRight, ShieldCheck, BarChart3, Clock } from 'lucide-react'
+import { Car, Search, Sun, Moon, ArrowRight, ShieldCheck, BarChart3, Clock, Camera } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/hooks/use-theme'
 import { LanguageSwitcher } from '@/components/common/language-switcher'
+import { PlateScanner } from '@/components/common/plate-scanner'
 
 export function LandingPage() {
   const { theme, toggleTheme } = useTheme()
@@ -11,6 +12,8 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [regNumber, setRegNumber] = useState('')
   const [regError, setRegError] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
+  const hasCamera = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,6 +118,17 @@ export function LandingPage() {
             {t('landing.subtitle')}
           </p>
 
+          {showScanner && (
+            <PlateScanner
+              onDetected={(plate) => {
+                setRegNumber(plate)
+                setShowScanner(false)
+                navigate('/login', { state: { regNumber: plate } })
+              }}
+              onClose={() => setShowScanner(false)}
+            />
+          )}
+
           {/* Search bar */}
           <form onSubmit={handleSearch} className="mx-auto mb-3 max-w-lg">
             <div className={`group flex items-center gap-2 rounded-2xl p-2 shadow-2xl transition-all duration-300 ${
@@ -127,7 +141,7 @@ export function LandingPage() {
               </div>
               <input
                 value={regNumber}
-                onChange={e => { setRegNumber(e.target.value.toUpperCase()); setRegError(false) }}
+                onChange={e => { setRegNumber(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase()); setRegError(false) }}
                 placeholder={t('landing.searchPlaceholder')}
                 maxLength={10}
                 autoFocus
@@ -137,6 +151,18 @@ export function LandingPage() {
                     : 'text-slate-900 placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400'
                 }`}
               />
+              {hasCamera && (
+                <button
+                  type="button"
+                  onClick={() => setShowScanner(true)}
+                  className={`flex items-center justify-center rounded-xl p-2.5 transition-all duration-200 hover:scale-[1.04] active:scale-95 ${
+                    isDark ? 'text-slate-400 hover:bg-white/8 hover:text-white' : 'text-slate-500 hover:bg-black/6 hover:text-slate-700'
+                  }`}
+                  title="Skanna registreringsskylt"
+                >
+                  <Camera className="h-5 w-5" />
+                </button>
+              )}
               <button
                 type="submit"
                 className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-600/30 transition-all duration-200 hover:scale-[1.04] hover:from-blue-500 hover:to-blue-600 hover:shadow-blue-500/40 active:scale-95"

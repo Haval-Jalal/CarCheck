@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Search, Link as LinkIcon } from 'lucide-react'
+import { Search, Link as LinkIcon, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseRegFromUrl, isUrl } from '@/lib/parse-reg-from-url'
+import { PlateScanner } from '@/components/common/plate-scanner'
 
 interface SearchFormProps {
   onSearch: (regNumber: string) => void
@@ -15,6 +16,8 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
   const [urlHint, setUrlHint] = useState<string | null>(null)
   const [urlError, setUrlError] = useState(false)
   const [regError, setRegError] = useState(false)
+  const [showScanner, setShowScanner] = useState(false)
+  const hasCamera = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
 
   useEffect(() => {
     if (isUrl(value)) {
@@ -56,7 +59,18 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
 
   const isInputUrl = isUrl(value)
 
+  const handleScanDetected = (plate: string) => {
+    setValue(plate)
+    setShowScanner(false)
+    setRegError(false)
+    onSearch(plate)
+  }
+
   return (
+    <>
+    {showScanner && (
+      <PlateScanner onDetected={handleScanDetected} onClose={() => setShowScanner(false)} />
+    )}
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
       <div className="flex-1 space-y-2">
         <Label htmlFor="regNumber">Registreringsnummer eller annons-URL</Label>
@@ -71,7 +85,11 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
             className={isInputUrl ? 'pl-9 font-normal' : 'uppercase'}
             value={value}
             onChange={(e) => {
-              setValue(e.target.value)
+              const raw = e.target.value
+              // Strip all non-alphanumeric characters immediately (handles pasted
+              // values with spaces, non-breaking spaces, hyphens, etc.)
+              // Skip normalization if it looks like a URL
+              setValue(isUrl(raw) ? raw : raw.replace(/[^A-Za-z0-9]/g, '').toUpperCase())
               setRegError(false)
             }}
           />
@@ -93,6 +111,17 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
           </p>
         )}
       </div>
+      {hasCamera && (
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowScanner(true)}
+          className="sm:w-auto"
+          title="Skanna registreringsskylt"
+        >
+          <Camera className="h-4 w-4" />
+        </Button>
+      )}
       <Button
         type="submit"
         disabled={isLoading || urlError || regError || (isInputUrl && !urlHint)}
@@ -106,5 +135,6 @@ export function SearchForm({ onSearch, isLoading }: SearchFormProps) {
         {isLoading ? 'Söker...' : 'Sök'}
       </Button>
     </form>
+    </>
   )
 }
