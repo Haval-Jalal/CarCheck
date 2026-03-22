@@ -425,3 +425,6 @@ backend/docs/api-comparison.html
 # Claude Code project settings
 .claude/
 backend/.claude/
+
+# Local session log — not for version control
+backend/SESSION-LOG.md
