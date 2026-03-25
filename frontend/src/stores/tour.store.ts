@@ -24,10 +24,14 @@ export const useTourStore = create<TourStore>((set) => ({
       localStorage.setItem(TOUR_KEY, 'done')
       return
     }
-    // If neither the server nor localStorage has recorded completion, show the tour.
-    if (!localStorage.getItem(TOUR_KEY)) {
-      set({ isActive: true, stepIndex: 0 })
+    // Local says done but server doesn't know yet (e.g. API call failed last time).
+    // Proactively sync so the server catches up — then stay inactive.
+    if (localStorage.getItem(TOUR_KEY) === 'done') {
+      apiClient.post('/user/complete-tour').catch(() => {})
+      return
     }
+    // Neither server nor localStorage has recorded completion — show the tour.
+    set({ isActive: true, stepIndex: 0 })
   },
 
   startTour: () => {
