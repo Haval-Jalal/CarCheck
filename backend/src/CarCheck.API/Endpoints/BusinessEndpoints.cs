@@ -38,12 +38,13 @@ public static class BusinessEndpoints
                 .Take(MaxBulkSearchCount)
                 .ToList();
 
-            var tasks = distinct.Select(async regNum =>
+            var results = new List<BulkSearchItemResult>();
+            foreach (var regNum in distinct)
             {
                 var searchRequest = new CarSearchRequest(regNum);
                 var result = await carSearchService.SearchByRegistrationAsync(userId.Value, searchRequest, cancellationToken);
                 var v = result.IsSuccess ? result.Value : null;
-                return new BulkSearchItemResult(
+                results.Add(new BulkSearchItemResult(
                     RegistrationNumber: regNum,
                     Success: result.IsSuccess,
                     CarId: v?.CarId,
@@ -52,10 +53,8 @@ public static class BusinessEndpoints
                     Year: v?.Year,
                     Mileage: v?.Mileage,
                     MarketValueSek: v?.MarketValueSek,
-                    Error: result.IsSuccess ? null : result.Error);
-            });
-
-            var results = await Task.WhenAll(tasks);
+                    Error: result.IsSuccess ? null : result.Error));
+            }
 
             return Results.Ok(new BulkSearchResponse(
                 Total: distinct.Count,
