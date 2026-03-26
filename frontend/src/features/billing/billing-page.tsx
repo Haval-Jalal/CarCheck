@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Check, Zap, Infinity, CreditCard, Calendar, Receipt } from 'lucide-react'
+import { Check, Zap, Infinity, CreditCard, Calendar, Receipt, Building2 } from 'lucide-react'
 import {
   useSubscription,
   useCreateCheckout,
@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils'
 import type { TransactionResponse } from '@/types/billing.types'
 
 const MONTHLY_TIER = 1 // SubscriptionTier.Pro = monthly unlimited
+const BUSINESS_TIER = 3 // SubscriptionTier.Business
 
 function formatSek(amount: number) {
   return new Intl.NumberFormat('sv-SE', {
@@ -105,8 +106,20 @@ export function BillingPage() {
   if (subLoading || packsLoading) return <LoadingSpinner />
   if (subError) return <ErrorDisplay error={subError} />
 
-  const hasMonthly = sub ? sub.tier >= MONTHLY_TIER && sub.isActive && sub.subscriptionId !== '00000000-0000-0000-0000-000000000000' : false
+  const isBusiness = sub ? sub.tier === BUSINESS_TIER && sub.isActive && sub.subscriptionId !== '00000000-0000-0000-0000-000000000000' : false
+  const hasMonthly = isBusiness || (sub ? sub.tier >= MONTHLY_TIER && sub.isActive && sub.subscriptionId !== '00000000-0000-0000-0000-000000000000' : false)
+  const isProOnly = hasMonthly && !isBusiness
   const credits = sub?.credits ?? 0
+
+  const handleBuyBusiness = () => {
+    checkoutMutation.mutate(BUSINESS_TIER, {
+      onSuccess: (data) => { window.location.href = data.checkoutUrl },
+      onError: (err) => {
+        const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error
+        toast.error(msg || t('billing.toast.paymentError'))
+      },
+    })
+  }
 
   const handleBuyMonthly = () => {
     checkoutMutation.mutate(MONTHLY_TIER, {
@@ -255,44 +268,103 @@ export function BillingPage() {
       )}
 
       {/* Monthly plan */}
+      {!isBusiness && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">{t('billing.monthlyTitle')}</h2>
+            <p className="text-sm text-muted-foreground">{t('billing.monthlySub')}</p>
+          </div>
+          <Card className={cn(
+            'border-2',
+            isProOnly ? 'border-green-500/50' : 'border-slate-600 bg-gradient-to-br from-slate-900 to-blue-950'
+          )}>
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="space-y-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className={cn('text-4xl font-black', isProOnly ? '' : 'text-white')}>499 kr</span>
+                    <span className={cn('text-sm', isProOnly ? 'text-muted-foreground' : 'text-slate-400')}>{t('billing.perMonth')}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {(t('billing.features', { returnObjects: true }) as string[]).map((feature) => (
+                      <div key={feature} className="flex items-center gap-2">
+                        <Check className={cn('h-4 w-4 shrink-0', isProOnly ? 'text-green-500' : 'text-blue-400')} />
+                        <span className={cn('text-sm', isProOnly ? '' : 'text-slate-300')}>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {isProOnly ? (
+                  <Badge variant="outline" className="border-green-500 text-green-600 px-4 py-2 text-base self-start md:self-center">
+                    {t('billing.activePlan')}
+                  </Badge>
+                ) : (
+                  <Button
+                    size="lg"
+                    className="bg-blue-600 transition-all duration-200 hover:bg-blue-500 md:shrink-0"
+                    onClick={handleBuyMonthly}
+                    disabled={checkoutMutation.isPending}
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    {t('billing.subscribe')}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Business plan */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">{t('billing.monthlyTitle')}</h2>
-          <p className="text-sm text-muted-foreground">{t('billing.monthlySub')}</p>
+          <h2 className="text-lg font-semibold">{t('billing.businessTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{t('billing.businessSub')}</p>
         </div>
         <Card className={cn(
           'border-2',
-          hasMonthly ? 'border-green-500/50' : 'border-slate-600 bg-gradient-to-br from-slate-900 to-blue-950'
+          isBusiness ? 'border-blue-500/50 bg-blue-500/5' : 'border-blue-800 bg-gradient-to-br from-slate-900 to-blue-950'
         )}>
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="space-y-3">
-                <div className="flex items-baseline gap-2">
-                  <span className={cn('text-4xl font-black', hasMonthly ? '' : 'text-white')}>499 kr</span>
-                  <span className={cn('text-sm', hasMonthly ? 'text-muted-foreground' : 'text-slate-400')}>{t('billing.perMonth')}</span>
+                <div className="flex items-center gap-3">
+                  <Building2 className={cn('h-6 w-6', isBusiness ? 'text-blue-500' : 'text-blue-400')} />
+                  <div className="flex items-baseline gap-2">
+                    <span className={cn('text-4xl font-black', isBusiness ? '' : 'text-white')}>999 kr</span>
+                    <span className={cn('text-sm', isBusiness ? 'text-muted-foreground' : 'text-slate-400')}>{t('billing.perMonth')}</span>
+                  </div>
                 </div>
                 <div className="space-y-1.5">
-                  {(t('billing.features', { returnObjects: true }) as string[]).map((feature) => (
+                  {(t('billing.businessFeatures', { returnObjects: true }) as string[]).map((feature) => (
                     <div key={feature} className="flex items-center gap-2">
-                      <Check className={cn('h-4 w-4 shrink-0', hasMonthly ? 'text-green-500' : 'text-blue-400')} />
-                      <span className={cn('text-sm', hasMonthly ? '' : 'text-slate-300')}>{feature}</span>
+                      <Check className={cn('h-4 w-4 shrink-0', isBusiness ? 'text-blue-500' : 'text-blue-400')} />
+                      <span className={cn('text-sm', isBusiness ? '' : 'text-slate-300')}>{feature}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              {hasMonthly ? (
-                <Badge variant="outline" className="border-green-500 text-green-600 px-4 py-2 text-base self-start md:self-center">
-                  {t('billing.activePlan')}
-                </Badge>
+              {isBusiness ? (
+                <div className="flex flex-col items-start md:items-center gap-2 self-start md:self-center">
+                  <Badge className="bg-blue-600 hover:bg-blue-600 px-4 py-2 text-base">
+                    {t('billing.activePlan')}
+                  </Badge>
+                  <button
+                    onClick={() => setCancelOpen(true)}
+                    className="text-xs text-red-500 transition-colors duration-200 hover:underline"
+                  >
+                    {t('billing.cancelPlan')}
+                  </button>
+                </div>
               ) : (
                 <Button
                   size="lg"
                   className="bg-blue-600 transition-all duration-200 hover:bg-blue-500 md:shrink-0"
-                  onClick={handleBuyMonthly}
+                  onClick={handleBuyBusiness}
                   disabled={checkoutMutation.isPending}
                 >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  {t('billing.subscribe')}
+                  <Building2 className="mr-2 h-4 w-4" />
+                  {t('billing.subscribeBusiness')}
                 </Button>
               )}
             </div>

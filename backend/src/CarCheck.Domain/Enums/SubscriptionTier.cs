@@ -4,5 +4,6 @@ public enum SubscriptionTier
 {
     Free = 0,
     Pro = 1,
-    Premium = 2
+    Premium = 2,
+    Business = 3
 }

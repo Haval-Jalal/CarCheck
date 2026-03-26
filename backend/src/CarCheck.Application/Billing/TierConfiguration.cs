@@ -29,6 +29,13 @@ public static class TierConfiguration
             PricePerMonthSek: 499m,
             Name: "Månatlig"),
 
+        SubscriptionTier.Business => new TierLimits(
+            DailySearches: int.MaxValue,
+            MonthlySearches: int.MaxValue,
+            AnalysisIncluded: true,
+            PricePerMonthSek: 999m,
+            Name: "Business"),
+
         _ => throw new ArgumentOutOfRangeException(nameof(tier))
     };
 

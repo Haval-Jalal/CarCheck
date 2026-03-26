@@ -21,6 +21,8 @@ const BillingPage = lazy(() => import('@/features/billing/billing-page').then(m 
 const SettingsPage = lazy(() => import('@/features/settings/settings-page').then(m => ({ default: m.SettingsPage })))
 const SharePage = lazy(() => import('@/features/share/share-page').then(m => ({ default: m.SharePage })))
 const ComparePage = lazy(() => import('@/features/compare/compare-page').then(m => ({ default: m.ComparePage })))
+const BusinessDashboardPage = lazy(() => import('@/features/business/business-dashboard-page').then(m => ({ default: m.BusinessDashboardPage })))
+const BusinessReportPage = lazy(() => import('@/features/business/business-report-page').then(m => ({ default: m.BusinessReportPage })))
 
 function PageLoader() {
   return (
@@ -63,6 +65,8 @@ export const router = createBrowserRouter([
           { path: '/billing', element: <Lazy><BillingPage /></Lazy> },
           { path: '/settings', element: <Lazy><SettingsPage /></Lazy> },
           { path: '/compare', element: <Lazy><ComparePage /></Lazy> },
+          { path: '/business', element: <Lazy><BusinessDashboardPage /></Lazy> },
+          { path: '/business/report/:carId', element: <Lazy><BusinessReportPage /></Lazy> },
         ],
       },
     ],

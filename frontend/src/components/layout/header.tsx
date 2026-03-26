@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import {
   Car, LogOut, Settings, History, Heart, CreditCard,
-  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2, Zap,
+  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2, Zap, Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
@@ -19,6 +19,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
+import { useSubscription } from '@/hooks/use-billing'
 import { useCarSearch } from '@/hooks/use-car-search'
 import { useQuotaStore } from '@/stores/quota.store'
 import { LanguageSwitcher } from '@/components/common/language-switcher'
@@ -102,6 +103,8 @@ export function Header() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { data: sub } = useSubscription()
+  const isBusiness = sub?.tier === 3 && sub?.isActive && sub?.subscriptionId !== '00000000-0000-0000-0000-000000000000'
 
   const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : '??'
 
@@ -109,6 +112,7 @@ export function Header() {
     { to: '/history',   label: t('nav.history'),   icon: History },
     { to: '/favorites', label: t('nav.favorites'),  icon: Heart },
     { to: '/compare',   label: t('nav.compare'),    icon: ArrowUpDown },
+    ...(isBusiness ? [{ to: '/business', label: 'Business', icon: Building2 }] : []),
     { to: '/billing',   label: t('nav.billing'),    icon: CreditCard },
   ]
 
