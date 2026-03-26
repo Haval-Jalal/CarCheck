@@ -42,15 +42,16 @@ public static class BusinessEndpoints
             {
                 var searchRequest = new CarSearchRequest(regNum);
                 var result = await carSearchService.SearchByRegistrationAsync(userId.Value, searchRequest, cancellationToken);
+                var v = result.IsSuccess ? result.Value : null;
                 return new BulkSearchItemResult(
                     RegistrationNumber: regNum,
                     Success: result.IsSuccess,
-                    CarId: result.IsSuccess ? result.Value.CarId : null,
-                    Brand: result.IsSuccess ? result.Value.Brand : null,
-                    Model: result.IsSuccess ? result.Value.Model : null,
-                    Year: result.IsSuccess ? result.Value.Year : null,
-                    Mileage: result.IsSuccess ? result.Value.Mileage : null,
-                    MarketValueSek: result.IsSuccess ? result.Value.MarketValueSek : null,
+                    CarId: v?.CarId,
+                    Brand: v?.Brand,
+                    Model: v?.Model,
+                    Year: v?.Year,
+                    Mileage: v?.Mileage,
+                    MarketValueSek: v?.MarketValueSek,
                     Error: result.IsSuccess ? null : result.Error);
             });
 
