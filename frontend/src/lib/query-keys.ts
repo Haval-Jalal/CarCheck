@@ -19,4 +19,7 @@ export const queryKeys = {
     subscription: ['billing', 'subscription'] as const,
     transactions: ['billing', 'transactions'] as const,
   },
+  company: {
+    detail: ['company'] as const,
+  },
 }
