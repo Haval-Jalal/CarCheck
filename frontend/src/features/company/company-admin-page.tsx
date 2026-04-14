@@ -34,7 +34,7 @@ type CreateForm = z.infer<typeof createSchema>
 
 const inviteSchema = z.object({
   email: z.string().email('Ogiltig e-postadress'),
-  role: z.union([z.literal(0), z.literal(1)]),
+  role: z.coerce.number().pipe(z.union([z.literal(0), z.literal(1)])),
 })
 type InviteForm = z.infer<typeof inviteSchema>
 
@@ -300,17 +300,15 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label>Roll</Label>
-            <div className="flex gap-3">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input type="radio" value={COMPANY_MEMBER_ROLE.MEMBER} {...register('role', { valueAsNumber: true })} />
-                <span className="text-sm">Medlem</span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2">
-                <input type="radio" value={COMPANY_MEMBER_ROLE.ADMIN} {...register('role', { valueAsNumber: true })} />
-                <span className="text-sm">Administratör</span>
-              </label>
-            </div>
+            <Label htmlFor="invite-role">Roll</Label>
+            <select
+              id="invite-role"
+              {...register('role')}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value={COMPANY_MEMBER_ROLE.MEMBER}>Medlem</option>
+              <option value={COMPANY_MEMBER_ROLE.ADMIN}>Administratör</option>
+            </select>
           </div>
           {serverError && (
             <Alert variant="destructive">
