@@ -45,7 +45,7 @@ export function BusinessReportPage() {
       <div className="flex flex-col items-center justify-center min-h-screen gap-3 text-center p-6">
         <AlertCircle className="h-10 w-10 text-red-500" />
         <p className="text-lg font-semibold">Rapporten kunde inte laddas</p>
-        <Link to="/business">
+        <Link to="/dashboard">
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Tillbaka
@@ -75,7 +75,7 @@ export function BusinessReportPage() {
     <div className="bg-white min-h-screen text-gray-900">
       {/* Toolbar — hidden on print */}
       <div className="print:hidden sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3">
-        <Link to="/business">
+        <Link to="/dashboard">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Tillbaka
