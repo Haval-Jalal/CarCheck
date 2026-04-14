@@ -1,6 +1,7 @@
 using CarCheck.Application.Auth;
 using CarCheck.Application.Billing;
 using CarCheck.Application.Cars;
+using CarCheck.Application.Company;
 using CarCheck.Application.Favorites;
 using CarCheck.Application.Gdpr;
 using CarCheck.Application.History;
@@ -87,6 +88,7 @@ public static class DependencyInjection
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<ICompanyMemberRepository, CompanyMemberRepository>();
         services.AddScoped<ICompanyInviteRepository, CompanyInviteRepository>();
+        services.AddScoped<CompanyService>();
 
         // Billing & Subscriptions
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();

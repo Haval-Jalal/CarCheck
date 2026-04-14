@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using CarCheck.Application.Interfaces;
+using CarCheck.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -241,6 +242,49 @@ public class ResendEmailService : IEmailService
             to: toEmail,
             subject: "Din månadsplan är nu aktiv — CarCheck",
             preheader: "Obegränsade bilsökningar är nu aktiverade på ditt konto.",
+            bodyHtml: bodyHtml,
+            text: text,
+            cancellationToken: cancellationToken);
+    }
+
+    // ── Company invite ───────────────────────────────────────────────────────
+
+    public async Task SendCompanyInviteAsync(string toEmail, string companyName, string token, CompanyMemberRole role, CancellationToken cancellationToken = default)
+    {
+        var acceptUrl = $"{_frontendBaseUrl}/company/accept-invite?token={token}";
+        var roleLabel = role == CompanyMemberRole.Admin ? "administratör" : "medlem";
+
+        var bodyHtml = $"""
+            <h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:700">Du har bjudits in till {companyName}</h2>
+            <p style="margin:0;color:#374151;font-size:15px;line-height:1.6">
+              Du har blivit inbjuden att gå med i <strong>{companyName}</strong> på CarCheck som <strong>{roleLabel}</strong>.
+              Klicka på knappen nedan för att acceptera inbjudan — länken är giltig i <strong>48 timmar</strong>.
+            </p>
+            {PrimaryButton(acceptUrl, "Acceptera inbjudan")}
+            <p style="margin:4px 0 0;font-size:12px;color:#9ca3af">
+              Eller klistra in länken i din webbläsare:<br/>
+              <span style="color:#6b7280;word-break:break-all">{acceptUrl}</span>
+            </p>
+            {Muted("Om du inte förväntade dig den här inbjudan kan du ignorera mailet.")}
+            """;
+
+        var text = $"""
+            Du har bjudits in till {companyName} — CarCheck
+
+            Du har blivit inbjuden att gå med i {companyName} som {roleLabel}.
+            Länken är giltig i 48 timmar.
+
+            {acceptUrl}
+
+            Om du inte förväntade dig den här inbjudan kan du ignorera mailet.
+
+            CarCheck — Kontrollera bilen innan köpet
+            """;
+
+        await SendAsync(
+            to: toEmail,
+            subject: $"Inbjudan till {companyName} på CarCheck",
+            preheader: $"Du har bjudits in att gå med i {companyName} på CarCheck.",
             bodyHtml: bodyHtml,
             text: text,
             cancellationToken: cancellationToken);

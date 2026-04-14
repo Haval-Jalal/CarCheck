@@ -1,3 +1,5 @@
+using CarCheck.Domain.Enums;
+
 namespace CarCheck.Application.Interfaces;
 
 public interface IEmailService
@@ -6,4 +8,5 @@ public interface IEmailService
     Task SendEmailVerificationAsync(string toEmail, string verificationToken, CancellationToken cancellationToken = default);
     Task SendCreditsPurchaseConfirmationAsync(string toEmail, int credits, decimal amountSek, CancellationToken cancellationToken = default);
     Task SendSubscriptionConfirmationAsync(string toEmail, CancellationToken cancellationToken = default);
+    Task SendCompanyInviteAsync(string toEmail, string companyName, string token, CompanyMemberRole role, CancellationToken cancellationToken = default);
 }
