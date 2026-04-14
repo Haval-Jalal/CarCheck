@@ -83,6 +83,11 @@ public static class DependencyInjection
         else
             services.AddScoped<ICaptchaService, MockCaptchaService>();
 
+        // Company accounts
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<ICompanyMemberRepository, CompanyMemberRepository>();
+        services.AddScoped<ICompanyInviteRepository, CompanyInviteRepository>();
+
         // Billing & Subscriptions
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         var stripeKey = configuration["Stripe:SecretKey"];

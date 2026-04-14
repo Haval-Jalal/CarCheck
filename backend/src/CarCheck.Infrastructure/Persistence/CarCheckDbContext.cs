@@ -22,6 +22,9 @@ public class CarCheckDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<SecurityEvent> SecurityEvents => Set<SecurityEvent>();
     public DbSet<RefreshTokenEntry> RefreshTokens => Set<RefreshTokenEntry>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyMember> CompanyMembers => Set<CompanyMember>();
+    public DbSet<CompanyInvite> CompanyInvites => Set<CompanyInvite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
