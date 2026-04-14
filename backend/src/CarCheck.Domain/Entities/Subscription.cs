@@ -6,6 +6,7 @@ public class Subscription
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
+    public Guid? CompanyId { get; private set; }
     public SubscriptionTier Tier { get; private set; }
     public DateTime StartDate { get; private set; }
     public DateTime? EndDate { get; private set; }
@@ -13,9 +14,11 @@ public class Subscription
     public string? ExternalSubscriptionId { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
+    public bool IsCompanySubscription => CompanyId.HasValue;
+
     private Subscription() { }
 
-    public static Subscription Create(Guid userId, SubscriptionTier tier, string? externalSubscriptionId = null)
+    public static Subscription Create(Guid userId, SubscriptionTier tier, string? externalSubscriptionId = null, Guid? companyId = null)
     {
         if (userId == Guid.Empty)
             throw new ArgumentException("User ID is required.", nameof(userId));
@@ -24,6 +27,7 @@ public class Subscription
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            CompanyId = companyId,
             Tier = tier,
             StartDate = DateTime.UtcNow,
             EndDate = null,

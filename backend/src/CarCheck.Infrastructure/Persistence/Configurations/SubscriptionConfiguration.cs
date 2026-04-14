@@ -14,6 +14,7 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id).HasColumnName("id");
         builder.Property(s => s.UserId).HasColumnName("user_id").IsRequired();
+        builder.Property(s => s.CompanyId).HasColumnName("company_id");
         builder.Property(s => s.Tier).HasColumnName("tier")
             .HasConversion(
                 v => v.ToString().ToLowerInvariant(),
@@ -28,5 +29,6 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
 
         builder.HasIndex(s => s.UserId).HasDatabaseName("ix_subscriptions_user_id");
         builder.HasIndex(s => new { s.UserId, s.IsActive }).HasDatabaseName("ix_subscriptions_user_active");
+        builder.HasIndex(s => new { s.CompanyId, s.IsActive }).HasDatabaseName("ix_subscriptions_company_active");
     }
 }

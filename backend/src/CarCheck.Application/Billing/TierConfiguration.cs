@@ -36,6 +36,34 @@ public static class TierConfiguration
             PricePerMonthSek: 999m,
             Name: "Business"),
 
+        SubscriptionTier.DealerBasic => new TierLimits(
+            DailySearches: int.MaxValue,
+            MonthlySearches: 50,
+            AnalysisIncluded: true,
+            PricePerMonthSek: 399m,
+            Name: "Dealer Basic"),
+
+        SubscriptionTier.DealerTeam => new TierLimits(
+            DailySearches: int.MaxValue,
+            MonthlySearches: 200,
+            AnalysisIncluded: true,
+            PricePerMonthSek: 999m,
+            Name: "Dealer Team"),
+
+        SubscriptionTier.Fleet => new TierLimits(
+            DailySearches: int.MaxValue,
+            MonthlySearches: int.MaxValue,
+            AnalysisIncluded: true,
+            PricePerMonthSek: 1499m,
+            Name: "Fleet"),
+
+        SubscriptionTier.Workshop => new TierLimits(
+            DailySearches: int.MaxValue,
+            MonthlySearches: int.MaxValue,
+            AnalysisIncluded: true,
+            PricePerMonthSek: 299m,
+            Name: "Workshop"),
+
         _ => throw new ArgumentOutOfRangeException(nameof(tier))
     };
 

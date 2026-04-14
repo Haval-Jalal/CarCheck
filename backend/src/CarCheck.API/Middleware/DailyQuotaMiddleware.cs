@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using CarCheck.Application.Billing;
+using CarCheck.Domain.Entities;
 using CarCheck.Domain.Enums;
 using CarCheck.Domain.Interfaces;
 
@@ -19,6 +20,7 @@ public class DailyQuotaMiddleware
     public async Task InvokeAsync(
         HttpContext context,
         ISubscriptionRepository subscriptionRepository,
+        ICompanyMemberRepository companyMemberRepository,
         IUserRepository userRepository)
     {
         if (!context.Request.Path.StartsWithSegments(SearchPath, StringComparison.OrdinalIgnoreCase)
@@ -37,7 +39,15 @@ public class DailyQuotaMiddleware
             return;
         }
 
-        var subscription = await subscriptionRepository.GetActiveByUserIdAsync(userId);
+        // Check company subscription first — takes precedence over individual subscription
+        var membership = await companyMemberRepository.GetByUserIdAsync(userId);
+        Subscription? subscription = null;
+        if (membership is not null)
+            subscription = await subscriptionRepository.GetActiveByCompanyIdAsync(membership.CompanyId);
+
+        // Fall back to individual subscription
+        subscription ??= await subscriptionRepository.GetActiveByUserIdAsync(userId);
+
         var hasMonthly = subscription is not null && subscription.IsActive;
 
         if (hasMonthly)

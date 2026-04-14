@@ -21,6 +21,14 @@ public class SubscriptionRepository : ISubscriptionRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<Subscription?> GetActiveByCompanyIdAsync(Guid companyId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Subscriptions
+            .Where(s => s.CompanyId == companyId && s.IsActive)
+            .OrderByDescending(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Subscription>> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Subscriptions
