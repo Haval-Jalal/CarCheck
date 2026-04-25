@@ -22,4 +22,7 @@ export const queryKeys = {
   company: {
     detail: ['company'] as const,
   },
+  fleet: {
+    list: ['fleet'] as const,
+  },
 }

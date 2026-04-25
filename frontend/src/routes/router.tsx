@@ -24,6 +24,7 @@ const ComparePage = lazy(() => import('@/features/compare/compare-page').then(m 
 const BusinessReportPage = lazy(() => import('@/features/business/business-report-page').then(m => ({ default: m.BusinessReportPage })))
 const CompanyAdminPage = lazy(() => import('@/features/company/company-admin-page').then(m => ({ default: m.CompanyAdminPage })))
 const AcceptInvitePage = lazy(() => import('@/features/company/accept-invite-page').then(m => ({ default: m.AcceptInvitePage })))
+const FleetDashboardPage = lazy(() => import('@/features/company/fleet-dashboard-page').then(m => ({ default: m.FleetDashboardPage })))
 
 function PageLoader() {
   return (
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
           { path: '/compare', element: <Lazy><ComparePage /></Lazy> },
           { path: '/business/report/:carId', element: <Lazy><BusinessReportPage /></Lazy> },
           { path: '/company/admin', element: <Lazy><CompanyAdminPage /></Lazy> },
+          { path: '/company/fleet', element: <Lazy><FleetDashboardPage /></Lazy> },
         ],
       },
     ],
