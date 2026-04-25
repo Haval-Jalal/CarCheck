@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import React, { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router'
 import { ProtectedRoute } from './protected-route'
 import { PublicRoute } from './public-route'
@@ -34,8 +34,30 @@ function PageLoader() {
   )
 }
 
+class ChunkErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidCatch(error: Error) {
+    if (error.message?.includes('Failed to fetch dynamically imported module') ||
+        error.message?.includes('Loading chunk')) {
+      window.location.reload()
+    }
+  }
+  render() {
+    if (this.state.hasError) return null
+    return this.props.children
+  }
+}
+
 function Lazy({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<PageLoader />}>{children}</Suspense>
+  return (
+    <ChunkErrorBoundary>
+      <Suspense fallback={<PageLoader />}>{children}</Suspense>
+    </ChunkErrorBoundary>
+  )
 }
 
 export const router = createBrowserRouter([
