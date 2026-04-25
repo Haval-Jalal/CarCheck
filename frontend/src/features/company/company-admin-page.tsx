@@ -43,8 +43,6 @@ type InviteForm = z.infer<typeof inviteSchema>
 
 export function CompanyAdminPage() {
   const { data: company, isLoading, error } = useCompany()
-  const createCompany = useCreateCompany()
-
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
