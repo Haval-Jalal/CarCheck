@@ -2,11 +2,13 @@ import { useParams, Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Printer, ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
+import { Printer, ArrowLeft, Loader2, AlertCircle, Building2 } from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
+import { useCompany } from '@/hooks/use-company'
 import { getScoreColor } from '@/lib/format'
 import { NegotiationTips } from '../car/components/negotiation-tips'
 import { InspectionChecklist } from '../car/components/inspection-checklist'
+import { DealerVerdictCard, RiskFlagChips } from './components/dealer-verdict'
 import { cn } from '@/lib/utils'
 
 function recommendationVariant(rec: string) {
@@ -31,6 +33,7 @@ function FactorRow({ name, score }: { name: string; score: number }) {
 export function BusinessReportPage() {
   const { carId } = useParams<{ carId: string }>()
   const { data: analysis, isLoading, error } = useCarAnalysis(carId!)
+  const { data: company } = useCompany()
 
   if (isLoading) {
     return (
@@ -97,38 +100,66 @@ export function BusinessReportPage() {
       {/* A4 report body */}
       <div className="max-w-[800px] mx-auto px-8 py-10 print:px-12 print:py-8">
 
-        {/* Header */}
+        {/* Header — company branding if available, else CarCheck default */}
         <div className="flex items-start justify-between mb-8 pb-6 border-b-2 border-gray-800">
           <div>
-            <div className="text-2xl font-black tracking-tight text-gray-900">CarCheck</div>
-            <div className="text-xs text-gray-500 mt-0.5">carcheck.se — Professionell fordonsanalys</div>
+            {company ? (
+              <div className="flex items-center gap-2">
+                {company.logoUrl ? (
+                  <img src={company.logoUrl} alt={company.name} className="h-8 object-contain" />
+                ) : (
+                  <Building2 className="h-5 w-5 text-gray-400" />
+                )}
+                <div>
+                  <div className="text-xl font-black tracking-tight text-gray-900">{company.name}</div>
+                  {company.orgNumber && (
+                    <div className="text-xs text-gray-400">Org.nr: {company.orgNumber}</div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-2xl font-black tracking-tight text-gray-900">CarCheck</div>
+                <div className="text-xs text-gray-500 mt-0.5">carcheck.se — Professionell fordonsanalys</div>
+              </div>
+            )}
           </div>
           <div className="text-right text-xs text-gray-500">
-            <div>Rapport genererad</div>
+            <div className="text-gray-400">Inbytesanalys</div>
             <div className="font-semibold text-gray-700">
               {new Date().toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
+            {company && (
+              <div className="text-gray-400 mt-1">Powered by CarCheck</div>
+            )}
           </div>
         </div>
 
         {/* Car identity */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-baseline gap-3 flex-wrap">
             <h1 className="text-3xl font-black">{brand} {model}</h1>
             <span className="text-xl text-gray-500">{year}</span>
           </div>
-          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+          <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 flex-wrap">
             <span className="font-mono font-bold text-base text-gray-900">{registrationNumber}</span>
-            {mileage > 0 && (
-              <span>{mileage.toLocaleString('sv-SE')} mil</span>
-            )}
+            {mileage > 0 && <span>{mileage.toLocaleString('sv-SE')} mil</span>}
             {analysis.fuelType && <span>{analysis.fuelType}</span>}
             {analysis.horsePower && <span>{analysis.horsePower} hk</span>}
             {analysis.color && <span>{analysis.color}</span>}
           </div>
+          {/* Risk flag chips */}
+          <div className="mt-3">
+            <RiskFlagChips analysis={analysis} />
+          </div>
         </div>
 
-        {/* Score + Recommendation */}
+        {/* ── Dealer verdict (Fas 2 #162) ── */}
+        <div className="mb-8 print:break-inside-avoid">
+          <DealerVerdictCard analysis={analysis} />
+        </div>
+
+        {/* Score + Consumer recommendation */}
         <div className="grid grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-50 rounded-lg p-5 text-center">
             <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Totalpoäng</div>
@@ -144,10 +175,17 @@ export function BusinessReportPage() {
             </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-5 flex flex-col justify-center">
-            <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Rekommendation</div>
+            <div className="text-xs uppercase tracking-widest text-gray-500 mb-2">Konsumentrekommendation</div>
             <Badge className={cn('text-white text-sm font-semibold px-3 py-1 self-start', recommendationVariant(recommendation))}>
               {recommendation}
             </Badge>
+            {/* Import flag (Fas 2 #161) */}
+            {analysis.details?.isImported && (
+              <div className="mt-3 flex items-center gap-1.5 text-xs text-orange-700 font-medium">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Importerad bil
+              </div>
+            )}
           </div>
         </div>
 
@@ -182,7 +220,11 @@ export function BusinessReportPage() {
 
         {/* Footer */}
         <div className="mt-10 pt-4 border-t border-gray-200 text-xs text-gray-400 flex justify-between">
-          <span>© {new Date().getFullYear()} CarCheck — carcheck.se</span>
+          {company ? (
+            <span>{company.name} — Inbytesanalys via CarCheck (carcheck.se)</span>
+          ) : (
+            <span>© {new Date().getFullYear()} CarCheck — carcheck.se</span>
+          )}
           <span>Analysen baseras på registrerade uppgifter och är inte en garanti för fordonets skick</span>
         </div>
       </div>

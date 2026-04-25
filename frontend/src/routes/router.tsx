@@ -50,6 +50,7 @@ export const router = createBrowserRouter([
       { path: '/privacy', element: <Lazy><PrivacyPage /></Lazy> },
       { path: '/terms', element: <Lazy><TermsPage /></Lazy> },
       { path: '/share/:carId', element: <Lazy><SharePage /></Lazy> },
+      { path: '/company/accept-invite', element: <Lazy><AcceptInvitePage /></Lazy> },
     ],
   },
   {
@@ -68,7 +69,6 @@ export const router = createBrowserRouter([
           { path: '/compare', element: <Lazy><ComparePage /></Lazy> },
           { path: '/business/report/:carId', element: <Lazy><BusinessReportPage /></Lazy> },
           { path: '/company/admin', element: <Lazy><CompanyAdminPage /></Lazy> },
-          { path: '/company/accept-invite', element: <Lazy><AcceptInvitePage /></Lazy> },
         ],
       },
     ],

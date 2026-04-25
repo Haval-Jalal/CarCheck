@@ -21,4 +21,7 @@ export const companyApi = {
 
   removeMember: (memberId: string) =>
     apiClient.delete<{ message: string }>(`/company/members/${memberId}`),
+
+  exportHistory: () =>
+    apiClient.get<Blob>('/company/export-history', { responseType: 'blob' }),
 }

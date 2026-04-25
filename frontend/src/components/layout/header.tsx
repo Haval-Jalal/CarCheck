@@ -19,9 +19,10 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
-import { useSubscription } from '@/hooks/use-billing'
 import { useCarSearch } from '@/hooks/use-car-search'
+import { useCompany } from '@/hooks/use-company'
 import { useQuotaStore } from '@/stores/quota.store'
+import { useSubscription } from '@/hooks/use-billing'
 import { LanguageSwitcher } from '@/components/common/language-switcher'
 import { cn } from '@/lib/utils'
 
@@ -104,16 +105,17 @@ export function Header() {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { data: sub } = useSubscription()
-  const isBusiness = sub?.tier === 3 && sub?.isActive && sub?.subscriptionId !== '00000000-0000-0000-0000-000000000000'
+  const { data: company } = useCompany()
+  const hasCompany = !!company
 
   const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : '??'
 
   const NAV_LINKS = [
-    { to: '/history',   label: t('nav.history'),   icon: History },
-    { to: '/favorites', label: t('nav.favorites'),  icon: Heart },
-    { to: '/compare',   label: t('nav.compare'),    icon: ArrowUpDown },
-    ...(isBusiness ? [{ to: '/business', label: 'Business', icon: Building2 }] : []),
-    { to: '/billing',   label: t('nav.billing'),    icon: CreditCard },
+    { to: '/history',       label: t('nav.history'),   icon: History },
+    { to: '/favorites',     label: t('nav.favorites'),  icon: Heart },
+    { to: '/compare',       label: t('nav.compare'),    icon: ArrowUpDown },
+    ...(hasCompany ? [{ to: '/company/admin', label: 'Företag', icon: Building2 }] : []),
+    { to: '/billing',       label: t('nav.billing'),    icon: CreditCard },
   ]
 
   return (

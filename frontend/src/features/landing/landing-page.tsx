@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { Car, Search, Sun, Moon, ArrowRight, ShieldCheck, BarChart3, Clock, Camera } from 'lucide-react'
+import { Car, Search, Sun, Moon, ArrowRight, ShieldCheck, BarChart3, Clock, Camera, Building2, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/hooks/use-theme'
 import { LanguageSwitcher } from '@/components/common/language-switcher'
@@ -239,6 +239,31 @@ export function LandingPage() {
           </p>
         </div>
       </main>
+
+      {/* ── För företag CTA ── */}
+      <section className="relative z-10 mx-auto w-full max-w-3xl px-6 pb-16 md:px-10">
+        <div className={`flex flex-col items-start justify-between gap-6 rounded-2xl border p-6 md:flex-row md:items-center transition-colors duration-300 ${isDark ? 'border-blue-800/60 bg-blue-950/30' : 'border-blue-200 bg-blue-50'}`}>
+          <div className="flex items-start gap-4">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+              <Building2 className="h-5 w-5 text-blue-400" />
+            </div>
+            <div>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>För företag</h3>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Skapa ett företagskonto och bjud in hela teamet. Dela en prenumeration och hantera sökningar gemensamt.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/register"
+            className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+          >
+            <Users className="h-4 w-4" />
+            Kom igång
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
 
       {/* ── Footer ── */}
       <footer className={`relative z-10 flex flex-wrap items-center justify-between gap-2 border-t px-6 py-4 text-xs md:px-10 transition-colors duration-300 ${isDark ? 'border-white/5 text-slate-700' : 'border-slate-200 text-slate-400'}`}>

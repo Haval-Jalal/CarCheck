@@ -76,4 +76,14 @@ public class SearchHistoryRepository : ISearchHistoryRepository
         _context.SearchHistories.RemoveRange(entries);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<SearchHistory>> GetAllByUserIdsAsync(
+        IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        var ids = userIds.ToList();
+        return await _context.SearchHistories
+            .Where(s => ids.Contains(s.UserId))
+            .OrderByDescending(s => s.SearchedAt)
+            .ToListAsync(cancellationToken);
+    }
 }

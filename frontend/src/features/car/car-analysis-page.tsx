@@ -27,6 +27,7 @@ import {
   Fuel,
   Palette,
   Gauge,
+  Building2,
 } from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
@@ -45,6 +46,7 @@ import { TimingBelt } from './components/timing-belt'
 import { KnownProblemsStats } from './components/known-problems-stats'
 import { NewPriceSpec } from './components/new-price-spec'
 import { useCheckFavorite, useAddFavorite, useRemoveFavorite } from '@/hooks/use-favorites'
+import { useCompany } from '@/hooks/use-company'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { formatSek, formatMil, translateColor } from '@/lib/format'
@@ -227,6 +229,7 @@ export function CarAnalysisPage() {
   const { data: isFavorite } = useCheckFavorite(carId)
   const addFavorite = useAddFavorite()
   const removeFavorite = useRemoveFavorite()
+  const { data: company } = useCompany()
 
   const handleToggleFavorite = () => {
     if (!carId) return
@@ -467,6 +470,13 @@ export function CarAnalysisPage() {
           <Button variant="ghost" size="icon" onClick={() => window.print()} aria-label="Skriv ut PDF">
             <Printer className="h-4 w-4 text-muted-foreground" />
           </Button>
+          {company && (
+            <Button variant="ghost" size="icon" asChild aria-label="Dealer-rapport">
+              <Link to={`/business/report/${carId}`}>
+                <Building2 className="h-4 w-4 text-blue-400" />
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 

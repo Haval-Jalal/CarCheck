@@ -25,6 +25,7 @@ public class CarCheckDbContext : DbContext, IDataProtectionKeyContext
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<CompanyMember> CompanyMembers => Set<CompanyMember>();
     public DbSet<CompanyInvite> CompanyInvites => Set<CompanyInvite>();
+    public DbSet<FleetVehicle> FleetVehicles => Set<FleetVehicle>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

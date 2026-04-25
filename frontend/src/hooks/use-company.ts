@@ -59,3 +59,17 @@ export function useAcceptInvite() {
     },
   })
 }
+
+export function useExportHistory() {
+  return useMutation({
+    mutationFn: async () => {
+      const response = await companyApi.exportHistory()
+      const url = URL.createObjectURL(response.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `carcheck-historik-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    },
+  })
+}

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Building2, Users, Mail, Trash2, Crown, Plus, Loader2 } from 'lucide-react'
+import { Building2, Users, Mail, Trash2, Crown, Plus, Loader2, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +16,7 @@ import {
   useCreateCompany,
   useInviteMember,
   useRemoveMember,
+  useExportHistory,
 } from '@/hooks/use-company'
 import { COMPANY_MEMBER_ROLE, roleLabel } from '@/types/company.types'
 import type { CompanyMemberRole } from '@/types/company.types'
@@ -130,6 +131,7 @@ function CompanyDashboard() {
   const [showInviteDialog, setShowInviteDialog] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState<{ memberId: string; email: string } | null>(null)
   const removeMember = useRemoveMember()
+  const exportHistory = useExportHistory()
 
   if (!company) return null
 
@@ -159,10 +161,23 @@ function CompanyDashboard() {
             <p className="text-sm text-muted-foreground">Org.nr: {company.orgNumber}</p>
           )}
         </div>
-        <Button onClick={() => setShowInviteDialog(true)} size="sm">
-          <Plus className="mr-1.5 h-4 w-4" />
-          Bjud in
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportHistory.mutate()}
+            disabled={exportHistory.isPending}
+          >
+            {exportHistory.isPending
+              ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              : <Download className="mr-1.5 h-4 w-4" />}
+            Exportera CSV
+          </Button>
+          <Button onClick={() => setShowInviteDialog(true)} size="sm">
+            <Plus className="mr-1.5 h-4 w-4" />
+            Bjud in
+          </Button>
+        </div>
       </div>
 
       {/* Members */}

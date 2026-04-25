@@ -12,4 +12,5 @@ public interface ISearchHistoryRepository
     Task<SearchHistory?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task DeleteByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task DeleteAllByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SearchHistory>> GetAllByUserIdsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default);
 }

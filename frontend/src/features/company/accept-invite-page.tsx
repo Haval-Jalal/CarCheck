@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router'
-import { Car, CheckCircle, XCircle, Loader2, Building2 } from 'lucide-react'
+import { useSearchParams, useNavigate, Link } from 'react-router'
+import { Car, CheckCircle, XCircle, Loader2, Building2, LogIn, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAcceptInvite } from '@/hooks/use-company'
 import { toast } from 'sonner'
@@ -12,7 +12,7 @@ export function AcceptInvitePage() {
   const navigate = useNavigate()
   const token = searchParams.get('token')
   const acceptInvite = useAcceptInvite()
-  const [status, setStatus] = useState<'accepting' | 'success' | 'error'>('accepting')
+  const [status, setStatus] = useState<'accepting' | 'success' | 'error' | 'unauthenticated'>('accepting')
   const [errorMessage, setErrorMessage] = useState('')
   const calledRef = useRef(false)
 
@@ -33,6 +33,10 @@ export function AcceptInvitePage() {
       },
       onError: (err) => {
         const axiosErr = err as AxiosError<ApiError>
+        if (axiosErr.response?.status === 401) {
+          setStatus('unauthenticated')
+          return
+        }
         setErrorMessage(
           axiosErr.response?.data?.error ?? 'Inbjudan är ogiltig eller har gått ut.'
         )
@@ -40,6 +44,9 @@ export function AcceptInvitePage() {
       },
     })
   }, [token])
+
+  const redirectTo = token ? `/company/accept-invite?token=${token}` : ''
+  const redirectParam = redirectTo ? `?from=${encodeURIComponent(redirectTo)}` : ''
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
@@ -54,6 +61,32 @@ export function AcceptInvitePage() {
           <div className="flex flex-col items-center gap-4 py-8">
             <Loader2 className="h-10 w-10 animate-spin text-blue-400" />
             <p className="text-sm text-muted-foreground">Hanterar inbjudan…</p>
+          </div>
+        )}
+
+        {status === 'unauthenticated' && (
+          <div className="space-y-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600/10">
+              <Building2 className="h-6 w-6 text-blue-400" />
+            </div>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold">Du är inbjuden!</h1>
+              <p className="text-sm text-muted-foreground">
+                Logga in eller skapa ett konto för att acceptera inbjudan och gå med i företaget.
+              </p>
+            </div>
+            <Button className="w-full bg-blue-600 hover:bg-blue-500" asChild>
+              <Link to={`/login${redirectParam}`}>
+                <LogIn className="mr-2 h-4 w-4" />
+                Logga in
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full" asChild>
+              <Link to={`/register${redirectParam}`}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Skapa konto
+              </Link>
+            </Button>
           </div>
         )}
 
