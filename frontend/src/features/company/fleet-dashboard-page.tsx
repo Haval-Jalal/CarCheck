@@ -73,9 +73,9 @@ export function FleetDashboardPage() {
 
   const summary = {
     total: vehicles?.length ?? 0,
-    ok: vehicles?.filter(v => v.status === 'Ok').length ?? 0,
-    attention: vehicles?.filter(v => v.status === 'NeedsAttention' || v.status === 'Critical').length ?? 0,
-    unanalyzed: vehicles?.filter(v => v.status === 'NotAnalyzed' || v.status === 'StaleData').length ?? 0,
+    ok: vehicles?.filter((v: FleetVehicleResponse) => v.status === 'Ok').length ?? 0,
+    attention: vehicles?.filter((v: FleetVehicleResponse) => v.status === 'NeedsAttention' || v.status === 'Critical').length ?? 0,
+    unanalyzed: vehicles?.filter((v: FleetVehicleResponse) => v.status === 'NotAnalyzed' || v.status === 'StaleData').length ?? 0,
   }
 
   return (
@@ -118,7 +118,7 @@ export function FleetDashboardPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {vehicles?.map(v => (
+          {vehicles?.map((v: FleetVehicleResponse) => (
             <VehicleCard
               key={v.id}
               vehicle={v}
@@ -134,7 +134,7 @@ export function FleetDashboardPage() {
       {/* Remove confirm dialog */}
       <RemoveDialog
         vehicleId={removeId}
-        vehicle={vehicles?.find(v => v.id === removeId) ?? null}
+        vehicle={vehicles?.find((v: FleetVehicleResponse) => v.id === removeId) ?? null}
         onClose={() => setRemoveId(null)}
       />
     </div>
