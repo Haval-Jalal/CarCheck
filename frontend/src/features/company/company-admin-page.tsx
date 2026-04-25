@@ -35,7 +35,7 @@ type CreateForm = z.infer<typeof createSchema>
 
 const inviteSchema = z.object({
   email: z.string().email('Ogiltig e-postadress'),
-  role: z.coerce.number().pipe(z.union([z.literal(0), z.literal(1)])),
+  role: z.preprocess((v) => Number(v), z.union([z.literal(0), z.literal(1)])),
 })
 type InviteForm = z.infer<typeof inviteSchema>
 
@@ -58,7 +58,7 @@ export function CompanyAdminPage() {
   }
 
   if (error && !company) {
-    return <CreateCompanyForm onCreated={() => {}} isPending={createCompany.isPending} />
+    return <CreateCompanyForm onCreated={() => {}} />
   }
 
   return <CompanyDashboard />
@@ -66,7 +66,7 @@ export function CompanyAdminPage() {
 
 // ── Create company form ───────────────────────────────────────────────────────
 
-function CreateCompanyForm({ onCreated, isPending }: { onCreated: () => void; isPending: boolean }) {
+function CreateCompanyForm({ onCreated }: { onCreated: () => void }) {
   const createCompany = useCreateCompany()
   const [serverError, setServerError] = useState<string | null>(null)
 

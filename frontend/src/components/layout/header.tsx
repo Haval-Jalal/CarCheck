@@ -104,7 +104,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { data: sub } = useSubscription()
+  useSubscription()
   const { data: company } = useCompany()
   const hasCompany = !!company
 

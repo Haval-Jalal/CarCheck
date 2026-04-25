@@ -1,7 +1,6 @@
 import { useParams, Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Printer, ArrowLeft, Loader2, AlertCircle, Building2 } from 'lucide-react'
 import { useCarAnalysis } from '@/hooks/use-car-analysis'
 import { useCompany } from '@/hooks/use-company'
