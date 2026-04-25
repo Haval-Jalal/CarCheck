@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Building2, Users, Mail, Trash2, Crown, Plus, Loader2, Download } from 'lucide-react'
+import { Building2, Users, Mail, Trash2, Crown, Plus, Loader2, Download, Car } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -160,6 +161,12 @@ function CompanyDashboard() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <Link to="/company/fleet">
+            <Button variant="outline" size="sm">
+              <Car className="h-4 w-4 mr-1.5" />
+              Flottan
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="sm"
