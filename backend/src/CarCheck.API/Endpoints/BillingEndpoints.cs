@@ -145,8 +145,10 @@ public static class BillingEndpoints
 
                     if (type == "subscription" && session.SubscriptionId is not null)
                     {
+                        session.Metadata.TryGetValue("tier", out var tierStr);
+                        var tier = tierStr == "Business" ? SubscriptionTier.Business : SubscriptionTier.Pro;
                         await subscriptionService.ActivateSubscriptionAsync(
-                            userId, SubscriptionTier.Pro, session.SubscriptionId,
+                            userId, tier, session.SubscriptionId,
                             externalPaymentId: paymentId);
                     }
                     else if (type == "credits"

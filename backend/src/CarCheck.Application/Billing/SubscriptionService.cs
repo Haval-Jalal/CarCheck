@@ -187,8 +187,10 @@ public class SubscriptionService
         var subscription = Subscription.Create(userId, tier, externalSubscriptionId);
         await _subscriptionRepository.AddAsync(subscription, cancellationToken);
 
+        var tierLimitsForAmount = TierConfiguration.GetLimits(tier);
+        var amountOreForTier = (int)(tierLimitsForAmount.PricePerMonthSek * 100);
         await _transactionRepository.AddAsync(
-            CreditTransaction.CreateSubscription(userId, 49900, externalPaymentId),
+            CreditTransaction.CreateSubscription(userId, amountOreForTier, externalPaymentId),
             cancellationToken);
 
         await _securityEventLogger.LogAsync(userId, "SubscriptionActivated", cancellationToken: cancellationToken);
@@ -253,7 +255,7 @@ public class SubscriptionService
 
     public IReadOnlyList<TierInfoResponse> GetAvailableTiers()
     {
-        return new[] { SubscriptionTier.Free, SubscriptionTier.Pro }
+        return new[] { SubscriptionTier.Free, SubscriptionTier.Pro, SubscriptionTier.Business }
             .Select(tier =>
             {
                 var limits = TierConfiguration.GetLimits(tier);

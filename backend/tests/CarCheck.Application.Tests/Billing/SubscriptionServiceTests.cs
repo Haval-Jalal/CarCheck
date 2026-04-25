@@ -183,8 +183,9 @@ public class SubscriptionServiceTests
     {
         var tiers = _sut.GetAvailableTiers();
 
-        Assert.Equal(2, tiers.Count);
+        Assert.Equal(3, tiers.Count);
         Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Free && t.PricePerMonthSek == 0);
         Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Pro && t.PricePerMonthSek == 499);
+        Assert.Contains(tiers, t => t.Tier == SubscriptionTier.Business);
     }
 }

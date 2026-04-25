@@ -1,12 +1,14 @@
 using CarCheck.Application.Auth;
 using CarCheck.Application.Billing;
 using CarCheck.Application.Cars;
+using CarCheck.Application.Company;
 using CarCheck.Application.Favorites;
 using CarCheck.Application.Gdpr;
 using CarCheck.Application.History;
 using CarCheck.Application.Interfaces;
 using CarCheck.Domain.Interfaces;
 using CarCheck.Infrastructure.Auth;
+using CarCheck.Infrastructure.BackgroundJobs;
 using CarCheck.Infrastructure.Caching;
 using CarCheck.Infrastructure.External;
 using CarCheck.Infrastructure.RateLimiting;
@@ -16,6 +18,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace CarCheck.Infrastructure;
 
@@ -82,6 +85,15 @@ public static class DependencyInjection
             services.AddScoped<ICaptchaService, NullCaptchaService>();
         else
             services.AddScoped<ICaptchaService, MockCaptchaService>();
+
+        // Company accounts & fleet
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<ICompanyMemberRepository, CompanyMemberRepository>();
+        services.AddScoped<ICompanyInviteRepository, CompanyInviteRepository>();
+        services.AddScoped<IFleetVehicleRepository, FleetVehicleRepository>();
+        services.AddScoped<CompanyService>();
+        services.AddScoped<FleetService>();
+        services.AddSingleton<IHostedService, FleetMonitorBackgroundService>();
 
         // Billing & Subscriptions
         services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();

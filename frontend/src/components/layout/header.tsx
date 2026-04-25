@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import {
   Car, LogOut, Settings, History, Heart, CreditCard,
-  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2, Zap,
+  Sun, Moon, ArrowUpDown, Menu, X, Search, Loader2, Zap, Building2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
@@ -20,7 +20,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuth } from '@/hooks/use-auth'
 import { useTheme } from '@/hooks/use-theme'
 import { useCarSearch } from '@/hooks/use-car-search'
+import { useCompany } from '@/hooks/use-company'
 import { useQuotaStore } from '@/stores/quota.store'
+import { useSubscription } from '@/hooks/use-billing'
 import { LanguageSwitcher } from '@/components/common/language-switcher'
 import { cn } from '@/lib/utils'
 
@@ -102,14 +104,18 @@ export function Header() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  useSubscription()
+  const { data: company } = useCompany()
+  const hasCompany = !!company
 
   const initials = userEmail ? userEmail.substring(0, 2).toUpperCase() : '??'
 
   const NAV_LINKS = [
-    { to: '/history',   label: t('nav.history'),   icon: History },
-    { to: '/favorites', label: t('nav.favorites'),  icon: Heart },
-    { to: '/compare',   label: t('nav.compare'),    icon: ArrowUpDown },
-    { to: '/billing',   label: t('nav.billing'),    icon: CreditCard },
+    { to: '/history',       label: t('nav.history'),   icon: History },
+    { to: '/favorites',     label: t('nav.favorites'),  icon: Heart },
+    { to: '/compare',       label: t('nav.compare'),    icon: ArrowUpDown },
+    ...(hasCompany ? [{ to: '/company/admin', label: 'Företag', icon: Building2 }] : []),
+    { to: '/billing',       label: t('nav.billing'),    icon: CreditCard },
   ]
 
   return (

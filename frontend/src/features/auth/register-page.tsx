@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
@@ -23,12 +23,14 @@ const BENEFIT_ICONS = [
 export function RegisterPage() {
   const { t } = useTranslation()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { register: registerUser } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
 
   const regNumber = (location.state as { regNumber?: string })?.regNumber
+  const fromParam = searchParams.get('from') ? `?from=${encodeURIComponent(searchParams.get('from')!)}` : ''
 
   const {
     register,
@@ -81,7 +83,7 @@ export function RegisterPage() {
             </p>
           </div>
           <Link
-            to="/login"
+            to={`/login${fromParam}`}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             {t('auth.register.loginLink')}
@@ -257,7 +259,7 @@ export function RegisterPage() {
           </div>
 
           <Link
-            to="/login"
+            to={`/login${fromParam}`}
             state={regNumber ? { regNumber } : undefined}
             className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-primary/5 group"
           >

@@ -30,8 +30,9 @@ export function LoginPage() {
 
   const fromState = (location.state as { from?: { pathname: string } })?.from?.pathname
   const fromQuery = new URLSearchParams(location.search).get('from')
-  const from = fromState || (fromQuery ? decodeURIComponent(fromQuery) : '/dashboard')
+  const from = fromState || fromQuery || '/dashboard'
   const regNumber = (location.state as { regNumber?: string })?.regNumber
+  const fromParam = fromQuery ? `?from=${encodeURIComponent(fromQuery)}` : ''
 
   const {
     register,
@@ -219,7 +220,7 @@ export function LoginPage() {
           </div>
 
           <Link
-            to="/register"
+            to={`/register${fromParam}`}
             state={regNumber ? { regNumber } : undefined}
             className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-primary/5 group"
           >

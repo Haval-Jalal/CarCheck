@@ -23,6 +23,13 @@ public class StripeBillingProvider : IBillingProvider
     public async Task<CreateCheckoutResult> CreateCheckoutSessionAsync(
         Guid userId, SubscriptionTier tier, CancellationToken cancellationToken = default)
     {
+        var isBusiness = tier == SubscriptionTier.Business;
+        var unitAmount = isBusiness ? 99900L : 49900L; // 999 or 499 SEK in öre
+        var productName = isBusiness ? "CarCheck Business" : "CarCheck Månadsplan";
+        var productDescription = isBusiness
+            ? "Obegränsade bilsökningar + bulksökning för företag"
+            : "Obegränsade bilsökningar per månad";
+
         var service = new SessionService(_client);
         var options = new SessionCreateOptions
         {
@@ -33,13 +40,13 @@ public class StripeBillingProvider : IBillingProvider
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                        UnitAmount = 49900, // 499 SEK in öre
+                        UnitAmount = unitAmount,
                         Currency = "sek",
                         Recurring = new SessionLineItemPriceDataRecurringOptions { Interval = "month" },
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
-                            Name = "CarCheck Månadsplan",
-                            Description = "Obegränsade bilsökningar per månad"
+                            Name = productName,
+                            Description = productDescription
                         }
                     },
                     Quantity = 1
@@ -48,7 +55,8 @@ public class StripeBillingProvider : IBillingProvider
             Metadata = new Dictionary<string, string>
             {
                 ["userId"] = userId.ToString(),
-                ["type"] = "subscription"
+                ["type"] = "subscription",
+                ["tier"] = tier.ToString()
             },
             SuccessUrl = $"{_frontendBaseUrl}/billing?success=true",
             CancelUrl = $"{_frontendBaseUrl}/billing?canceled=true"

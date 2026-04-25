@@ -126,5 +126,6 @@ app.MapBillingEndpoints();
 app.MapGdprEndpoints();
 app.MapUserEndpoints();
 app.MapPublicEndpoints();
+app.MapCompanyEndpoints();
 
 app.Run();

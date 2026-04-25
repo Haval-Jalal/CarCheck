@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using CarCheck.Application.Interfaces;
+using CarCheck.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -245,6 +246,110 @@ public class ResendEmailService : IEmailService
             text: text,
             cancellationToken: cancellationToken);
     }
+
+    // ── Company invite ───────────────────────────────────────────────────────
+
+    public async Task SendCompanyInviteAsync(string toEmail, string companyName, string token, CompanyMemberRole role, CancellationToken cancellationToken = default)
+    {
+        var acceptUrl = $"{_frontendBaseUrl}/company/accept-invite?token={token}";
+        var roleLabel = role == CompanyMemberRole.Admin ? "administratör" : "medlem";
+
+        var bodyHtml = $"""
+            <h2 style="margin:0 0 12px;color:#111827;font-size:22px;font-weight:700">Du har bjudits in till {companyName}</h2>
+            <p style="margin:0;color:#374151;font-size:15px;line-height:1.6">
+              Du har blivit inbjuden att gå med i <strong>{companyName}</strong> på CarCheck som <strong>{roleLabel}</strong>.
+              Klicka på knappen nedan för att acceptera inbjudan — länken är giltig i <strong>48 timmar</strong>.
+            </p>
+            {PrimaryButton(acceptUrl, "Acceptera inbjudan")}
+            <p style="margin:4px 0 0;font-size:12px;color:#9ca3af">
+              Eller klistra in länken i din webbläsare:<br/>
+              <span style="color:#6b7280;word-break:break-all">{acceptUrl}</span>
+            </p>
+            {Muted("Om du inte förväntade dig den här inbjudan kan du ignorera mailet.")}
+            """;
+
+        var text = $"""
+            Du har bjudits in till {companyName} — CarCheck
+
+            Du har blivit inbjuden att gå med i {companyName} som {roleLabel}.
+            Länken är giltig i 48 timmar.
+
+            {acceptUrl}
+
+            Om du inte förväntade dig den här inbjudan kan du ignorera mailet.
+
+            CarCheck — Kontrollera bilen innan köpet
+            """;
+
+        await SendAsync(
+            to: toEmail,
+            subject: $"Inbjudan till {companyName} på CarCheck",
+            preheader: $"Du har bjudits in att gå med i {companyName} på CarCheck.",
+            bodyHtml: bodyHtml,
+            text: text,
+            cancellationToken: cancellationToken);
+    }
+
+    // ── Fleet alert ─────────────────────────────────────────────────────────
+
+    public async Task SendFleetAlertAsync(string toEmail, string companyName, IReadOnlyList<FleetAlertItem> alerts, CancellationToken cancellationToken = default)
+    {
+        var fleetUrl = $"{_frontendBaseUrl}/company/fleet";
+
+        var rows = string.Join("\n", alerts.Select(a =>
+            $"""
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-weight:600;font-family:monospace">{a.RegistrationNumber}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#6b7280">{a.Nickname ?? "—"}</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-weight:700;color:{ScoreColor((double)a.Score)}">{(int)a.Score}/100</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#374151">{a.Status}</td>
+            </tr>
+            """));
+
+        var bodyHtml = $"""
+            <h2 style="margin:0 0 8px;color:#111827;font-size:20px;font-weight:700">Flottaöversikt — {companyName}</h2>
+            <p style="margin:0 0 20px;color:#374151;font-size:15px;line-height:1.6">
+              {alerts.Count} fordon i er flotta kräver uppmärksamhet.
+            </p>
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+              <thead>
+                <tr style="background:#f9fafb">
+                  <th style="padding:8px 12px;text-align:left;color:#6b7280;font-size:12px;text-transform:uppercase">Regnr</th>
+                  <th style="padding:8px 12px;text-align:left;color:#6b7280;font-size:12px;text-transform:uppercase">Benämning</th>
+                  <th style="padding:8px 12px;text-align:left;color:#6b7280;font-size:12px;text-transform:uppercase">Poäng</th>
+                  <th style="padding:8px 12px;text-align:left;color:#6b7280;font-size:12px;text-transform:uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows}
+              </tbody>
+            </table>
+            {PrimaryButton(fleetUrl, "Visa flottadashboard")}
+            {Muted("Du får detta mail eftersom du är administratör för en företagsflotta på CarCheck.")}
+            """;
+
+        var text = $"""
+            Flottaöversikt — {companyName}
+
+            {alerts.Count} fordon kräver uppmärksamhet:
+            {string.Join("\n", alerts.Select(a => $"- {a.RegistrationNumber} ({a.Nickname ?? "—"}): {(int)a.Score}/100 — {a.Status}"))}
+
+            Visa flottadashboard: {fleetUrl}
+
+            CarCheck — Kontrollera bilen innan köpet
+            """;
+
+        await SendAsync(
+            to: toEmail,
+            subject: $"Flottaöversikt: {alerts.Count} fordon behöver uppmärksamhet — {companyName}",
+            preheader: $"{alerts.Count} fordon i er flotta har låg poäng eller saknar analys.",
+            bodyHtml: bodyHtml,
+            text: text,
+            cancellationToken: cancellationToken);
+    }
+
+    private static string ScoreColor(double score) =>
+        score >= 60 ? "#16a34a" : score >= 40 ? "#d97706" : "#dc2626";
 
     // ── Internal send ────────────────────────────────────────────────────────
 
