@@ -35,7 +35,7 @@ type CreateForm = z.infer<typeof createSchema>
 
 const inviteSchema = z.object({
   email: z.string().email('Ogiltig e-postadress'),
-  role: z.preprocess((v) => Number(v), z.union([z.literal(0), z.literal(1)])),
+  role: z.union([z.literal(0), z.literal(1)]),
 })
 type InviteForm = z.infer<typeof inviteSchema>
 
@@ -54,7 +54,7 @@ export function CompanyAdminPage() {
   }
 
   if (!company && !isLoading) {
-    return <CreateCompanyForm onCreated={() => {}} isPending={createCompany.isPending} />
+    return <CreateCompanyForm onCreated={() => {}} />
   }
 
   if (error && !company) {
@@ -318,7 +318,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
             <Label htmlFor="invite-role">Roll</Label>
             <select
               id="invite-role"
-              {...register('role')}
+              {...register('role', { valueAsNumber: true })}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value={COMPANY_MEMBER_ROLE.MEMBER}>Medlem</option>
