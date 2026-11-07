@@ -17,9 +17,9 @@ jobs:
       - name: Wake the API and touch the database
         run: |
           set -u
-          health=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 --retry 3 --retry-delay 20 https://api.carcheck.se/health)
+          health=$(curl -s -o /dev/null -w "%{http_code}" --max-time 170 --retry 3 --retry-delay 30 https://carcheck-1-w7wo.onrender.com/health)
           echo "health: $health"
-          db=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 --retry 2 --retry-delay 20 "https://api.carcheck.se/api/auth/verify-email?token=keep-alive")
+          db=$(curl -s -o /dev/null -w "%{http_code}" --max-time 170 --retry 2 --retry-delay 30 "https://carcheck-1-w7wo.onrender.com/api/auth/verify-email?token=keep-alive")
           echo "database query: $db"
           # 200 or 400 both mean the API reached the database; anything else is a real problem.
           if [ "$db" != "200" ] && [ "$db" != "400" ]; then
