@@ -1,0 +1,28 @@
+name: Keep alive
+
+# Supabase pauses a free project after a week without activity, and Render spins the API
+# down when idle. One request a day that reaches the database keeps both awake.
+# The verify-email endpoint looks the token up in the database and answers 400 for an
+# unknown one, which is exactly the cheap, harmless query this needs.
+
+on:
+  schedule:
+    - cron: "17 5 * * *" # daily 05:17 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake the API and touch the database
+        run: |
+          set -u
+          health=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 --retry 3 --retry-delay 20 https://api.carcheck.se/health)
+          echo "health: $health"
+          db=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 --retry 2 --retry-delay 20 "https://api.carcheck.se/api/auth/verify-email?token=keep-alive")
+          echo "database query: $db"
+          # 200 or 400 both mean the API reached the database; anything else is a real problem.
+          if [ "$db" != "200" ] && [ "$db" != "400" ]; then
+            echo "::error::Database ping failed with HTTP $db"
+            exit 1
+          fi
